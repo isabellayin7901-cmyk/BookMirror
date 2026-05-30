@@ -34,3 +34,6 @@ yarn-error.*
 # Generated data
 backend/app/data/feedback.jsonl
 scripts/raw_books.txt
+
+# Claude Code 本机配置
+.claude/

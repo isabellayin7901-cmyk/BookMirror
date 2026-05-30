@@ -27,6 +27,7 @@ import { GOAL_KEYS, PREFERENCE_KEYS, PROBLEM_KEYS } from '../data/tags';
 import {
   QUICK_QUESTIONS,
   FULL_QUESTIONS,
+  localizeQuestion,
   type AnswerValue,
   type MbtiAnswer,
   type MbtiQuestion,
@@ -91,7 +92,8 @@ export function QuizScreen({ navigation, route }: Props) {
       .filter((q) => quizAnswers[q.id])
       .map((q) => ({
         question_id: q.id,
-        question_text: q.text,
+        // 用当前语言的题面上报，英文模式下让 Claude 读到英文题面
+        question_text: localizeQuestion(q, language).text,
         answer: quizAnswers[q.id],
       }));
     if (payload.length < questions.length) {
@@ -414,6 +416,7 @@ function Step1(props: Step1Props) {
             index={idx}
             total={questions.length}
             question={q}
+            language={language}
             answer={props.answers[q.id]}
             onAnswer={(a) => props.onAnswer(q.id, a)}
           />

@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, ZCOOLKuaiLe_400Regular } from '@expo-google-fonts/zcool-kuaile';
 
 import { TabsNavigator } from './src/navigation/TabsNavigator';
+import { LanguageSelectScreen } from './src/screens/LanguageSelectScreen';
 import { QuizScreen } from './src/screens/QuizScreen';
 import { ResultScreen } from './src/screens/ResultScreen';
 import { FeedbackScreen } from './src/screens/FeedbackScreen';
@@ -46,7 +47,7 @@ export default function App() {
       <NavigationContainer>
         <StatusBar style="dark" />
         <Stack.Navigator
-          initialRouteName={onboarded ? 'Tabs' : 'Quiz'}
+          initialRouteName={onboarded ? 'Tabs' : 'LanguageSelect'}
           screenOptions={{
             headerStyle: { backgroundColor: colors.bg },
             headerShadowVisible: false,
@@ -55,6 +56,11 @@ export default function App() {
           }}
         >
           <Stack.Screen name="Tabs" component={TabsNavigator} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="LanguageSelect"
+            component={LanguageSelectScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Quiz"
             component={QuizScreen}

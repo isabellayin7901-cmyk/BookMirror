@@ -4,17 +4,20 @@ import Slider from '@react-native-community/slider';
 
 import { colors, radius, spacing, typography, shadow } from '../theme';
 import { Sparkle } from '../illustrations/Sparkle';
-import type { AnswerValue, MbtiQuestion } from '../data/mbtiQuestions';
+import { localizeQuestion, type AnswerValue, type MbtiQuestion } from '../data/mbtiQuestions';
+import type { Language } from '../types';
 
 interface Props {
   index: number;
   total: number;
   question: MbtiQuestion;
+  language: Language;
   answer?: AnswerValue;
   onAnswer: (a: AnswerValue) => void;
 }
 
-export function QuestionCard({ index, total, question, answer, onAnswer }: Props) {
+export function QuestionCard({ index, total, question: raw, language, answer, onAnswer }: Props) {
+  const question = localizeQuestion(raw, language);
   return (
     <View style={[styles.card, shadow.soft]}>
       <View style={styles.progressRow}>
@@ -27,16 +30,20 @@ export function QuestionCard({ index, total, question, answer, onAnswer }: Props
       <Text style={styles.text}>{question.text}</Text>
 
       <View style={styles.answerArea}>
-        {question.type === 'yesno' && <YesNo question={question} answer={answer} onAnswer={onAnswer} />}
-        {question.type === 'slider' && <SliderQ question={question} answer={answer} onAnswer={onAnswer} />}
-        {question.type === 'choice3' && <Choice3 question={question} answer={answer} onAnswer={onAnswer} />}
+        {question.type === 'yesno' && <YesNo question={question} language={language} answer={answer} onAnswer={onAnswer} />}
+        {question.type === 'slider' && <SliderQ question={question} language={language} answer={answer} onAnswer={onAnswer} />}
+        {question.type === 'choice3' && <Choice3 question={question} language={language} answer={answer} onAnswer={onAnswer} />}
       </View>
     </View>
   );
 }
 
-function YesNo({ question, answer, onAnswer }: Omit<Props, 'index' | 'total'>) {
-  const labels = question.yesnoLabels ?? { yes: '是', no: '否', neutral: '看情况' };
+function YesNo({ question, language, answer, onAnswer }: Omit<Props, 'index' | 'total'>) {
+  const fallback =
+    language === 'en'
+      ? { yes: 'Yes', no: 'No', neutral: 'Depends' }
+      : { yes: '是', no: '否', neutral: '看情况' };
+  const labels = question.yesnoLabels ?? fallback;
   const options: Array<{ value: 'yes' | 'no' | 'neutral'; label: string; tone: string }> = [
     { value: 'yes', label: labels.yes, tone: colors.sage },
     { value: 'no', label: labels.no, tone: colors.rose },

@@ -7,7 +7,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /health
-    plan: free          # 免费档；闲置会休眠，首次请求冷启动较慢。要常驻就改 starter
+    plan: starter       # 付费档 $7/月；实例常驻不休眠，无冷启动。降回免费改 free
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false          # 在面板里手填，勿入库

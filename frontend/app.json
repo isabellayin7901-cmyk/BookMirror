@@ -36,7 +36,10 @@
     },
     "extra": {
       "apiBaseUrl": "https://bookmirror-api.onrender.com",
-      "appToken": "Xj8XJ6kBPuWufufJRg20gawlcRcR9bF0QNCj3xim7Jw"
+      "appToken": "Xj8XJ6kBPuWufufJRg20gawlcRcR9bF0QNCj3xim7Jw",
+      "eas": {
+        "projectId": "8cc1c5c4-820b-4ae6-a018-3d79dd20d52c"
+      }
     },
     "plugins": [
       "expo-asset",

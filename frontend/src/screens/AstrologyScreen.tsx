@@ -24,8 +24,9 @@ import type { Birthday, RootStackParamList, ZodiacReading } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Astrology'>;
 
-export function AstrologyScreen({ navigation }: Props) {
+export function AstrologyScreen({ navigation, route }: Props) {
   const { t, lang } = useI18n();
+  const onboarding = route.params?.onboarding ?? false;
   const [birthday, setBirthday] = useState<Partial<Birthday>>({});
   const [location, setLocation] = useState<SelectedLocation | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -96,7 +97,7 @@ export function AstrologyScreen({ navigation }: Props) {
         });
       }
       // 直接跳到只读结果页
-      navigation.replace('AstrologyResult');
+      navigation.replace('AstrologyResult', { onboarding });
     } catch (e: any) {
       Alert.alert(t('astro.errTitle'), e?.message ?? t('astro.errMsg'));
     } finally {

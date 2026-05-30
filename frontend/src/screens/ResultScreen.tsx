@@ -25,6 +25,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Result'>;
 export function ResultScreen({ navigation, route }: Props) {
   const { lang: language } = useI18n();
   const result = route.params?.result;
+  const onboarding = route.params?.onboarding ?? false;
 
   if (!result) {
     return (
@@ -75,42 +76,47 @@ export function ResultScreen({ navigation, route }: Props) {
           ))}
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.titleRow}>
-            <Leaf size={16} />
-            <Text style={styles.sectionTitle}>{t('result.recs', language)}</Text>
+        {/* 引导模式下先不展示书单，进 App 后在「今日推荐」里看 */}
+        {!onboarding && (
+          <View style={styles.section}>
+            <View style={styles.titleRow}>
+              <Leaf size={16} />
+              <Text style={styles.sectionTitle}>{t('result.recs', language)}</Text>
+            </View>
+            <WavyUnderline width={150} color={colors.sage} />
+            {result.recommendations.map((rec) => {
+              const book = result.books.find((b) => b.id === rec.book_id);
+              if (!book) return null;
+              return (
+                <BookCard
+                  key={rec.book_id}
+                  rec={rec}
+                  book={book}
+                  language={language}
+                  isFirst={rec.order === 1}
+                />
+              );
+            })}
           </View>
-          <WavyUnderline width={150} color={colors.sage} />
-          {result.recommendations.map((rec) => {
-            const book = result.books.find((b) => b.id === rec.book_id);
-            if (!book) return null;
-            return (
-              <BookCard
-                key={rec.book_id}
-                rec={rec}
-                book={book}
-                language={language}
-                isFirst={rec.order === 1}
-              />
-            );
-          })}
-        </View>
+        )}
 
         <Text style={styles.disclaimer}>{t('result.disclaimer', language)}</Text>
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton
-          title={t('result.toHome', language)}
-          variant="secondary"
-          style={{ flex: 1, marginRight: spacing.sm }}
-          onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })}
-        />
-        <PrimaryButton
-          title={t('result.toFeedback', language)}
-          style={{ flex: 1, marginLeft: spacing.sm }}
-          onPress={() => navigation.navigate('Feedback', { books: result.books })}
-        />
+        {onboarding ? (
+          <PrimaryButton
+            title={t('onboard.toBirthday', language)}
+            style={{ flex: 1 }}
+            onPress={() => navigation.replace('Astrology', { onboarding: true })}
+          />
+        ) : (
+          <PrimaryButton
+            title={t('result.toHome', language)}
+            style={{ flex: 1 }}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

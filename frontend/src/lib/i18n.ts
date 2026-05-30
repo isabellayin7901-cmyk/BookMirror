@@ -54,6 +54,12 @@ const zh: Dict = {
   'result.retake': '重新测试',
   'result.disclaimer': '推荐由 AI 生成，仅供参考，不构成专业心理建议。',
 
+  // 首次引导：测评分步推进的按钮
+  'onboard.toBirthday': '下一步：破壳日测评 →',
+  'onboard.toSynthesis': '下一步：综合测评 →',
+  'onboard.enterApp': '进入 App ✨',
+  'onboard.synthHint': 'Mico 正在把你的性格与星盘揉成第一份综合画像…',
+
   'feedback.title': '阅读反馈',
   'feedback.pickBook': '你要反馈的书',
   'feedback.useful': '✅ 有用',
@@ -343,6 +349,10 @@ const en: Dict = {
   'result.focus': 'What to focus on',
   'result.toFeedback': 'I finished → leave feedback',
   'result.toHome': '🏠 Home',
+  'onboard.toBirthday': 'Next: birthday reading →',
+  'onboard.toSynthesis': 'Next: combined reading →',
+  'onboard.enterApp': 'Enter the app ✨',
+  'onboard.synthHint': 'Mico is blending your personality and stars into your first combined profile…',
   'result.retake': 'Retake',
   'result.disclaimer': 'AI-generated suggestions. Not professional psychological advice.',
 

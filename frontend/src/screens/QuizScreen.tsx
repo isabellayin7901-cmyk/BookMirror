@@ -49,8 +49,9 @@ type Step1Mode =
   | { kind: 'quiz'; questions: MbtiQuestion[]; mode: 'quick' | 'full' }
   | { kind: 'inferred'; mbti: MBTI; confidence: number; reasoning: string };
 
-export function QuizScreen({ navigation }: Props) {
+export function QuizScreen({ navigation, route }: Props) {
   const { lang: language } = useI18n();
+  const onboarding = route.params?.onboarding ?? false;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -136,7 +137,7 @@ export function QuizScreen({ navigation }: Props) {
       const result = await fetchRecommendation(profile);
       await storage.setLastResult(result);
       await storage.setRecommendSignature(profileSignature(profile));
-      navigation.replace('Result', { result });
+      navigation.replace('Result', { result, onboarding });
     } catch (e: any) {
       Alert.alert(
         t('quiz.netErrTitle', language),

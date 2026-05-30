@@ -15,8 +15,9 @@ import type { RootStackParamList, ZodiacReading } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AstrologyResult'>;
 
-export function AstrologyResultScreen({ navigation }: Props) {
+export function AstrologyResultScreen({ navigation, route }: Props) {
   const { t, lang } = useI18n();
+  const onboarding = route.params?.onboarding ?? false;
   const [zodiac, setZodiac] = useState<ZodiacReading | null>(null);
 
   // 语言切换后，画像文案（描述/关键词）需要按新语言重新生成。
@@ -60,7 +61,7 @@ export function AstrologyResultScreen({ navigation }: Props) {
           <Text style={styles.emptyHint}>{t('astroResult.emptyHint')}</Text>
           <Pressable
             style={styles.emptyBtn}
-            onPress={() => navigation.replace('Astrology')}
+            onPress={() => navigation.replace('Astrology', { onboarding })}
           >
             <Text style={styles.emptyBtnText}>{t('astroResult.emptyBtn')}</Text>
           </Pressable>
@@ -132,13 +133,22 @@ export function AstrologyResultScreen({ navigation }: Props) {
           </View>
         )}
 
-        {/* 重测入口 */}
-        <Pressable
-          onPress={() => navigation.replace('Astrology')}
-          style={styles.retakeBtn}
-        >
-          <Text style={styles.retakeText}>{t('astroResult.retake')}</Text>
-        </Pressable>
+        {/* 引导模式：推进到综合测评；非引导：仅重测入口 */}
+        {onboarding ? (
+          <Pressable
+            onPress={() => navigation.replace('Persona', { onboarding: true })}
+            style={({ pressed }) => [styles.continueBtn, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={styles.continueText}>{t('onboard.toSynthesis')}</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => navigation.replace('Astrology')}
+            style={styles.retakeBtn}
+          >
+            <Text style={styles.retakeText}>{t('astroResult.retake')}</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -211,4 +221,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,
   },
   retakeText: { color: colors.terracotta, fontWeight: '600' },
+
+  continueBtn: {
+    marginTop: spacing.xl,
+    paddingVertical: 16,
+    backgroundColor: colors.terracotta,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+  },
+  continueText: { color: '#fff', fontWeight: '700', fontSize: 16, letterSpacing: 0.5 },
 });

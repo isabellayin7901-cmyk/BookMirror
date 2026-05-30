@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
@@ -17,11 +17,14 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export function PersonaScreen() {
   const navigation = useNavigation<Nav>();
+  const route = useRoute<RouteProp<RootStackParamList, 'Persona'>>();
+  const onboarding = route.params?.onboarding ?? false;
   const { t, lang } = useI18n();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [synth, setSynth] = useState<SynthesisProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const autoTried = useRef(false);
 
   const load = useCallback(async () => {
     const p = await storage.getUserProfile();
@@ -61,6 +64,15 @@ export function PersonaScreen() {
       setLoading(false);
     }
   };
+
+  // 引导模式：进入综合测评页自动生成（只尝试一次），无需用户再点按钮
+  useEffect(() => {
+    if (onboarding && canSynth && !synth && !loading && !autoTried.current) {
+      autoTried.current = true;
+      generate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboarding, canSynth, synth, loading]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -185,6 +197,21 @@ export function PersonaScreen() {
             </>
           )}
         </View>
+
+        {/* 引导模式：综合测评是首次引导的最后一步，完成后进入 App */}
+        {onboarding && (
+          <>
+            {!synth && (
+              <Text style={styles.enterHint}>{t('onboard.synthHint')}</Text>
+            )}
+            <Pressable
+              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })}
+              style={({ pressed }) => [styles.enterBtn, pressed && { opacity: 0.85 }]}
+            >
+              <Text style={styles.enterText}>{t('onboard.enterApp')}</Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -278,4 +305,17 @@ const styles = StyleSheet.create({
 
   regenBtn: { marginTop: spacing.lg, alignSelf: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   regenText: { color: colors.terracotta, fontWeight: '600' },
+
+  enterHint: {
+    ...typography.caption, textAlign: 'center',
+    marginTop: spacing.lg, marginBottom: spacing.sm,
+  },
+  enterBtn: {
+    marginTop: spacing.md,
+    paddingVertical: 16,
+    backgroundColor: colors.terracotta,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+  },
+  enterText: { color: '#fff', fontWeight: '700', fontSize: 16, letterSpacing: 0.5 },
 });

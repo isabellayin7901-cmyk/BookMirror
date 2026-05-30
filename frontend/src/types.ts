@@ -117,13 +117,13 @@ export type FeedbackReaction = 'useful' | 'too_hard' | 'not_interested' | 'want_
 export type RootStackParamList = {
   Tabs: undefined;
   Quiz: { onboarding?: boolean } | undefined;
-  Result: { result: RecommendationResponse } | undefined;
+  Result: { result: RecommendationResponse; onboarding?: boolean } | undefined;
   Feedback: { books: Book[] };
   Settings: undefined;
   Profile: undefined;
-  Persona: undefined;
-  Astrology: undefined;
-  AstrologyResult: undefined;
+  Persona: { onboarding?: boolean } | undefined;
+  Astrology: { onboarding?: boolean } | undefined;
+  AstrologyResult: { onboarding?: boolean } | undefined;
 };
 
 export type TabParamList = {

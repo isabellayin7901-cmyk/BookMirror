@@ -119,6 +119,7 @@ export async function fetchSynthesis(payload: {
   element: string;
   moon_sign?: string;
   rising_sign?: string;
+  gender?: 'female' | 'male' | 'other';
   language: Language;
 }): Promise<SynthesisProfile> {
   const res = await fetch(`${baseUrl}/api/synthesis`, {

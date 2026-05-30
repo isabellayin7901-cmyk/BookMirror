@@ -51,7 +51,13 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许 BookMirror 访问相册，用于设置你的头像。"
+        }
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"

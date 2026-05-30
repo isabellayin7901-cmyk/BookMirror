@@ -16,6 +16,7 @@ def synthesize(payload: SynthesisRequest):
             element=payload.element,
             moon_sign=payload.moon_sign,
             rising_sign=payload.rising_sign,
+            gender=payload.gender,
             language=payload.language,
         )
     except Exception as e:

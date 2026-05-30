@@ -48,7 +48,7 @@ export interface BookFit {
   key_focus: string[];
 }
 
-/** 综合画像缓存签名：MBTI + 星座 + 语言任一变化就重新生成。 */
+/** 综合画像缓存签名：MBTI + 星座 + 性别 + 语言任一变化就重新生成。 */
 export function synthesisSignature(p: UserProfile | null): string {
   if (!p || !p.zodiac) return '';
   return [
@@ -58,6 +58,7 @@ export function synthesisSignature(p: UserProfile | null): string {
     p.zodiac.moon_sign ?? '',
     p.zodiac.rising_sign ?? '',
     p.zodiac.element,
+    p.gender ?? '',
   ].join('|');
 }
 

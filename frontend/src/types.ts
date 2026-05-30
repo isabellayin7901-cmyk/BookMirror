@@ -73,6 +73,8 @@ export interface UserProfile {
   birthplace?: Birthplace;
   zodiac?: ZodiacReading;
   gender?: Gender;
+  /** 自定义头像本地 URI（来自相册）；缺省用小兔 Mico。 */
+  avatarUri?: string;
 }
 
 export interface Book {
@@ -125,6 +127,7 @@ export type RootStackParamList = {
   Persona: { onboarding?: boolean } | undefined;
   Astrology: { onboarding?: boolean } | undefined;
   AstrologyResult: { onboarding?: boolean } | undefined;
+  Gender: { onboarding?: boolean } | undefined;
 };
 
 export type TabParamList = {

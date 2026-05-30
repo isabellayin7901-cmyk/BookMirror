@@ -54,6 +54,7 @@ export function PersonaScreen() {
         element: profile.zodiac.element,
         moon_sign: profile.zodiac.moon_sign,
         rising_sign: profile.zodiac.rising_sign,
+        gender: profile.gender,
         language: lang,
       });
       setSynth(result);

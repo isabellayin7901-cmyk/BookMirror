@@ -136,10 +136,10 @@ export function AstrologyResultScreen({ navigation, route }: Props) {
         {/* 引导模式：推进到综合测评；非引导：仅重测入口 */}
         {onboarding ? (
           <Pressable
-            onPress={() => navigation.replace('Persona', { onboarding: true })}
+            onPress={() => navigation.replace('Gender', { onboarding: true })}
             style={({ pressed }) => [styles.continueBtn, pressed && { opacity: 0.85 }]}
           >
-            <Text style={styles.continueText}>{t('onboard.toSynthesis')}</Text>
+            <Text style={styles.continueText}>{t('onboard.toGender')}</Text>
           </Pressable>
         ) : (
           <Pressable

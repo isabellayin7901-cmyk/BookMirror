@@ -128,6 +128,7 @@ class SynthesisRequest(BaseModel):
     moon_sign: Optional[str] = None
     rising_sign: Optional[str] = None
     element: str
+    gender: Optional[Literal["female", "male", "other"]] = None
     language: Literal["zh", "en"] = "zh"
 
 

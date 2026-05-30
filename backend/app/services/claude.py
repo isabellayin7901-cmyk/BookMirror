@@ -565,10 +565,13 @@ def infer_synthesis(
     element: str,
     moon_sign: Optional[str] = None,
     rising_sign: Optional[str] = None,
+    gender: Optional[str] = None,
     language: str = "zh",
 ) -> dict[str, Any]:
     """Fuse MBTI + zodiac into one combined persona portrait."""
     client = get_client()
+
+    _gender_label = {"female": "女", "male": "男", "other": "其他/不愿透露"}
 
     lines = [
         f"user_language: {language}",
@@ -579,6 +582,9 @@ def infer_synthesis(
         lines.append(f"月亮星座：{moon_sign}（情感底色）")
     if rising_sign:
         lines.append(f"上升星座：{rising_sign}（外在气质）")
+    if gender:
+        # 性别只是弱相关的轻参考，不要据此下刻板结论
+        lines.append(f"性别：{_gender_label.get(gender, gender)}（弱参考，仅作语气与视角的轻微调整，切勿刻板化）")
     user_prompt = "\n".join(lines) + "\n\n请把这两套人格语言融合，调用 synthesize_persona 工具返回综合画像。"
 
     response = client.messages.create(

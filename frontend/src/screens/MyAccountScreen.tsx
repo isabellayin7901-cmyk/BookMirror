@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -32,6 +32,39 @@ export function MyAccountScreen() {
     return unsub;
   }, [navigation, load]);
 
+  const pickAvatar = useCallback(async () => {
+    // expo-image-picker 是原生模块；旧安装包（OTA 拿不到原生代码）会 require 失败，
+    // 此时优雅降级提示用户安装新版，而不是崩溃。
+    let ImagePicker: typeof import('expo-image-picker');
+    try {
+      ImagePicker = require('expo-image-picker');
+    } catch {
+      Alert.alert(t('account.avatarNeedUpdate'));
+      return;
+    }
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(t('account.avatarPermission'));
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      if (res.canceled || !res.assets?.[0]?.uri) return;
+      const current = await storage.getUserProfile();
+      if (!current) return;
+      const updated: UserProfile = { ...current, avatarUri: res.assets[0].uri };
+      await storage.setUserProfile(updated);
+      setProfile(updated);
+    } catch {
+      Alert.alert(t('account.avatarNeedUpdate'));
+    }
+  }, [t]);
+
   const totalPages = checkinLog.reduce((sum, d) => sum + d.pages, 0);
   const streak = checkinLog.length;
 
@@ -40,9 +73,17 @@ export function MyAccountScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl }}>
         {/* 头部头像 */}
         <View style={styles.header}>
-          <View style={styles.avatarBig}>
-            <Bunny size={88} pose="wave" />
-          </View>
+          <Pressable
+            onPress={pickAvatar}
+            style={({ pressed }) => [styles.avatarBig, pressed && { opacity: 0.85 }]}
+          >
+            {profile?.avatarUri ? (
+              <Image source={{ uri: profile.avatarUri }} style={styles.avatarImg} />
+            ) : (
+              <Bunny size={88} pose="wave" />
+            )}
+          </Pressable>
+          <Text style={styles.avatarHint}>{t('account.changeAvatar')}</Text>
           {profile?.mbti ? (
             <>
               <Text style={styles.mbtiBig}>{profile.mbti}</Text>
@@ -145,6 +186,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: colors.bunnyEar,
+    marginBottom: spacing.xs,
+    overflow: 'hidden',
+  },
+  avatarImg: { width: '100%', height: '100%' },
+  avatarHint: {
+    ...typography.caption,
+    color: colors.textMuted,
     marginBottom: spacing.md,
   },
   mbtiBig: {

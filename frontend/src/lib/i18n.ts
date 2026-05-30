@@ -56,9 +56,13 @@ const zh: Dict = {
 
   // 首次引导：测评分步推进的按钮
   'onboard.toBirthday': '下一步：破壳日测评 →',
+  'onboard.toGender': '下一步：补充性别 →',
   'onboard.toSynthesis': '下一步：综合测评 →',
   'onboard.enterApp': '进入 App ✨',
   'onboard.synthHint': 'Mico 正在把你的性格与星盘揉成第一份综合画像…',
+  'gender.title': '你的性别',
+  'gender.sub': '性别只作为很弱的参考，帮 Mico 把综合画像的语气和视角调得更贴合你一点。',
+  'gender.skip': '暂不填写',
 
   'feedback.title': '阅读反馈',
   'feedback.pickBook': '你要反馈的书',
@@ -196,6 +200,9 @@ const zh: Dict = {
   'account.coming3': '· 阅读趋势 月报',
   'account.settings': '⚙︎  设置',
   'account.addBirthday': '+ 添加你的破壳日，解锁星座 ✨',
+  'account.changeAvatar': '点头像换照片',
+  'account.avatarPermission': '需要相册权限才能更换头像',
+  'account.avatarNeedUpdate': '自定义头像需要更新到最新版 App（OTA 无法添加相册功能，请安装新的安装包）',
 
   // ===== settings =====
   'settings.profile': '我的档案',
@@ -350,9 +357,13 @@ const en: Dict = {
   'result.toFeedback': 'I finished → leave feedback',
   'result.toHome': '🏠 Home',
   'onboard.toBirthday': 'Next: birthday reading →',
+  'onboard.toGender': 'Next: add gender →',
   'onboard.toSynthesis': 'Next: combined reading →',
   'onboard.enterApp': 'Enter the app ✨',
   'onboard.synthHint': 'Mico is blending your personality and stars into your first combined profile…',
+  'gender.title': 'Your gender',
+  'gender.sub': 'Gender is only a very light reference—it helps Mico fine-tune the tone and angle of your combined profile.',
+  'gender.skip': 'Skip for now',
   'result.retake': 'Retake',
   'result.disclaimer': 'AI-generated suggestions. Not professional psychological advice.',
 
@@ -491,6 +502,9 @@ const en: Dict = {
   'account.coming3': '· Monthly reading report',
   'account.settings': '⚙︎  Settings',
   'account.addBirthday': '+ Add your birthday to unlock your zodiac ✨',
+  'account.changeAvatar': 'Tap to change photo',
+  'account.avatarPermission': 'Photo library permission is needed to change your avatar',
+  'account.avatarNeedUpdate': 'Custom avatars need the latest app version (OTA can’t add photo access — please install the new build)',
 
   // ===== settings =====
   'settings.profile': 'My Profile',

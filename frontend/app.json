@@ -35,7 +35,7 @@
       }
     },
     "extra": {
-      "apiBaseUrl": "http://10.133.60.8:8000",
+      "apiBaseUrl": "https://bookmirror-api.onrender.com",
       "appToken": "Xj8XJ6kBPuWufufJRg20gawlcRcR9bF0QNCj3xim7Jw"
     },
     "plugins": [

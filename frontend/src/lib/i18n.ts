@@ -41,7 +41,7 @@ const zh: Dict = {
   'quiz.step3.depthLight': '轻松',
   'quiz.step3.depthDeep': '深度',
   'quiz.step4.title': '你目前的困扰',
-  'quiz.step4.freeText': '还有其他想说的？（选填，最多 100 字）',
+  'quiz.step4.freeText': '还有其他想说的？（选填）',
 
   'result.profile': '你的阅读画像',
   'result.gaps': '你现在最该补的能力',
@@ -339,7 +339,7 @@ const en: Dict = {
   'quiz.step3.depthLight': 'Light',
   'quiz.step3.depthDeep': 'Deep',
   'quiz.step4.title': 'What’s troubling you right now?',
-  'quiz.step4.freeText': 'Anything else? (optional, max 100 chars)',
+  'quiz.step4.freeText': 'Anything else? (optional)',
 
   'result.profile': 'Your reading profile',
   'result.gaps': 'What you should grow next',

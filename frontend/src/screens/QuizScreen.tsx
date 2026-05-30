@@ -127,7 +127,7 @@ export function QuizScreen({ navigation, route }: Props) {
       preferences,
       depth,
       problems,
-      free_text: freeText.trim().slice(0, 100),
+      free_text: freeText.trim(),
       language,
     };
     setLoading(true);
@@ -137,7 +137,13 @@ export function QuizScreen({ navigation, route }: Props) {
       const result = await fetchRecommendation(profile);
       await storage.setLastResult(result);
       await storage.setRecommendSignature(profileSignature(profile));
-      navigation.replace('Result', { result, onboarding });
+      // 引导模式：困扰页之后直接进破壳日测评，阅读画像放到综合测评里再展示；
+      // 书单已存好，进 App 后在「今日推荐」里和综合画像一起看。
+      if (onboarding) {
+        navigation.replace('Astrology', { onboarding: true });
+      } else {
+        navigation.replace('Result', { result, onboarding });
+      }
     } catch (e: any) {
       Alert.alert(
         t('quiz.netErrTitle', language),
@@ -258,7 +264,7 @@ export function QuizScreen({ navigation, route }: Props) {
             <TextInput
               style={styles.input}
               value={freeText}
-              onChangeText={(s) => setFreeText(s.slice(0, 100))}
+              onChangeText={setFreeText}
               multiline
               placeholder="…"
               placeholderTextColor={colors.textMuted}
@@ -285,7 +291,13 @@ export function QuizScreen({ navigation, route }: Props) {
           />
         ) : (
           <PrimaryButton
-            title={loading ? t('quiz.loading', language) : t('quiz.submit', language)}
+            title={
+              loading
+                ? t('quiz.loading', language)
+                : onboarding
+                ? t('onboard.toBirthday', language)
+                : t('quiz.submit', language)
+            }
             style={{ flex: 1, marginLeft: spacing.sm }}
             disabled={!canNext()}
             loading={loading}

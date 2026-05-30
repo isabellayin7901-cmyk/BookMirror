@@ -23,6 +23,14 @@
           "taobao",
           "dangdang",
           "com.amazon.mobile.shopping",
+          "douban",
+          "weread",
+          "snssdk1112",
+          "qqreader",
+          "openapp.jdmobile",
+          "taobao",
+          "dangdang",
+          "com.amazon.mobile.shopping",
           "douban"
         ]
       }
@@ -44,6 +52,12 @@
     "plugins": [
       "expo-asset",
       "expo-font"
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8cc1c5c4-820b-4ae6-a018-3d79dd20d52c"
+    }
   }
 }

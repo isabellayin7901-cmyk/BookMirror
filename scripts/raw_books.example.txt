@@ -1,0 +1,19 @@
+# 每行一本书：title|author|isbn(可选)|language(可选，默认 zh)
+# 用 # 开头的行会被跳过
+
+非暴力沟通|马歇尔·卢森堡|9787561343647|zh
+被讨厌的勇气|岸见一郎 / 古贺史健|9787111495482|zh
+原则|瑞·达利欧|9787508684031|zh
+影响力|罗伯特·西奥迪尼||zh
+心流|米哈里·契克森米哈赖||zh
+人性的弱点|戴尔·卡耐基||zh
+深度工作|卡尔·纽波特||zh
+认知觉醒|周岭||zh
+活着|余华||zh
+百年孤独|加西亚·马尔克斯||zh
+
+Atomic Habits|James Clear|9780735211292|en
+Man's Search for Meaning|Viktor Frankl||en
+Thinking, Fast and Slow|Daniel Kahneman||en
+The Power of Now|Eckhart Tolle||en
+Mindset|Carol Dweck||en

@@ -1,0 +1,76 @@
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts, ZCOOLKuaiLe_400Regular } from '@expo-google-fonts/zcool-kuaile';
+
+import { TabsNavigator } from './src/navigation/TabsNavigator';
+import { QuizScreen } from './src/screens/QuizScreen';
+import { ResultScreen } from './src/screens/ResultScreen';
+import { FeedbackScreen } from './src/screens/FeedbackScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
+import { PersonaScreen } from './src/screens/PersonaScreen';
+import { AstrologyScreen } from './src/screens/AstrologyScreen';
+import { AstrologyResultScreen } from './src/screens/AstrologyResultScreen';
+import { storage } from './src/lib/storage';
+import { LanguageProvider } from './src/lib/LanguageContext';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { colors } from './src/theme';
+import type { RootStackParamList } from './src/types';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [fontsLoaded] = useFonts({ ZCOOLKuaiLe_400Regular });
+
+  useEffect(() => {
+    storage.getOnboarded().then((v) => setOnboarded(v));
+  }, []);
+
+  if (onboarded === null || !fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator color={colors.terracotta} />
+      </View>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+    <SafeAreaProvider>
+      <LanguageProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <Stack.Navigator
+          initialRouteName={onboarded ? 'Tabs' : 'Quiz'}
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.bg },
+            headerShadowVisible: false,
+            headerTitle: '',
+            contentStyle: { backgroundColor: colors.bg },
+          }}
+        >
+          <Stack.Screen name="Tabs" component={TabsNavigator} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="Quiz"
+            component={QuizScreen}
+            initialParams={{ onboarding: !onboarded }}
+          />
+          <Stack.Screen name="Result" component={ResultScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Feedback" component={FeedbackScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Persona" component={PersonaScreen} />
+          <Stack.Screen name="Astrology" component={AstrologyScreen} />
+          <Stack.Screen name="AstrologyResult" component={AstrologyResultScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+      </LanguageProvider>
+    </SafeAreaProvider>
+    </ErrorBoundary>
+  );
+}

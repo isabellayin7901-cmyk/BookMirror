@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "BookMirror",
+    "slug": "bookmirror",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF7F2"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bookmirror.app",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "weread",
+          "snssdk1112",
+          "qqreader",
+          "openapp.jdmobile",
+          "taobao",
+          "dangdang",
+          "com.amazon.mobile.shopping",
+          "douban"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.bookmirror.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FAF7F2"
+      }
+    },
+    "extra": {
+      "apiBaseUrl": "http://10.133.60.8:8000",
+      "appToken": "Xj8XJ6kBPuWufufJRg20gawlcRcR9bF0QNCj3xim7Jw"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}

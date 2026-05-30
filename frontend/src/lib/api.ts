@@ -1,0 +1,186 @@
+import Constants from 'expo-constants';
+import type {
+  Book,
+  FeedbackReaction,
+  Language,
+  MBTI,
+  RecommendationResponse,
+  UserProfile,
+} from '../types';
+import type { MbtiAnswer } from '../data/mbtiQuestions';
+import type { Birthday, SynthesisProfile, ZodiacReading } from '../types';
+
+const extra = Constants.expoConfig?.extra as
+  | { apiBaseUrl?: string; appToken?: string }
+  | undefined;
+
+const baseUrl = extra?.apiBaseUrl ?? 'http://localhost:8000';
+const appToken = extra?.appToken ?? '';
+
+/** 所有请求统一带上访问令牌；POST 再加 JSON 头。 */
+function authHeaders(json = false): Record<string, string> {
+  const h: Record<string, string> = {};
+  if (json) h['Content-Type'] = 'application/json';
+  if (appToken) h['X-App-Token'] = appToken;
+  return h;
+}
+
+export async function fetchRecommendation(
+  profile: UserProfile,
+): Promise<RecommendationResponse> {
+  const res = await fetch(`${baseUrl}/api/recommend`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(profile),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Recommend failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+/** 按 id 批量取最新书数据（用于收藏列表重新水合，补上英文字段） */
+export async function fetchBooksByIds(ids: string[]): Promise<Book[]> {
+  const wanted = ids.filter(Boolean);
+  if (wanted.length === 0) return [];
+  const res = await fetch(
+    `${baseUrl}/api/books/by-ids?ids=${encodeURIComponent(wanted.join(','))}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) {
+    throw new Error(`Fetch by ids failed (${res.status})`);
+  }
+  return res.json();
+}
+
+/** 全库搜索：书名 / 作者 / 简介关键词 */
+export async function searchBooks(q: string, limit = 30): Promise<Book[]> {
+  const query = q.trim();
+  if (!query) return [];
+  const res = await fetch(
+    `${baseUrl}/api/books/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) {
+    throw new Error(`Search failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export interface MbtiInferenceResponse {
+  mbti: MBTI;
+  confidence: number;
+  reasoning: string;
+}
+
+export async function inferMbti(
+  answers: MbtiAnswer[],
+  mode: 'quick' | 'full',
+  language: Language,
+): Promise<MbtiInferenceResponse> {
+  const res = await fetch(`${baseUrl}/api/mbti`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ answers, mode, language }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`MBTI inference failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+export async function analyzeAstrology(
+  birthday: Birthday,
+  language: Language,
+  location?: { latitude: number; longitude: number },
+): Promise<ZodiacReading> {
+  const res = await fetch(`${baseUrl}/api/astrology`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({
+      ...birthday,
+      language,
+      latitude: location?.latitude,
+      longitude: location?.longitude,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Astrology failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+export async function fetchSynthesis(payload: {
+  mbti: MBTI;
+  sun_sign: string;
+  element: string;
+  moon_sign?: string;
+  rising_sign?: string;
+  language: Language;
+}): Promise<SynthesisProfile> {
+  const res = await fetch(`${baseUrl}/api/synthesis`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Synthesis failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+export interface BookFitResponse {
+  why_for_you: string;
+  key_focus: string[];
+}
+
+/** 结合用户 MBTI×星座综合画像 + 需求，点对点解释这本书为什么适合 ta */
+export async function fetchBookFit(payload: {
+  book_title: string;
+  book_author?: string;
+  book_summary?: string;
+  book_topics?: string[];
+  book_category?: string;
+  book_difficulty?: number;
+  mbti?: string;
+  sun_sign?: string;
+  moon_sign?: string;
+  rising_sign?: string;
+  element?: string;
+  goals?: string[];
+  problems?: string[];
+  preferences?: string[];
+  free_text?: string;
+  language: Language;
+}): Promise<BookFitResponse> {
+  const res = await fetch(`${baseUrl}/api/book-fit`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Book fit failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+export async function submitFeedback(payload: {
+  book_id: string;
+  reaction: FeedbackReaction;
+  note?: string;
+  user_profile?: UserProfile;
+}): Promise<void> {
+  const res = await fetch(`${baseUrl}/api/feedback`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(`Feedback failed (${res.status})`);
+  }
+}

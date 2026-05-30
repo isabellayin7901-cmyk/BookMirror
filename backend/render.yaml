@@ -1,0 +1,25 @@
+# Render.com 蓝图：连接仓库后选「New + → Blueprint」即可自动建服务。
+# 部署后到 Dashboard 的 Environment 里填入 ANTHROPIC_API_KEY / APP_TOKEN。
+services:
+  - type: web
+    name: bookmirror-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    plan: starter
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # 在面板里手填，勿入库
+      - key: APP_TOKEN
+        sync: false
+      - key: CLAUDE_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: RATE_LIMIT_MAX
+        value: "30"
+      - key: RATE_LIMIT_WINDOW
+        value: "60"
+      - key: LOG_LEVEL
+        value: INFO

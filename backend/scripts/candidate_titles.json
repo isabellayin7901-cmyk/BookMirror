@@ -1,0 +1,6562 @@
+[
+  {
+    "title": "暮年记",
+    "author": "铁凝",
+    "category": "novel"
+  },
+  {
+    "title": "蛙",
+    "author": "莫言",
+    "category": "novel"
+  },
+  {
+    "title": "聊斋志异",
+    "author": "蒲松龄",
+    "category": "novel"
+  },
+  {
+    "title": "儒林外史",
+    "author": "吴敬梓",
+    "category": "novel"
+  },
+  {
+    "title": "镜花缘",
+    "author": "李汝珍",
+    "category": "novel"
+  },
+  {
+    "title": "莫斯科不相信眼泪",
+    "author": "弗拉基米尔·门德留克",
+    "category": "novel"
+  },
+  {
+    "title": "三个火枪手",
+    "author": "大仲马",
+    "category": "novel"
+  },
+  {
+    "title": "茶色骑士",
+    "author": "大仲马",
+    "category": "novel"
+  },
+  {
+    "title": "钟楼怪人",
+    "author": "维克多·雨果",
+    "category": "novel"
+  },
+  {
+    "title": "莎士比亚全集",
+    "author": "威廉·莎士比亚",
+    "category": "novel"
+  },
+  {
+    "title": "白痴",
+    "author": "费奥多尔·陀思妥耶夫斯基",
+    "category": "novel"
+  },
+  {
+    "title": "卡拉马佐夫兄弟",
+    "author": "费奥多尔·陀思妥耶夫斯基",
+    "category": "novel"
+  },
+  {
+    "title": "死灵魂",
+    "author": "尼古拉·果戈理",
+    "category": "novel"
+  },
+  {
+    "title": "父与子",
+    "author": "伊凡·屠格涅夫",
+    "category": "novel"
+  },
+  {
+    "title": "童年·少年·青年",
+    "author": "列夫·托尔斯泰",
+    "category": "novel"
+  },
+  {
+    "title": "简爱",
+    "author": "夏洛蒂·勃朗特",
+    "category": "novel"
+  },
+  {
+    "title": "悬崖边的孩子们",
+    "author": "杰罗姆·大卫·塞林格",
+    "category": "novel"
+  },
+  {
+    "title": "蝇王",
+    "author": "威廉·戈尔丁",
+    "category": "novel"
+  },
+  {
+    "title": "喀提林阴谋",
+    "author": "尤里皮得斯",
+    "category": "novel"
+  },
+  {
+    "title": "莱蒙托夫诗集",
+    "author": "米哈伊尔·莱蒙托夫",
+    "category": "novel"
+  },
+  {
+    "title": "死亡笔记",
+    "author": "大场鸫",
+    "category": "novel"
+  },
+  {
+    "title": "人间失格",
+    "author": "太宰治",
+    "category": "novel"
+  },
+  {
+    "title": "挪威的森林",
+    "author": "村上春树",
+    "category": "novel"
+  },
+  {
+    "title": "骑士与骏马",
+    "author": "村上春树",
+    "category": "novel"
+  },
+  {
+    "title": "羊男的圣诞节",
+    "author": "村上春树",
+    "category": "novel"
+  },
+  {
+    "title": "冰与火之歌",
+    "author": "乔治·R·R·马丁",
+    "category": "novel"
+  },
+  {
+    "title": "哈利·波特与魔法石",
+    "author": "J·K·罗琳",
+    "category": "novel"
+  },
+  {
+    "title": "哈利·波特与密室",
+    "author": "J·K·罗琳",
+    "category": "novel"
+  },
+  {
+    "title": "哈利·波特与阿兹卡班囚徒",
+    "author": "J·K·罗琳",
+    "category": "novel"
+  },
+  {
+    "title": "人工智能时代的工作",
+    "author": "埃里克·布莱恩约弗森",
+    "category": "non_fiction"
+  },
+  {
+    "title": "第三次浪潮",
+    "author": "阿尔文·托夫勒",
+    "category": "non_fiction"
+  },
+  {
+    "title": "六度分隔",
+    "author": "邓肯·瓦茨",
+    "category": "non_fiction"
+  },
+  {
+    "title": "吃的自然史",
+    "author": "玛丽安·内斯特勒",
+    "category": "non_fiction"
+  },
+  {
+    "title": "活着就是硬道理",
+    "author": "路易斯·布朗",
+    "category": "non_fiction"
+  },
+  {
+    "title": "天才源自1%的灵感和99%的汗水",
+    "author": "比尔·格罗斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "失控",
+    "author": "凯文·凯利",
+    "category": "non_fiction"
+  },
+  {
+    "title": "软实力",
+    "author": "约瑟夫·奈",
+    "category": "non_fiction"
+  },
+  {
+    "title": "我的人生哲学",
+    "author": "威廉·詹姆斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "生命的历程",
+    "author": "卡尔·荣格",
+    "category": "non_fiction"
+  },
+  {
+    "title": "演讲的本质",
+    "author": "帕特·萨默特",
+    "category": "non_fiction"
+  },
+  {
+    "title": "冷战后的美国霸权",
+    "author": "约翰·刘易斯·加迪斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "平台战争",
+    "author": "罗兰·德·布斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "被压抑的记忆",
+    "author": "贝勒·范德·柯尔克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "数据之美",
+    "author": "纳特·西尔弗",
+    "category": "non_fiction"
+  },
+  {
+    "title": "走出抑郁",
+    "author": "大卫·戈麦斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "设计的法则",
+    "author": "威廉·利德威尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "精准医疗",
+    "author": "埃里克·托普",
+    "category": "non_fiction"
+  },
+  {
+    "title": "基因革命",
+    "author": "詹姆斯·沃森",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大脑的故事",
+    "author": "V.S.拉马钱德兰",
+    "category": "non_fiction"
+  },
+  {
+    "title": "生活的艺术",
+    "author": "林语堂",
+    "category": "non_fiction"
+  },
+  {
+    "title": "傅雷家书",
+    "author": "傅雷、朱梅馥",
+    "category": "non_fiction"
+  },
+  {
+    "title": "钱钟书散文集",
+    "author": "钱钟书",
+    "category": "non_fiction"
+  },
+  {
+    "title": "北京城的故事",
+    "author": "舒乙",
+    "category": "non_fiction"
+  },
+  {
+    "title": "山河岁月",
+    "author": "余秋雨",
+    "category": "non_fiction"
+  },
+  {
+    "title": "孤独中的陪伴",
+    "author": "龙应台",
+    "category": "non_fiction"
+  },
+  {
+    "title": "亲爱的安德烈",
+    "author": "龙应台",
+    "category": "non_fiction"
+  },
+  {
+    "title": "我的天才妈妈",
+    "author": "毛姆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "月亮与六便士的启示",
+    "author": "毛姆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "理智与感性：婚姻、性与现代爱情",
+    "author": "埃斯特·佩雷尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "婚姻的52堂课",
+    "author": "约翰·戈特曼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "父母效能训练",
+    "author": "托马斯·戈登",
+    "category": "non_fiction"
+  },
+  {
+    "title": "积极心理学",
+    "author": "马丁·塞利格曼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "心理急救",
+    "author": "盖伊·温奇",
+    "category": "non_fiction"
+  },
+  {
+    "title": "永恒的孤独",
+    "author": "约翰·鲍比",
+    "category": "non_fiction"
+  },
+  {
+    "title": "冥想的科学",
+    "author": "丹·戈尔曼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "正念的力量",
+    "author": "乔·卡巴金",
+    "category": "non_fiction"
+  },
+  {
+    "title": "我们需要谈论凯文",
+    "author": "莱欧妮尔·施瑞福",
+    "category": "non_fiction"
+  },
+  {
+    "title": "为什么我们这样生活，那样工作",
+    "author": "查尔斯·都希格",
+    "category": "non_fiction"
+  },
+  {
+    "title": "异类：不一样的成功启示录",
+    "author": "马尔科姆·格拉德威尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "引爆点",
+    "author": "马尔科姆·格拉德威尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "精英的优越感",
+    "author": "克里斯托弗·莱斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "不完美的礼物",
+    "author": "布琳·布朗",
+    "category": "non_fiction"
+  },
+  {
+    "title": "勇气的力量",
+    "author": "布琳·布朗",
+    "category": "non_fiction"
+  },
+  {
+    "title": "长颈鹿与跳蚤",
+    "author": "卡尔·荣格",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大明帝国的衰落",
+    "author": "威廉·麦克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "罗马帝国衰亡史",
+    "author": "爱德华·吉本",
+    "category": "history"
+  },
+  {
+    "title": "西方文明史",
+    "author": "威廉·麦克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "秦始皇：中国的第一个皇帝",
+    "author": "茅海建",
+    "category": "history"
+  },
+  {
+    "title": "大唐帝国的荣光",
+    "author": "田余庆",
+    "category": "history"
+  },
+  {
+    "title": "女皇武则天",
+    "author": "韦庆远",
+    "category": "history"
+  },
+  {
+    "title": "康熙帝大传",
+    "author": "陈廷一",
+    "category": "history"
+  },
+  {
+    "title": "乾隆皇帝的十全武功",
+    "author": "朱诚如",
+    "category": "history"
+  },
+  {
+    "title": "鸦片战争",
+    "author": "茅海建",
+    "category": "history"
+  },
+  {
+    "title": "太平天国运动史",
+    "author": "罗尔纲",
+    "category": "history"
+  },
+  {
+    "title": "甲午中日战争",
+    "author": "茅海建",
+    "category": "history"
+  },
+  {
+    "title": "辛亥革命史",
+    "author": "周振鹤",
+    "category": "history"
+  },
+  {
+    "title": "民国人物传",
+    "author": "唐德刚",
+    "category": "history"
+  },
+  {
+    "title": "蒋介石传",
+    "author": "陶菊隐",
+    "category": "history"
+  },
+  {
+    "title": "长征：中国革命的史诗",
+    "author": "埃德加·斯诺",
+    "category": "history"
+  },
+  {
+    "title": "抗日战争全史",
+    "author": "郭廷以",
+    "category": "history"
+  },
+  {
+    "title": "解放战争史",
+    "author": "军事科学院",
+    "category": "history"
+  },
+  {
+    "title": "文化大革命十年史",
+    "author": "高皋、严家其",
+    "category": "history"
+  },
+  {
+    "title": "改革开放四十年",
+    "author": "邓小平",
+    "category": "history"
+  },
+  {
+    "title": "古代中国的社会制度",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "中华文明的核心价值",
+    "author": "钱穆",
+    "category": "history"
+  },
+  {
+    "title": "中国传统政治思想史",
+    "author": "冯友兰",
+    "category": "history"
+  },
+  {
+    "title": "中国科学技术史",
+    "author": "李约瑟",
+    "category": "history"
+  },
+  {
+    "title": "中国经济思想史",
+    "author": "陈恭禄",
+    "category": "history"
+  },
+  {
+    "title": "中国宗教思想史",
+    "author": "任继愈",
+    "category": "history"
+  },
+  {
+    "title": "中国古代商业史",
+    "author": "曹幸穗",
+    "category": "history"
+  },
+  {
+    "title": "中国古代农业史",
+    "author": "石声汉",
+    "category": "history"
+  },
+  {
+    "title": "中国古代军事思想史",
+    "author": "岑仲勉",
+    "category": "history"
+  },
+  {
+    "title": "丝绸之路与中西文化交流",
+    "author": "向达",
+    "category": "history"
+  },
+  {
+    "title": "郑和下西洋",
+    "author": "冯家升",
+    "category": "history"
+  },
+  {
+    "title": "大航海时代",
+    "author": "卡洛·M·奇波拉",
+    "category": "history"
+  },
+  {
+    "title": "哥伦布大交换",
+    "author": "阿尔弗雷德·克罗斯比",
+    "category": "history"
+  },
+  {
+    "title": "启蒙运动史",
+    "author": "彼得·盖伊",
+    "category": "history"
+  },
+  {
+    "title": "法国大革命",
+    "author": "西蒙·沙玛",
+    "category": "history"
+  },
+  {
+    "title": "拿破仑传",
+    "author": "埃米尔·路德维希",
+    "category": "history"
+  },
+  {
+    "title": "普鲁士的兴衰",
+    "author": "克里斯托弗·克拉克",
+    "category": "history"
+  },
+  {
+    "title": "维也纳会议",
+    "author": "亨利·基辛格",
+    "category": "history"
+  },
+  {
+    "title": "工业革命史",
+    "author": "保罗·曼图",
+    "category": "history"
+  },
+  {
+    "title": "第一次世界大战史",
+    "author": "芭芭拉·塔克曼",
+    "category": "history"
+  },
+  {
+    "title": "第二次世界大战完整史",
+    "author": "安东尼·比弗",
+    "category": "history"
+  },
+  {
+    "title": "冷战史",
+    "author": "约翰·刘易斯·加迪斯",
+    "category": "history"
+  },
+  {
+    "title": "美国内战史",
+    "author": "詹姆斯·麦克弗森",
+    "category": "history"
+  },
+  {
+    "title": "美国开国者的故事",
+    "author": "大卫·麦卡洛",
+    "category": "history"
+  },
+  {
+    "title": "美国外交史",
+    "author": "亨利·基辛格",
+    "category": "history"
+  },
+  {
+    "title": "俄国大革命",
+    "author": "理查德·派普斯",
+    "category": "history"
+  },
+  {
+    "title": "苏联兴亡史",
+    "author": "理查德·派普斯",
+    "category": "history"
+  },
+  {
+    "title": "英国帝国史",
+    "author": "安德鲁·波特",
+    "category": "history"
+  },
+  {
+    "title": "大英帝国的衰落",
+    "author": "尼亚尔·弗格森",
+    "category": "history"
+  },
+  {
+    "title": "罗马帝国的故事",
+    "author": "玛丽·比尔德",
+    "category": "history"
+  },
+  {
+    "title": "希腊历史",
+    "author": "赛缪尔·巴特勒",
+    "category": "history"
+  },
+  {
+    "title": "犹太民族史",
+    "author": "西蒙·沙玛",
+    "category": "history"
+  },
+  {
+    "title": "伊斯兰教史",
+    "author": "胡安·科尔",
+    "category": "history"
+  },
+  {
+    "title": "基督教史",
+    "author": "蒂莫西·比尔德",
+    "category": "history"
+  },
+  {
+    "title": "日本上古史",
+    "author": "中文翻译本",
+    "category": "history"
+  },
+  {
+    "title": "印度文明史",
+    "author": "罗米拉·塔帕尔",
+    "category": "history"
+  },
+  {
+    "title": "古埃及文明史",
+    "author": "伊恩·肖",
+    "category": "history"
+  },
+  {
+    "title": "感受的治愈力",
+    "author": "阿马亚·普拉蒂普",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑自救手册",
+    "author": "埃德蒙·伯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想正念的力量",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "情绪管理手册",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "感受的治愈",
+    "author": "芭芭拉·弗雷德里克森",
+    "category": "psychology"
+  },
+  {
+    "title": "改变心理学",
+    "author": "威廉·詹姆斯",
+    "category": "psychology"
+  },
+  {
+    "title": "感受生活",
+    "author": "米哈里·契克森米哈赖",
+    "category": "psychology"
+  },
+  {
+    "title": "心理营养",
+    "author": "武志红",
+    "category": "psychology"
+  },
+  {
+    "title": "原生家庭",
+    "author": "武志红",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救与危机干预",
+    "author": "盖伊·温奇",
+    "category": "psychology"
+  },
+  {
+    "title": "生命的意义",
+    "author": "维克多·弗兰克尔",
+    "category": "psychology"
+  },
+  {
+    "title": "心流：最优体验心理学",
+    "author": "米哈里·契克森米哈赖",
+    "category": "psychology"
+  },
+  {
+    "title": "孤独的价值",
+    "author": "维克多·弗兰克尔",
+    "category": "psychology"
+  },
+  {
+    "title": "情商",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "社交焦虑症自救指南",
+    "author": "埃德蒙·伯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑症和恐慌症自救手册",
+    "author": "埃德蒙·伯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "心理医生手记",
+    "author": "武志红",
+    "category": "psychology"
+  },
+  {
+    "title": "感受的艺术",
+    "author": "威廉·詹姆斯",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想的治愈力",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "自我心理学",
+    "author": "卡伦·荷妮",
+    "category": "psychology"
+  },
+  {
+    "title": "人格心理学",
+    "author": "劳伦·佩尔蒂埃",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救手册",
+    "author": "盖伊·温奇",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想正念的艺术",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "情商修炼",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "心流与幸福",
+    "author": "米哈里·契克森米哈赖",
+    "category": "psychology"
+  },
+  {
+    "title": "内向性格的力量",
+    "author": "苏珊·凯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想治疗",
+    "author": "威廉·詹姆斯",
+    "category": "psychology"
+  },
+  {
+    "title": "心理营养与灵魂成长",
+    "author": "武志红",
+    "category": "psychology"
+  },
+  {
+    "title": "感受的力量",
+    "author": "芭芭拉·弗雷德里克森",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑的智慧",
+    "author": "埃德蒙·伯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "恐惧症自救手册",
+    "author": "埃德蒙·伯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "心理学基础",
+    "author": "津巴多",
+    "category": "psychology"
+  },
+  {
+    "title": "心理咨询与治疗",
+    "author": "卡尔·罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "自我发现之旅",
+    "author": "卡伦·荷妮",
+    "category": "psychology"
+  },
+  {
+    "title": "人格障碍",
+    "author": "劳伦·佩尔蒂埃",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想的方法",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "生命的意义与幸福",
+    "author": "维克多·弗兰克尔",
+    "category": "psychology"
+  },
+  {
+    "title": "心理健康手册",
+    "author": "盖伊·温奇",
+    "category": "psychology"
+  },
+  {
+    "title": "情绪与思维",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "幸福心理学",
+    "author": "塞利格曼",
+    "category": "psychology"
+  },
+  {
+    "title": "心灵成长",
+    "author": "武志红",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想的智慧",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑与抑郁症自救指南",
+    "author": "埃德蒙·伯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "心理学入门",
+    "author": "津巴多",
+    "category": "psychology"
+  },
+  {
+    "title": "成功心理学",
+    "author": "塞利格曼",
+    "category": "psychology"
+  },
+  {
+    "title": "内向者优势",
+    "author": "苏珊·凯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗原理",
+    "author": "卡尔·罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想与健康",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "商业冒险",
+    "author": "约翰·布鲁克斯",
+    "category": "business"
+  },
+  {
+    "title": "创新者的困境",
+    "author": "克莱顿·克里斯坦森",
+    "category": "business"
+  },
+  {
+    "title": "影响力：说服心理学",
+    "author": "罗伯特·西奥迪尼",
+    "category": "business"
+  },
+  {
+    "title": "必然：科技如何改造我们的未来",
+    "author": "凯文·凯利",
+    "category": "business"
+  },
+  {
+    "title": "失控：机器、社会与经济的新生物学",
+    "author": "凯文·凯利",
+    "category": "business"
+  },
+  {
+    "title": "超级预测",
+    "author": "菲利普·特特洛克",
+    "category": "business"
+  },
+  {
+    "title": "聪明人用方格笔记本",
+    "author": "高桥政史",
+    "category": "business"
+  },
+  {
+    "title": "怪诞行为学",
+    "author": "丹·艾瑞里",
+    "category": "business"
+  },
+  {
+    "title": "可预测的非理性",
+    "author": "丹·艾瑞里",
+    "category": "business"
+  },
+  {
+    "title": "关键时刻",
+    "author": "奇普·希思",
+    "category": "business"
+  },
+  {
+    "title": "做出好决定",
+    "author": "奇普·希思",
+    "category": "business"
+  },
+  {
+    "title": "执行力：如何完成任务的艺术",
+    "author": "拉里·博西迪",
+    "category": "business"
+  },
+  {
+    "title": "商业冒险：华尔街的十二个经典故事",
+    "author": "约翰·布鲁克斯",
+    "category": "business"
+  },
+  {
+    "title": "智慧企业",
+    "author": "彼得·圣吉",
+    "category": "business"
+  },
+  {
+    "title": "竞争战略",
+    "author": "迈克尔·波特",
+    "category": "business"
+  },
+  {
+    "title": "价值竞争",
+    "author": "迈克尔·波特",
+    "category": "business"
+  },
+  {
+    "title": "麦肯锡方法",
+    "author": "埃森·拉塞尔",
+    "category": "business"
+  },
+  {
+    "title": "麦肯锡意识",
+    "author": "艾森·拉塞尔",
+    "category": "business"
+  },
+  {
+    "title": "咨询的奥秘",
+    "author": "大卫·毛博根",
+    "category": "business"
+  },
+  {
+    "title": "谈判力",
+    "author": "罗杰·费舍尔",
+    "category": "business"
+  },
+  {
+    "title": "所有不同",
+    "author": "迪帕克·乔普拉",
+    "category": "business"
+  },
+  {
+    "title": "吸引力法则",
+    "author": "埃丝特·希克斯",
+    "category": "business"
+  },
+  {
+    "title": "零极限",
+    "author": "乔·维泰利",
+    "category": "business"
+  },
+  {
+    "title": "富爸爸财务自由之路",
+    "author": "罗伯特·清崎",
+    "category": "business"
+  },
+  {
+    "title": "富爸爸投资指南",
+    "author": "罗伯特·清崎",
+    "category": "business"
+  },
+  {
+    "title": "随处而安",
+    "author": "博多·舍费尔",
+    "category": "business"
+  },
+  {
+    "title": "杰克·韦尔奇自传",
+    "author": "杰克·韦尔奇",
+    "category": "business"
+  },
+  {
+    "title": "赢",
+    "author": "杰克·韦尔奇",
+    "category": "business"
+  },
+  {
+    "title": "沃伦·巴菲特之路",
+    "author": "罗伯特·哈格斯特龙",
+    "category": "business"
+  },
+  {
+    "title": "股市真规则",
+    "author": "帕特里克·多尔西",
+    "category": "business"
+  },
+  {
+    "title": "股票作手回忆录",
+    "author": "埃德温·勒菲弗",
+    "category": "business"
+  },
+  {
+    "title": "市场技术分析",
+    "author": "约翰·墨菲",
+    "category": "business"
+  },
+  {
+    "title": "日本蜡烛图技术",
+    "author": "史蒂夫·尼松",
+    "category": "business"
+  },
+  {
+    "title": "机构投资的创新",
+    "author": "大卫·史文森",
+    "category": "business"
+  },
+  {
+    "title": "非理性繁荣",
+    "author": "罗伯特·希勒",
+    "category": "business"
+  },
+  {
+    "title": "国家为什么失败",
+    "author": "达龙·阿西莫格鲁",
+    "category": "business"
+  },
+  {
+    "title": "大衰退：美国经济为何陷入困境",
+    "author": "保罗·克鲁格曼",
+    "category": "business"
+  },
+  {
+    "title": "时间管理：如何充分利用你的24小时",
+    "author": "彼得·德鲁克",
+    "category": "business"
+  },
+  {
+    "title": "番茄工作法图解",
+    "author": "弗朗西斯科·西里洛",
+    "category": "business"
+  },
+  {
+    "title": "明智的代理人",
+    "author": "约瑟夫·布吕默",
+    "category": "business"
+  },
+  {
+    "title": "孟子",
+    "author": "孟子",
+    "category": "philosophy"
+  },
+  {
+    "title": "大学·中庸",
+    "author": "曾子、子思",
+    "category": "philosophy"
+  },
+  {
+    "title": "周易",
+    "author": "佚名",
+    "category": "philosophy"
+  },
+  {
+    "title": "超越自我",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "philosophy"
+  },
+  {
+    "title": "活出意义来",
+    "author": "维克多·弗兰克尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "人生的意义",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "批判性思维",
+    "author": "布鲁克菲尔德",
+    "category": "philosophy"
+  },
+  {
+    "title": "逻辑学导论",
+    "author": "欧文·M·柯匹",
+    "category": "philosophy"
+  },
+  {
+    "title": "伦理学原理",
+    "author": "乔治·爱德华·摩尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德情感论",
+    "author": "亚当·斯密",
+    "category": "philosophy"
+  },
+  {
+    "title": "人类理解研究",
+    "author": "大卫·休谟",
+    "category": "philosophy"
+  },
+  {
+    "title": "纯粹理性批判",
+    "author": "伊曼努尔·康德",
+    "category": "philosophy"
+  },
+  {
+    "title": "精神现象学",
+    "author": "格奥尔格·威廉·弗里德里希·黑格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "叔本华人生智慧箴言集",
+    "author": "阿图尔·叔本华",
+    "category": "philosophy"
+  },
+  {
+    "title": "逻辑哲学论",
+    "author": "路德维希·维特根斯坦",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学研究",
+    "author": "路德维希·维特根斯坦",
+    "category": "philosophy"
+  },
+  {
+    "title": "存在主义是一种人道主义",
+    "author": "让-保罗·萨特",
+    "category": "philosophy"
+  },
+  {
+    "title": "被压迫者的教育学",
+    "author": "保罗·弗莱雷",
+    "category": "philosophy"
+  },
+  {
+    "title": "知识社会学",
+    "author": "卡尔·曼海姆",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学与日常生活",
+    "author": "阿尔弗雷德·北怀特海",
+    "category": "philosophy"
+  },
+  {
+    "title": "科学革命的结构",
+    "author": "托马斯·库恩",
+    "category": "philosophy"
+  },
+  {
+    "title": "不确定性原理与现代哲学",
+    "author": "海森堡",
+    "category": "philosophy"
+  },
+  {
+    "title": "物理学与哲学",
+    "author": "海森堡",
+    "category": "philosophy"
+  },
+  {
+    "title": "论证的艺术",
+    "author": "尼古拉斯·卡普兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "伦理学讲义",
+    "author": "路德维希·维特根斯坦",
+    "category": "philosophy"
+  },
+  {
+    "title": "美学原理",
+    "author": "黑格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "艺术的本源",
+    "author": "马丁·海德格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "存在与本质",
+    "author": "托马斯·阿奎那",
+    "category": "philosophy"
+  },
+  {
+    "title": "第一哲学沉思录",
+    "author": "勒内·笛卡尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "莱布尼茨哲学研究",
+    "author": "莱布尼茨",
+    "category": "philosophy"
+  },
+  {
+    "title": "英国经验主义哲学",
+    "author": "洛克",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学的慰藉",
+    "author": "阿兰·德波顿",
+    "category": "philosophy"
+  },
+  {
+    "title": "政治哲学导论",
+    "author": "约翰·罗尔斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "正义论",
+    "author": "约翰·罗尔斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "政治哲学讲演录",
+    "author": "约翰·罗尔斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "自由的构架",
+    "author": "詹姆斯·布坎南",
+    "category": "philosophy"
+  },
+  {
+    "title": "西方政治思想史",
+    "author": "乔治·萨拜因",
+    "category": "philosophy"
+  },
+  {
+    "title": "美德伦理学",
+    "author": "罗莎琳德·赫斯特豪斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "应然与实然",
+    "author": "大卫·休谟",
+    "category": "philosophy"
+  },
+  {
+    "title": "心灵哲学导论",
+    "author": "杰米斯·蒂莫",
+    "category": "philosophy"
+  },
+  {
+    "title": "认识论",
+    "author": "劳伦斯·博美尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "孔子与现代世界",
+    "author": "杜维明",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国哲学的精神",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国思想的深层结构",
+    "author": "李泽厚",
+    "category": "philosophy"
+  },
+  {
+    "title": "古代中国的理性思维",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "道论：中国哲学的递进",
+    "author": "李泽厚",
+    "category": "philosophy"
+  },
+  {
+    "title": "华夏文明的精神基因",
+    "author": "许倬云",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国传统伦理思想",
+    "author": "黑格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "儒家传统的当代阐释",
+    "author": "杜维明",
+    "category": "philosophy"
+  },
+  {
+    "title": "邱吉尔传",
+    "author": "罗伯特·詹姆斯",
+    "category": "biography"
+  },
+  {
+    "title": "甘地自传",
+    "author": "莫罕达斯·甘地",
+    "category": "biography"
+  },
+  {
+    "title": "列宁传",
+    "author": "罗伯特·塞维斯",
+    "category": "biography"
+  },
+  {
+    "title": "林肯传",
+    "author": "卡尔·桑德伯格",
+    "category": "biography"
+  },
+  {
+    "title": "马克·吐温自传",
+    "author": "马克·吐温",
+    "category": "biography"
+  },
+  {
+    "title": "莫扎特传",
+    "author": "彼得·盖伊",
+    "category": "biography"
+  },
+  {
+    "title": "达·芬奇传",
+    "author": "沃尔特·艾萨克森",
+    "category": "biography"
+  },
+  {
+    "title": "居里夫人传",
+    "author": "芭芭拉·戈尔茨坦",
+    "category": "biography"
+  },
+  {
+    "title": "海伦·凯勒自传",
+    "author": "海伦·凯勒",
+    "category": "biography"
+  },
+  {
+    "title": "安妮·弗兰克日记",
+    "author": "安妮·弗兰克",
+    "category": "biography"
+  },
+  {
+    "title": "马尔科姆·艾克斯自传",
+    "author": "马尔科姆·艾克斯",
+    "category": "biography"
+  },
+  {
+    "title": "我的奋斗",
+    "author": "纳尔逊·曼德拉",
+    "category": "biography"
+  },
+  {
+    "title": "玛丽亚·居里：我的第一次发现",
+    "author": "埃芙·库里",
+    "category": "biography"
+  },
+  {
+    "title": "温斯顿·丘吉尔回忆录",
+    "author": "温斯顿·丘吉尔",
+    "category": "biography"
+  },
+  {
+    "title": "本杰明·格拉汉姆传",
+    "author": "杰克·格瑞姆",
+    "category": "biography"
+  },
+  {
+    "title": "巴菲特传",
+    "author": "罗杰·洛温斯坦",
+    "category": "biography"
+  },
+  {
+    "title": "盖茨传",
+    "author": "詹姆斯·沃拉斯",
+    "category": "biography"
+  },
+  {
+    "title": "史蒂夫·沃兹尼亚克自传",
+    "author": "史蒂夫·沃兹尼亚克",
+    "category": "biography"
+  },
+  {
+    "title": "谢尔顿传",
+    "author": "阿瑟·米勒",
+    "category": "biography"
+  },
+  {
+    "title": "伯恩斯坦传",
+    "author": "詹姆斯·卡尔",
+    "category": "biography"
+  },
+  {
+    "title": "马龙·白兰度自传",
+    "author": "马龙·白兰度",
+    "category": "biography"
+  },
+  {
+    "title": "奥德丽·赫本传",
+    "author": "肖恩·赫普本",
+    "category": "biography"
+  },
+  {
+    "title": "卡萨布兰卡背后的故事",
+    "author": "约翰·吉布林",
+    "category": "biography"
+  },
+  {
+    "title": "费曼物理学讲义背后",
+    "author": "詹姆斯·格莱克",
+    "category": "biography"
+  },
+  {
+    "title": "伽利略传",
+    "author": "德拉克",
+    "category": "biography"
+  },
+  {
+    "title": "牛顿传",
+    "author": "威廉·斯图克利",
+    "category": "biography"
+  },
+  {
+    "title": "卡尔·马克思传",
+    "author": "弗朗茨·梅林",
+    "category": "biography"
+  },
+  {
+    "title": "弗洛伊德传",
+    "author": "欧内斯特·琼斯",
+    "category": "biography"
+  },
+  {
+    "title": "荣格自传",
+    "author": "卡尔·荣格",
+    "category": "biography"
+  },
+  {
+    "title": "维特根斯坦传",
+    "author": "雷·蒙克",
+    "category": "biography"
+  },
+  {
+    "title": "伯特兰·罗素自传",
+    "author": "伯特兰·罗素",
+    "category": "biography"
+  },
+  {
+    "title": "帕斯卡尔传",
+    "author": "阿拉斯泰尔·威廉",
+    "category": "biography"
+  },
+  {
+    "title": "孔子传",
+    "author": "李长之",
+    "category": "biography"
+  },
+  {
+    "title": "莎士比亚传",
+    "author": "彼得·阿克罗伊德",
+    "category": "biography"
+  },
+  {
+    "title": "但丁传",
+    "author": "阿梅迪奥·奎亚德",
+    "category": "biography"
+  },
+  {
+    "title": "简·奥斯汀传",
+    "author": "克莱尔·托马林",
+    "category": "biography"
+  },
+  {
+    "title": "勃朗特姐妹传",
+    "author": "伊丽莎白·盖斯凯尔",
+    "category": "biography"
+  },
+  {
+    "title": "狄更斯传",
+    "author": "彼得·阿克罗伊德",
+    "category": "biography"
+  },
+  {
+    "title": "马克·吐温传",
+    "author": "艾伦·佩恩",
+    "category": "biography"
+  },
+  {
+    "title": "托尔斯泰传",
+    "author": "亨利·特罗亚",
+    "category": "biography"
+  },
+  {
+    "title": "陀思妥耶夫斯基传",
+    "author": "约瑟夫·弗兰克",
+    "category": "biography"
+  },
+  {
+    "title": "普鲁斯特传",
+    "author": "乔治·帕伊",
+    "category": "biography"
+  },
+  {
+    "title": "乔伊斯传",
+    "author": "理查德·艾尔曼",
+    "category": "biography"
+  },
+  {
+    "title": "卡夫卡传",
+    "author": "彼得-安德烈·奥尔特",
+    "category": "biography"
+  },
+  {
+    "title": "贝克特传",
+    "author": "安德鲁·沃班特",
+    "category": "biography"
+  },
+  {
+    "title": "毕加索传",
+    "author": "约翰·理查德森",
+    "category": "biography"
+  },
+  {
+    "title": "凡·高自传书信集",
+    "author": "文森特·凡·高",
+    "category": "biography"
+  },
+  {
+    "title": "米开朗基罗传",
+    "author": "欧文·斯通",
+    "category": "biography"
+  },
+  {
+    "title": "伦勃朗传",
+    "author": "克里斯托夫·赖特",
+    "category": "biography"
+  },
+  {
+    "title": "莫奈传",
+    "author": "威廉·鲁塞尔·弗里希",
+    "category": "biography"
+  },
+  {
+    "title": "塞尚传",
+    "author": "约翰·里瓦尔德",
+    "category": "biography"
+  },
+  {
+    "title": "鲁迅传",
+    "author": "许广平",
+    "category": "biography"
+  },
+  {
+    "title": "梁启超传",
+    "author": "梁启超",
+    "category": "biography"
+  },
+  {
+    "title": "远大前程",
+    "author": "查尔斯·狄更斯",
+    "category": "novel"
+  },
+  {
+    "title": "死魂灵",
+    "author": "尼古拉·果戈里",
+    "category": "novel"
+  },
+  {
+    "title": "莱蒙托夫诗选",
+    "author": "米哈伊尔·莱蒙托夫",
+    "category": "novel"
+  },
+  {
+    "title": "童年",
+    "author": "马克西姆·高尔基",
+    "category": "novel"
+  },
+  {
+    "title": "在人间",
+    "author": "马克西姆·高尔基",
+    "category": "novel"
+  },
+  {
+    "title": "我的大学",
+    "author": "马克西姆·高尔基",
+    "category": "novel"
+  },
+  {
+    "title": "牛虻",
+    "author": "伏尼契",
+    "category": "novel"
+  },
+  {
+    "title": "汤姆叔叔的小屋",
+    "author": "哈丽叶特·比彻·斯托",
+    "category": "novel"
+  },
+  {
+    "title": "哈克贝利·费恩历险记",
+    "author": "马克·吐温",
+    "category": "novel"
+  },
+  {
+    "title": "浮生六记",
+    "author": "沈复",
+    "category": "novel"
+  },
+  {
+    "title": "金瓶梅",
+    "author": "兰陵笑笑生",
+    "category": "novel"
+  },
+  {
+    "title": "孽海花",
+    "author": "曾朴",
+    "category": "novel"
+  },
+  {
+    "title": "老残游记",
+    "author": "刘鄂",
+    "category": "novel"
+  },
+  {
+    "title": "命若琴弦",
+    "author": "阿来",
+    "category": "novel"
+  },
+  {
+    "title": "绿茶",
+    "author": "张爱玲",
+    "category": "novel"
+  },
+  {
+    "title": "赤地之恋",
+    "author": "张爱玲",
+    "category": "novel"
+  },
+  {
+    "title": "献给艾米丽的玫瑰",
+    "author": "威廉·福克纳",
+    "category": "novel"
+  },
+  {
+    "title": "人类大历史",
+    "author": "尤瓦尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "暗时间",
+    "author": "刘未鹏",
+    "category": "non_fiction"
+  },
+  {
+    "title": "学习如何学习",
+    "author": "芭芭拉·奥克利",
+    "category": "non_fiction"
+  },
+  {
+    "title": "异类",
+    "author": "马尔科姆·格拉德威尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "果壳中的无穷宇宙",
+    "author": "史蒂芬·霍金",
+    "category": "non_fiction"
+  },
+  {
+    "title": "宇宙的琴弦",
+    "author": "布莱恩·格林",
+    "category": "non_fiction"
+  },
+  {
+    "title": "生命是什么",
+    "author": "薛定谔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "延伸的表型",
+    "author": "理查德·道金斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "演化论",
+    "author": "理查德·道金斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人工智能的未来",
+    "author": "库兹韦尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "平台革命",
+    "author": "帕克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "网络效应",
+    "author": "帕克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "第二次机器革命",
+    "author": "麦卡菲",
+    "category": "non_fiction"
+  },
+  {
+    "title": "极简主义",
+    "author": "约书亚·菲尔茨",
+    "category": "non_fiction"
+  },
+  {
+    "title": "滚雪球",
+    "author": "爱丽丝·施罗德",
+    "category": "non_fiction"
+  },
+  {
+    "title": "巴菲特致股东的信",
+    "author": "沃伦·巴菲特",
+    "category": "non_fiction"
+  },
+  {
+    "title": "随机漫步的傻瓜",
+    "author": "纳西姆·尼古拉斯·塔勒布",
+    "category": "non_fiction"
+  },
+  {
+    "title": "经济学通识",
+    "author": "薛兆丰",
+    "category": "non_fiction"
+  },
+  {
+    "title": "经济增长的阶段",
+    "author": "沃尔特·罗斯托",
+    "category": "non_fiction"
+  },
+  {
+    "title": "帝国",
+    "author": "尼尔·弗格森",
+    "category": "non_fiction"
+  },
+  {
+    "title": "信息简史",
+    "author": "詹姆斯·格雷克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "美国世纪的衰落",
+    "author": "保罗·肯尼迪",
+    "category": "non_fiction"
+  },
+  {
+    "title": "众病之王",
+    "author": "悉达多·穆克吉",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人体简史",
+    "author": "比尔·布赖森",
+    "category": "non_fiction"
+  },
+  {
+    "title": "营养圣经",
+    "author": "帕特里克·霍尔福德",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大脑的秘密",
+    "author": "约翰·梅迪纳",
+    "category": "non_fiction"
+  },
+  {
+    "title": "神经科学与我们的日常生活",
+    "author": "萨曼莎·韦因伯格",
+    "category": "non_fiction"
+  },
+  {
+    "title": "为什么我们会生病",
+    "author": "托勒·兰德伯格",
+    "category": "non_fiction"
+  },
+  {
+    "title": "亲密关系：通往灵魂的桥梁",
+    "author": "克里斯多夫·孟",
+    "category": "non_fiction"
+  },
+  {
+    "title": "成为母亲",
+    "author": "蒂娜·坎农",
+    "category": "non_fiction"
+  },
+  {
+    "title": "教养的迷思",
+    "author": "朱迪思·哈里斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "孩子如何学习",
+    "author": "约翰·杜威",
+    "category": "non_fiction"
+  },
+  {
+    "title": "道德的终结",
+    "author": "乔治·亨里克·冯·赖特",
+    "category": "non_fiction"
+  },
+  {
+    "title": "第二次世界大战回忆录",
+    "author": "丘吉尔",
+    "category": "history"
+  },
+  {
+    "title": "朝鲜战争",
+    "author": "大卫·哈伯斯塔姆",
+    "category": "history"
+  },
+  {
+    "title": "拜占庭帝国史",
+    "author": "约翰·朱利叶斯·诺里奇",
+    "category": "history"
+  },
+  {
+    "title": "大秦帝国",
+    "author": "孙皓晖",
+    "category": "history"
+  },
+  {
+    "title": "康熙大帝",
+    "author": "二月河",
+    "category": "history"
+  },
+  {
+    "title": "雍正皇帝",
+    "author": "二月河",
+    "category": "history"
+  },
+  {
+    "title": "乾隆皇帝",
+    "author": "二月河",
+    "category": "history"
+  },
+  {
+    "title": "中国通史",
+    "author": "吕思勉",
+    "category": "history"
+  },
+  {
+    "title": "中国历代政治得失",
+    "author": "钱穆",
+    "category": "history"
+  },
+  {
+    "title": "世界历史的故事",
+    "author": "范德比尔特",
+    "category": "history"
+  },
+  {
+    "title": "大国崛起",
+    "author": "郑和",
+    "category": "history"
+  },
+  {
+    "title": "明清易代与社会转型",
+    "author": "汪荣祖",
+    "category": "history"
+  },
+  {
+    "title": "黄河象",
+    "author": "冼星海",
+    "category": "history"
+  },
+  {
+    "title": "枭雄：从秦始皇到毛泽东",
+    "author": "喻大华",
+    "category": "history"
+  },
+  {
+    "title": "皇帝与士大夫",
+    "author": "郭建",
+    "category": "history"
+  },
+  {
+    "title": "周朝秘史",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "汉帝国的崛起",
+    "author": "鲁西奇",
+    "category": "history"
+  },
+  {
+    "title": "大宋帝国繁荣记",
+    "author": "吴钩",
+    "category": "history"
+  },
+  {
+    "title": "蒙古帝国的兴衰",
+    "author": "杰克·威瑟福德",
+    "category": "history"
+  },
+  {
+    "title": "十月：一个改变世界的日子",
+    "author": "约翰·里德",
+    "category": "history"
+  },
+  {
+    "title": "古罗马史",
+    "author": "莫姆森",
+    "category": "history"
+  },
+  {
+    "title": "古希腊史",
+    "author": "昂德烈·阿芒",
+    "category": "history"
+  },
+  {
+    "title": "大萧条时代",
+    "author": "大卫·肯尼迪",
+    "category": "history"
+  },
+  {
+    "title": "俾斯麦与德国统一",
+    "author": "蒂莫西·B. 斯密斯",
+    "category": "history"
+  },
+  {
+    "title": "法国大革命简史",
+    "author": "克里斯托弗·希伯特",
+    "category": "history"
+  },
+  {
+    "title": "英国内战与革命",
+    "author": "克里斯多夫·希尔",
+    "category": "history"
+  },
+  {
+    "title": "古代中国的政治制度",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "中国上古史",
+    "author": "徐中舒",
+    "category": "history"
+  },
+  {
+    "title": "秦朝简史",
+    "author": "何新",
+    "category": "history"
+  },
+  {
+    "title": "汉朝的伟大",
+    "author": "余秋雨",
+    "category": "history"
+  },
+  {
+    "title": "唐朝的开放与繁荣",
+    "author": "陈寅恪",
+    "category": "history"
+  },
+  {
+    "title": "宋朝的精明与守成",
+    "author": "邓小南",
+    "category": "history"
+  },
+  {
+    "title": "明清的交替",
+    "author": "樊树志",
+    "category": "history"
+  },
+  {
+    "title": "中国古代官僚制度史",
+    "author": "汪荣祖",
+    "category": "history"
+  },
+  {
+    "title": "中国古代经济史",
+    "author": "鲁西奇",
+    "category": "history"
+  },
+  {
+    "title": "中国古代思想文化简史",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "春秋战国的诸侯争霸",
+    "author": "韦庭笑",
+    "category": "history"
+  },
+  {
+    "title": "秦始皇和他的帝国",
+    "author": "苏秦",
+    "category": "history"
+  },
+  {
+    "title": "汉武帝时代",
+    "author": "辛德勇",
+    "category": "history"
+  },
+  {
+    "title": "诗经和中国古代社会",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "论语与孔子的时代",
+    "author": "李零",
+    "category": "history"
+  },
+  {
+    "title": "道德经与道家哲学史",
+    "author": "刘笑敢",
+    "category": "history"
+  },
+  {
+    "title": "中国古代的宗教信仰",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "佛教传入中国的历史",
+    "author": "季羡林",
+    "category": "history"
+  },
+  {
+    "title": "伊斯兰文明与中国",
+    "author": "马坚",
+    "category": "history"
+  },
+  {
+    "title": "丝绸之路的历史与文化",
+    "author": "向达",
+    "category": "history"
+  },
+  {
+    "title": "郑和下西洋的历史意义",
+    "author": "冯时",
+    "category": "history"
+  },
+  {
+    "title": "中国近代政治思想史",
+    "author": "李泽厚",
+    "category": "history"
+  },
+  {
+    "title": "焦虑症和恐慌症自救指南",
+    "author": "卡罗尔·艾略特",
+    "category": "psychology"
+  },
+  {
+    "title": "感受孤独",
+    "author": "卡尔·荣格",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救生存指南",
+    "author": "丹尼斯·蒂博",
+    "category": "psychology"
+  },
+  {
+    "title": "行为改变的心理学",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗的故事",
+    "author": "欧文·亚隆",
+    "category": "psychology"
+  },
+  {
+    "title": "婚姻的真相",
+    "author": "哈里特·勒纳",
+    "category": "psychology"
+  },
+  {
+    "title": "感受的治疗",
+    "author": "阿瑟·詹诺夫",
+    "category": "psychology"
+  },
+  {
+    "title": "重塑大脑",
+    "author": "诺曼·道伊奇",
+    "category": "psychology"
+  },
+  {
+    "title": "神经可塑性",
+    "author": "诺曼·道伊奇",
+    "category": "psychology"
+  },
+  {
+    "title": "童年创伤的治愈",
+    "author": "贝塞尔·范德寇克",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑症和恐慌症",
+    "author": "卡尔·荣格",
+    "category": "psychology"
+  },
+  {
+    "title": "内向者的优势",
+    "author": "苏珊·凯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "安静：内向性格的竞争力",
+    "author": "苏珊·凯恩",
+    "category": "psychology"
+  },
+  {
+    "title": "完美主义的陷阱",
+    "author": "哈里特·勒纳",
+    "category": "psychology"
+  },
+  {
+    "title": "不完美，才是我",
+    "author": "布琳·布朗",
+    "category": "psychology"
+  },
+  {
+    "title": "脆弱的力量",
+    "author": "布琳·布朗",
+    "category": "psychology"
+  },
+  {
+    "title": "敢于伟大：脆弱的力量",
+    "author": "布琳·布朗",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救的力量",
+    "author": "盖伊·温奇",
+    "category": "psychology"
+  },
+  {
+    "title": "意义的追求",
+    "author": "维克多·弗兰克尔",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗与精神",
+    "author": "欧文·亚隆",
+    "category": "psychology"
+  },
+  {
+    "title": "存在心理治疗",
+    "author": "欧文·亚隆",
+    "category": "psychology"
+  },
+  {
+    "title": "不安全感的治愈",
+    "author": "罗伯特·格洛弗",
+    "category": "psychology"
+  },
+  {
+    "title": "人格分裂的世界",
+    "author": "威廉·詹姆斯",
+    "category": "psychology"
+  },
+  {
+    "title": "心理学原理",
+    "author": "威廉·詹姆斯",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑症治疗指南",
+    "author": "艾德蒙·博恩",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗笔记",
+    "author": "柏林医生",
+    "category": "psychology"
+  },
+  {
+    "title": "抑郁症的自救",
+    "author": "大卫·克拉克",
+    "category": "psychology"
+  },
+  {
+    "title": "创伤与复原",
+    "author": "朱迪思·赫尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "儿童心理学基础",
+    "author": "让·皮亚杰",
+    "category": "psychology"
+  },
+  {
+    "title": "发展心理学",
+    "author": "让·皮亚杰",
+    "category": "psychology"
+  },
+  {
+    "title": "依恋理论基础",
+    "author": "约翰·鲍尔比",
+    "category": "psychology"
+  },
+  {
+    "title": "安全堡垒",
+    "author": "约翰·鲍尔比",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗的艺术",
+    "author": "罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "人格中心治疗",
+    "author": "卡尔·罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "自我实现的人",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "psychology"
+  },
+  {
+    "title": "高峰体验",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "psychology"
+  },
+  {
+    "title": "预测的力量",
+    "author": "罗伯特·恰尔迪尼",
+    "category": "psychology"
+  },
+  {
+    "title": "思维的力量",
+    "author": "露易丝·海",
+    "category": "psychology"
+  },
+  {
+    "title": "你可以治愈你的生活",
+    "author": "露易丝·海",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗案例分析",
+    "author": "欧文·亚隆",
+    "category": "psychology"
+  },
+  {
+    "title": "看不见的城市",
+    "author": "伊塔洛·卡尔维诺",
+    "category": "business"
+  },
+  {
+    "title": "活出最乐观的自己",
+    "author": "马丁·塞利格曼",
+    "category": "business"
+  },
+  {
+    "title": "执行",
+    "author": "拉里·博西迪",
+    "category": "business"
+  },
+  {
+    "title": "好的经济学",
+    "author": "班纳吉",
+    "category": "business"
+  },
+  {
+    "title": "就业、利息和货币通论",
+    "author": "约翰·梅纳德·凯恩斯",
+    "category": "business"
+  },
+  {
+    "title": "经济学",
+    "author": "保罗·萨缪尔森",
+    "category": "business"
+  },
+  {
+    "title": "博弈论与经济行为",
+    "author": "冯·诺依曼",
+    "category": "business"
+  },
+  {
+    "title": "不对称信息的市场",
+    "author": "乔治·阿克洛夫",
+    "category": "business"
+  },
+  {
+    "title": "理性的非理性",
+    "author": "丹·艾瑞利",
+    "category": "business"
+  },
+  {
+    "title": "决策与秩序",
+    "author": "丹·艾瑞利",
+    "category": "business"
+  },
+  {
+    "title": "助推",
+    "author": "理查德·泰勒",
+    "category": "business"
+  },
+  {
+    "title": "金融心理学",
+    "author": "罗伯特·希勒",
+    "category": "business"
+  },
+  {
+    "title": "有限理性",
+    "author": "赫伯特·西蒙",
+    "category": "business"
+  },
+  {
+    "title": "复杂经济学",
+    "author": "布莱恩·阿瑟",
+    "category": "business"
+  },
+  {
+    "title": "零边际成本社会",
+    "author": "杰里米·里夫金",
+    "category": "business"
+  },
+  {
+    "title": "第三次工业革命",
+    "author": "杰里米·里夫金",
+    "category": "business"
+  },
+  {
+    "title": "现在的冲击",
+    "author": "阿尔文·托夫勒",
+    "category": "business"
+  },
+  {
+    "title": "未来的冲击",
+    "author": "阿尔文·托夫勒",
+    "category": "business"
+  },
+  {
+    "title": "权力的转移",
+    "author": "阿尔文·托夫勒",
+    "category": "business"
+  },
+  {
+    "title": "从大到伟大",
+    "author": "吉姆·柯林斯",
+    "category": "business"
+  },
+  {
+    "title": "十倍增长",
+    "author": "吉姆·柯林斯",
+    "category": "business"
+  },
+  {
+    "title": "追求卓越",
+    "author": "汤姆·彼得斯",
+    "category": "business"
+  },
+  {
+    "title": "再造公司",
+    "author": "迈克尔·哈默",
+    "category": "business"
+  },
+  {
+    "title": "组织行为学",
+    "author": "斯蒂芬·罗宾斯",
+    "category": "business"
+  },
+  {
+    "title": "管理学",
+    "author": "彼得·德鲁克",
+    "category": "business"
+  },
+  {
+    "title": "后资本主义社会",
+    "author": "彼得·德鲁克",
+    "category": "business"
+  },
+  {
+    "title": "九型人格",
+    "author": "唐·理查德·里索",
+    "category": "business"
+  },
+  {
+    "title": "遇见对的人",
+    "author": "阿瑟·艾伦",
+    "category": "business"
+  },
+  {
+    "title": "意志力",
+    "author": "罗伊·鲍迈斯特",
+    "category": "business"
+  },
+  {
+    "title": "第八个习惯",
+    "author": "史蒂芬·柯维",
+    "category": "business"
+  },
+  {
+    "title": "最重要的事只有一件",
+    "author": "盖瑞·凯勒",
+    "category": "business"
+  },
+  {
+    "title": "精力管理手册",
+    "author": "吉姆·洛尔",
+    "category": "business"
+  },
+  {
+    "title": "形而上学",
+    "author": "亚里士多德",
+    "category": "philosophy"
+  },
+  {
+    "title": "莫比乌斯之梦",
+    "author": "道格拉斯·霍夫施塔特",
+    "category": "philosophy"
+  },
+  {
+    "title": "人的境况",
+    "author": "汉娜·阿伦特",
+    "category": "philosophy"
+  },
+  {
+    "title": "第二性",
+    "author": "西蒙娜·德·波伏瓦",
+    "category": "philosophy"
+  },
+  {
+    "title": "论人的理智",
+    "author": "约翰·洛克",
+    "category": "philosophy"
+  },
+  {
+    "title": "现象学的精神",
+    "author": "埃德蒙德·胡塞尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "历史理性批判",
+    "author": "卡尔·波普尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "社会契约论",
+    "author": "让-雅克·卢梭",
+    "category": "philosophy"
+  },
+  {
+    "title": "政治哲学讲义",
+    "author": "约翰·罗尔斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "幸福之路",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "认识与现实",
+    "author": "伊曼努尔·康德",
+    "category": "philosophy"
+  },
+  {
+    "title": "幸福论",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德想像",
+    "author": "玛莎·努斯鲍姆",
+    "category": "philosophy"
+  },
+  {
+    "title": "论美",
+    "author": "大卫·休谟",
+    "category": "philosophy"
+  },
+  {
+    "title": "心的哲学",
+    "author": "约翰·塞尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "论证性写作",
+    "author": "托马斯·内格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "伦理学导论",
+    "author": "彼得·辛格",
+    "category": "philosophy"
+  },
+  {
+    "title": "自由论",
+    "author": "以赛亚·伯林",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德哲学",
+    "author": "玛丽亚·门德斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "形而上学基础",
+    "author": "伊曼努尔·康德",
+    "category": "philosophy"
+  },
+  {
+    "title": "论权力意志",
+    "author": "弗里德里希·尼采",
+    "category": "philosophy"
+  },
+  {
+    "title": "悲剧的诞生",
+    "author": "弗里德里希·尼采",
+    "category": "philosophy"
+  },
+  {
+    "title": "系统神学",
+    "author": "保罗·田立克",
+    "category": "philosophy"
+  },
+  {
+    "title": "存在的勇气",
+    "author": "保罗·田立克",
+    "category": "philosophy"
+  },
+  {
+    "title": "论快乐",
+    "author": "伊壁鸠鲁",
+    "category": "philosophy"
+  },
+  {
+    "title": "斯多葛哲学",
+    "author": "玛格丽特·格尔茨",
+    "category": "philosophy"
+  },
+  {
+    "title": "论名誉与虚荣",
+    "author": "大卫·休谟",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德的谱系",
+    "author": "弗里德里希·尼采",
+    "category": "philosophy"
+  },
+  {
+    "title": "论平等",
+    "author": "托马斯·内格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "能力方法",
+    "author": "玛莎·努斯鲍姆",
+    "category": "philosophy"
+  },
+  {
+    "title": "论同情",
+    "author": "亚当·斯密",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学的改造",
+    "author": "约翰·杜威",
+    "category": "philosophy"
+  },
+  {
+    "title": "经验与自然",
+    "author": "约翰·杜威",
+    "category": "philosophy"
+  },
+  {
+    "title": "论伦理学",
+    "author": "彼得·辛格",
+    "category": "philosophy"
+  },
+  {
+    "title": "死亡之书",
+    "author": "欧内斯特·贝克尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "人性中的善",
+    "author": "克里斯托弗·彼得森",
+    "category": "philosophy"
+  },
+  {
+    "title": "理性的边界",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "实用主义",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "反对品味独裁",
+    "author": "托马斯·内格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "知识与权力",
+    "author": "米歇尔·福柯",
+    "category": "philosophy"
+  },
+  {
+    "title": "论自由与必然",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "论真理",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "心身问题",
+    "author": "托马斯·内格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "语言与思想",
+    "author": "诺姆·乔姆斯基",
+    "category": "philosophy"
+  },
+  {
+    "title": "论名与实",
+    "author": "柏拉图",
+    "category": "philosophy"
+  },
+  {
+    "title": "伦理学讲座",
+    "author": "彼得·辛格",
+    "category": "philosophy"
+  },
+  {
+    "title": "论美与丑",
+    "author": "大卫·休谟",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学导论",
+    "author": "托马斯·内格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "爱迪生传",
+    "author": "托马斯·爱迪生",
+    "category": "biography"
+  },
+  {
+    "title": "莱特兄弟传",
+    "author": "弗雷德·凯利",
+    "category": "biography"
+  },
+  {
+    "title": "丘吉尔传",
+    "author": "威廉·曼彻斯特",
+    "category": "biography"
+  },
+  {
+    "title": "贝多芬传",
+    "author": "罗曼·罗兰",
+    "category": "biography"
+  },
+  {
+    "title": "米开朗琪罗传",
+    "author": "欧文·斯通",
+    "category": "biography"
+  },
+  {
+    "title": "卓别林自传",
+    "author": "查理·卓别林",
+    "category": "biography"
+  },
+  {
+    "title": "玛丽莲·梦露传",
+    "author": "诺曼·梅勒",
+    "category": "biography"
+  },
+  {
+    "title": "英格丽·褒曼传",
+    "author": "艾伦·巴克利",
+    "category": "biography"
+  },
+  {
+    "title": "奥黛丽·赫本传",
+    "author": "肖恩·海蒙德",
+    "category": "biography"
+  },
+  {
+    "title": "斯坦福传",
+    "author": "蒂莫西·泰勒",
+    "category": "biography"
+  },
+  {
+    "title": "安迪·沃霍尔的日记",
+    "author": "安迪·沃霍尔",
+    "category": "biography"
+  },
+  {
+    "title": "乔治·华盛顿传",
+    "author": "罗恩·切诺",
+    "category": "biography"
+  },
+  {
+    "title": "托马斯·杰斐逊传",
+    "author": "罗恩·切诺",
+    "category": "biography"
+  },
+  {
+    "title": "亚伯拉罕·林肯传",
+    "author": "卡尔·桑德堡",
+    "category": "biography"
+  },
+  {
+    "title": "富兰克林·罗斯福传",
+    "author": "詹姆斯·麦格雷格·伯恩斯",
+    "category": "biography"
+  },
+  {
+    "title": "约翰·肯尼迪传",
+    "author": "阿瑟·施莱辛格",
+    "category": "biography"
+  },
+  {
+    "title": "马丁·路德·金传",
+    "author": "泰勒·布朗奇",
+    "category": "biography"
+  },
+  {
+    "title": "曼德拉传",
+    "author": "纳尔逊·曼德拉",
+    "category": "biography"
+  },
+  {
+    "title": "杜鲁门传",
+    "author": "大卫·麦卡洛",
+    "category": "biography"
+  },
+  {
+    "title": "斯大林传",
+    "author": "沃尔夫冈·韦施勒",
+    "category": "biography"
+  },
+  {
+    "title": "比尔·盖茨传",
+    "author": "詹姆斯·华莱士",
+    "category": "biography"
+  },
+  {
+    "title": "沃伦·巴菲特传",
+    "author": "罗杰·洛温斯坦",
+    "category": "biography"
+  },
+  {
+    "title": "李嘉诚传",
+    "author": "徐铁生",
+    "category": "biography"
+  },
+  {
+    "title": "马云：未来已来",
+    "author": "马云",
+    "category": "biography"
+  },
+  {
+    "title": "任正非传",
+    "author": "陈晓晖",
+    "category": "biography"
+  },
+  {
+    "title": "张瑞敏传",
+    "author": "吕德成",
+    "category": "biography"
+  },
+  {
+    "title": "柳传志传",
+    "author": "陈宗周",
+    "category": "biography"
+  },
+  {
+    "title": "周恩来传",
+    "author": "周海滨",
+    "category": "biography"
+  },
+  {
+    "title": "孙中山传",
+    "author": "陈旭麓",
+    "category": "biography"
+  },
+  {
+    "title": "武则天传",
+    "author": "林语堂",
+    "category": "biography"
+  },
+  {
+    "title": "莎士比亚的妹妹在哪里",
+    "author": "弗吉尼亚·伍尔夫",
+    "category": "biography"
+  },
+  {
+    "title": "乔治·桑传",
+    "author": "安德烈·莫罗瓦",
+    "category": "biography"
+  },
+  {
+    "title": "弗吉尼亚·伍尔夫传",
+    "author": "赫尔米奥妮·李",
+    "category": "biography"
+  },
+  {
+    "title": "玛丽·沃尔斯通克拉夫特传",
+    "author": "克莱尔·托马林",
+    "category": "biography"
+  },
+  {
+    "title": "巴尔扎克传",
+    "author": "格雷厄姆·罗布",
+    "category": "biography"
+  },
+  {
+    "title": "契诃夫传",
+    "author": "唐纳德·雷菲尔德",
+    "category": "biography"
+  },
+  {
+    "title": "莫比迪克",
+    "author": "赫尔曼·梅尔维尔",
+    "category": "novel"
+  },
+  {
+    "title": "白鲸",
+    "author": "赫尔曼·梅尔维尔",
+    "category": "novel"
+  },
+  {
+    "title": "蒙特·克里斯托伯爵",
+    "author": "亚历山大·仲马",
+    "category": "novel"
+  },
+  {
+    "title": "苔丝",
+    "author": "托马斯·哈代",
+    "category": "novel"
+  },
+  {
+    "title": "远离尘嚣",
+    "author": "托马斯·哈代",
+    "category": "novel"
+  },
+  {
+    "title": "高老头",
+    "author": "巴尔扎克",
+    "category": "novel"
+  },
+  {
+    "title": "人间喜剧",
+    "author": "巴尔扎克",
+    "category": "novel"
+  },
+  {
+    "title": "汤姆·索亚历险记",
+    "author": "马克·吐温",
+    "category": "novel"
+  },
+  {
+    "title": "鲁宾逊漂流记",
+    "author": "丹尼尔·笛福",
+    "category": "novel"
+  },
+  {
+    "title": "绝望之城",
+    "author": "威廉·福克纳",
+    "category": "novel"
+  },
+  {
+    "title": "喧嚣与骚动",
+    "author": "威廉·福克纳",
+    "category": "novel"
+  },
+  {
+    "title": "分裂的自我",
+    "author": "罗纳德·D·莱恩",
+    "category": "novel"
+  },
+  {
+    "title": "美国的悲剧",
+    "author": "西奥多·德莱塞",
+    "category": "novel"
+  },
+  {
+    "title": "老舍自传",
+    "author": "老舍",
+    "category": "novel"
+  },
+  {
+    "title": "京华烟云",
+    "author": "林语堂",
+    "category": "novel"
+  },
+  {
+    "title": "秀色可餐",
+    "author": "莫言",
+    "category": "novel"
+  },
+  {
+    "title": "历史高度",
+    "author": "冯友兰",
+    "category": "novel"
+  },
+  {
+    "title": "人类简史：从动物到上帝",
+    "author": "尤瓦尔·赫拉利",
+    "category": "non_fiction"
+  },
+  {
+    "title": "天才在左 疯子在右",
+    "author": "高铭",
+    "category": "non_fiction"
+  },
+  {
+    "title": "我们为什么要睡觉",
+    "author": "马修·沃克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "见识",
+    "author": "吴军",
+    "category": "non_fiction"
+  },
+  {
+    "title": "生命的重建",
+    "author": "露易丝·海",
+    "category": "non_fiction"
+  },
+  {
+    "title": "情感智力",
+    "author": "丹尼尔·戈尔曼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "民族主义与现代化",
+    "author": "费正清",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国近代史",
+    "author": "蒋廷黻",
+    "category": "non_fiction"
+  },
+  {
+    "title": "春秋战国的历史地位",
+    "author": "周杰荣",
+    "category": "non_fiction"
+  },
+  {
+    "title": "四世同堂的时代背景",
+    "author": "李长声",
+    "category": "non_fiction"
+  },
+  {
+    "title": "货币战争",
+    "author": "宋鸿兵",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大博弈：中亚五国与大国政治",
+    "author": "鲁德·哈列瓦",
+    "category": "non_fiction"
+  },
+  {
+    "title": "21世纪资本论",
+    "author": "托马斯·皮凯蒂",
+    "category": "non_fiction"
+  },
+  {
+    "title": "贫富差距的深层原因",
+    "author": "约瑟夫·斯蒂格利茨",
+    "category": "non_fiction"
+  },
+  {
+    "title": "物种起源",
+    "author": "查尔斯·达尔文",
+    "category": "non_fiction"
+  },
+  {
+    "title": "宇宙简史",
+    "author": "史蒂芬·霍金",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人文主义的精神",
+    "author": "约翰·赫伊津哈",
+    "category": "non_fiction"
+  },
+  {
+    "title": "文明的冲突与世界秩序的重建",
+    "author": "塞缪尔·亨廷顿",
+    "category": "non_fiction"
+  },
+  {
+    "title": "现代性的反思",
+    "author": "查尔斯·泰勒",
+    "category": "non_fiction"
+  },
+  {
+    "title": "走出唯一真理观",
+    "author": "许纪霖",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国思想传统的现代转型",
+    "author": "余英时",
+    "category": "non_fiction"
+  },
+  {
+    "title": "儒教与资本主义",
+    "author": "马克斯·韦伯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "新教伦理与资本主义精神",
+    "author": "马克斯·韦伯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "社会学的想象力",
+    "author": "查尔斯·米尔斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "铁血宰相：俾斯麦传",
+    "author": "蒂莫西·赖利",
+    "category": "non_fiction"
+  },
+  {
+    "title": "甘地传",
+    "author": "路易·费舍尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "现象学通论",
+    "author": "埃德蒙德·胡塞尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "伦理学",
+    "author": "阿瑟·叔本华",
+    "category": "non_fiction"
+  },
+  {
+    "title": "论人类不平等的起源",
+    "author": "让-雅克·卢梭",
+    "category": "non_fiction"
+  },
+  {
+    "title": "利维坦",
+    "author": "托马斯·霍布斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "德意志意识形态",
+    "author": "卡尔·马克思",
+    "category": "non_fiction"
+  },
+  {
+    "title": "共产党宣言",
+    "author": "卡尔·马克思",
+    "category": "non_fiction"
+  },
+  {
+    "title": "历史的终结与最后的人",
+    "author": "弗朗西斯·福山",
+    "category": "history"
+  },
+  {
+    "title": "第二次世界大战史",
+    "author": "温斯顿·丘吉尔",
+    "category": "history"
+  },
+  {
+    "title": "民族国家与民族冲突",
+    "author": "埃里克·霍布斯鲍姆",
+    "category": "history"
+  },
+  {
+    "title": "中国近代政治思想史论文集",
+    "author": "梁启超",
+    "category": "history"
+  },
+  {
+    "title": "五四运动史",
+    "author": "周策纵",
+    "category": "history"
+  },
+  {
+    "title": "民国政治人物演义",
+    "author": "袁世凯",
+    "category": "history"
+  },
+  {
+    "title": "中国古代社会结构演变",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "秦汉帝国",
+    "author": "瓦尔特·沙夫",
+    "category": "history"
+  },
+  {
+    "title": "蒙古帝国史",
+    "author": "杰克·韦瑟福德",
+    "category": "history"
+  },
+  {
+    "title": "清朝的衰亡",
+    "author": "孟德斯鸠",
+    "category": "history"
+  },
+  {
+    "title": "太平天国史",
+    "author": "罗尔纲",
+    "category": "history"
+  },
+  {
+    "title": "民国时期的政治与社会",
+    "author": "陈旭麓",
+    "category": "history"
+  },
+  {
+    "title": "孰是孰非：历史的真相",
+    "author": "威廉·H·迈克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "人类文明的故事",
+    "author": "房龙",
+    "category": "history"
+  },
+  {
+    "title": "世界通史",
+    "author": "斯塔夫里阿诺斯",
+    "category": "history"
+  },
+  {
+    "title": "大西洋两岸的思想与行动",
+    "author": "保罗·约翰逊",
+    "category": "history"
+  },
+  {
+    "title": "二十世纪的俄国",
+    "author": "奥兰多·费吉斯",
+    "category": "history"
+  },
+  {
+    "title": "1917年俄国十月革命史",
+    "author": "托洛茨基",
+    "category": "history"
+  },
+  {
+    "title": "希特勒：从沙龙到帝国",
+    "author": "伊恩·克肖",
+    "category": "history"
+  },
+  {
+    "title": "真理的力量：20世纪政治史",
+    "author": "蒂莫西·加顿·艾什",
+    "category": "history"
+  },
+  {
+    "title": "德国的历史命运",
+    "author": "塞巴斯蒂安·哈夫纳",
+    "category": "history"
+  },
+  {
+    "title": "法国大革命史",
+    "author": "托克维尔",
+    "category": "history"
+  },
+  {
+    "title": "英国内战史",
+    "author": "克里斯托弗·希尔",
+    "category": "history"
+  },
+  {
+    "title": "大国兴衰：1500-2000年的经济变化与军事冲突",
+    "author": "保罗·肯尼迪",
+    "category": "history"
+  },
+  {
+    "title": "现代世界体系",
+    "author": "伊曼纽尔·沃勒斯坦",
+    "category": "history"
+  },
+  {
+    "title": "历史的理论",
+    "author": "卡尔·波普尔",
+    "category": "history"
+  },
+  {
+    "title": "历史主义的贫困",
+    "author": "卡尔·波普尔",
+    "category": "history"
+  },
+  {
+    "title": "思想史的观念",
+    "author": "阿瑟·洛夫乔伊",
+    "category": "history"
+  },
+  {
+    "title": "东西方文化交流史",
+    "author": "许倬云",
+    "category": "history"
+  },
+  {
+    "title": "西学东传与现代中国",
+    "author": "蒋廷黻",
+    "category": "history"
+  },
+  {
+    "title": "中国对西方的认识过程",
+    "author": "费正清",
+    "category": "history"
+  },
+  {
+    "title": "甲午战争史",
+    "author": "戚其章",
+    "category": "history"
+  },
+  {
+    "title": "中日战争全史",
+    "author": "蒋廷黻",
+    "category": "history"
+  },
+  {
+    "title": "抗日战争正面战场",
+    "author": "陈谦平",
+    "category": "history"
+  },
+  {
+    "title": "现代中国的成长",
+    "author": "蒋廷黻",
+    "category": "history"
+  },
+  {
+    "title": "中国文化发展史",
+    "author": "钱穆",
+    "category": "history"
+  },
+  {
+    "title": "中国思想史论文集",
+    "author": "胡适",
+    "category": "history"
+  },
+  {
+    "title": "影响力：让你具有说服力",
+    "author": "罗伯特·西奥迪尼",
+    "category": "business"
+  },
+  {
+    "title": "细节决定成败",
+    "author": "汪中求",
+    "category": "business"
+  },
+  {
+    "title": "执行：如何完成任务的艺术",
+    "author": "拉里·博西迪、保罗·切兰",
+    "category": "business"
+  },
+  {
+    "title": "定位：争夺用户心智的战争",
+    "author": "艾·里斯、杰克·特劳特",
+    "category": "business"
+  },
+  {
+    "title": "商业模式新生代",
+    "author": "亚历山大·奥斯特瓦尔德",
+    "category": "business"
+  },
+  {
+    "title": "重新想象公司",
+    "author": "比尔·盖茨",
+    "category": "business"
+  },
+  {
+    "title": "企业生命周期",
+    "author": "伊查克·艾迪思",
+    "category": "business"
+  },
+  {
+    "title": "管理思想史",
+    "author": "丹尼尔·雷恩",
+    "category": "business"
+  },
+  {
+    "title": "第五项修炼：学习型组织的艺术与实践",
+    "author": "彼得·圣吉",
+    "category": "business"
+  },
+  {
+    "title": "领导力的本质",
+    "author": "詹姆斯·库塞斯、巴里·波斯纳",
+    "category": "business"
+  },
+  {
+    "title": "财务是个真实的游戏",
+    "author": "杰克·韦尔奇",
+    "category": "business"
+  },
+  {
+    "title": "管理者的真实修炼",
+    "author": "威廉·科恩",
+    "category": "business"
+  },
+  {
+    "title": "跨越鸿沟",
+    "author": "杰弗里·摩尔",
+    "category": "business"
+  },
+  {
+    "title": "价值主张设计",
+    "author": "亚历克斯·奥斯特瓦尔德等",
+    "category": "business"
+  },
+  {
+    "title": "增长的困境",
+    "author": "克莱顿·克里斯坦森等",
+    "category": "business"
+  },
+  {
+    "title": "创业的艺术",
+    "author": "盖伊·川崎",
+    "category": "business"
+  },
+  {
+    "title": "零到一：开启商业与未来的秘密",
+    "author": "彼得·蒂尔、布莱克·马斯特斯",
+    "category": "business"
+  },
+  {
+    "title": "管理的边界",
+    "author": "埃略特·雅克",
+    "category": "business"
+  },
+  {
+    "title": "领导力4.0",
+    "author": "杨三角",
+    "category": "business"
+  },
+  {
+    "title": "OKR目标与关键成果",
+    "author": "约翰·多尔",
+    "category": "business"
+  },
+  {
+    "title": "坚持的力量",
+    "author": "安吉拉·达克沃斯",
+    "category": "business"
+  },
+  {
+    "title": "极简工作法则",
+    "author": "特蕾西·布莱克洛克",
+    "category": "business"
+  },
+  {
+    "title": "远程工作革命",
+    "author": "贾森·弗里德、戴维·海涅迈尔·汉森",
+    "category": "business"
+  },
+  {
+    "title": "时间管理的艺术",
+    "author": "戴维·艾伦",
+    "category": "business"
+  },
+  {
+    "title": "跨越组织边界",
+    "author": "威廉·布里奇斯",
+    "category": "business"
+  },
+  {
+    "title": "激励人心",
+    "author": "詹姆斯·库塞斯、巴里·波斯纳",
+    "category": "business"
+  },
+  {
+    "title": "团队建设的艺术",
+    "author": "帕特里克·伦西奥尼",
+    "category": "business"
+  },
+  {
+    "title": "高效能教练",
+    "author": "约翰·惠特默",
+    "category": "business"
+  },
+  {
+    "title": "困难对话",
+    "author": "道格拉斯·斯通等",
+    "category": "business"
+  },
+  {
+    "title": "谈判的艺术",
+    "author": "杰拉尔德·尼伦伯格",
+    "category": "business"
+  },
+  {
+    "title": "销售的艺术",
+    "author": "汤姆·霍普金斯",
+    "category": "business"
+  },
+  {
+    "title": "打造爆款：产品经理的增长思维",
+    "author": "张小龙等",
+    "category": "business"
+  },
+  {
+    "title": "产品思维",
+    "author": "林立",
+    "category": "business"
+  },
+  {
+    "title": "互联网+传统企业转型",
+    "author": "李善友",
+    "category": "business"
+  },
+  {
+    "title": "平台生态战",
+    "author": "洪波",
+    "category": "business"
+  },
+  {
+    "title": "诗的语言、思的语言",
+    "author": "马丁·海德格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "论证与论说",
+    "author": "路德维希·维特根斯坦",
+    "category": "philosophy"
+  },
+  {
+    "title": "开放社会及其敌人",
+    "author": "卡尔·波普尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "后现代性，或后现代的状况",
+    "author": "让-弗朗索瓦·利奥塔",
+    "category": "philosophy"
+  },
+  {
+    "title": "差异与重复",
+    "author": "吉尔·德勒兹",
+    "category": "philosophy"
+  },
+  {
+    "title": "审美意识形态",
+    "author": "特里·伊格尔顿",
+    "category": "philosophy"
+  },
+  {
+    "title": "不可思议的世界",
+    "author": "鲁道夫·卡尔纳普",
+    "category": "philosophy"
+  },
+  {
+    "title": "存在主义是人道主义",
+    "author": "让-保罗·萨特",
+    "category": "philosophy"
+  },
+  {
+    "title": "伦理与政治演讲录",
+    "author": "亚伦·麦克英泰尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "论证与论文",
+    "author": "尼古拉斯·韦瑟罗尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德哲学的基础",
+    "author": "威廉·戈德温",
+    "category": "philosophy"
+  },
+  {
+    "title": "反杜林论",
+    "author": "弗里德里希·恩格斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "历史理性批判文论",
+    "author": "约翰·哥德弗里德·赫尔德",
+    "category": "philosophy"
+  },
+  {
+    "title": "实践理性批判",
+    "author": "伊曼努尔·康德",
+    "category": "philosophy"
+  },
+  {
+    "title": "艺术的艺术",
+    "author": "克莱夫·贝尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "批判与真理",
+    "author": "罗兰·巴尔特",
+    "category": "philosophy"
+  },
+  {
+    "title": "符号与象征",
+    "author": "欧内斯特·卡西尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "审美的故事",
+    "author": "亚历山大·鲍姆加滕",
+    "category": "philosophy"
+  },
+  {
+    "title": "美的规律",
+    "author": "约翰·克里斯托夫·戈特舍德",
+    "category": "philosophy"
+  },
+  {
+    "title": "自然的哲学",
+    "author": "阿瑟·叔本华",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德的起源",
+    "author": "尼古拉斯·瓦尔茨尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "伦理学入门",
+    "author": "彼得·辛格",
+    "category": "philosophy"
+  },
+  {
+    "title": "心灵哲学",
+    "author": "大卫·查默斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "逻辑与知识",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "数学原理",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "外部世界的问题",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学中的问题",
+    "author": "伯特兰·罗素",
+    "category": "philosophy"
+  },
+  {
+    "title": "分析哲学概论",
+    "author": "蒂莫西·威廉森",
+    "category": "philosophy"
+  },
+  {
+    "title": "真理的对应论",
+    "author": "阿尔弗雷德·塔斯基",
+    "category": "philosophy"
+  },
+  {
+    "title": "世界哲学问题",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "实用主义：一种新的思考方式",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "普通心理学原理",
+    "author": "威廉·詹姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "论文化相对主义",
+    "author": "弗朗茨·博亚斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学史讲稿",
+    "author": "黑格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国古代哲学通论",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国哲学史",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "新理学",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "人生哲学",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国哲学概论",
+    "author": "张岱年",
+    "category": "philosophy"
+  },
+  {
+    "title": "诸子百家思想评述",
+    "author": "张岱年",
+    "category": "philosophy"
+  },
+  {
+    "title": "达尔文自传",
+    "author": "查尔斯·达尔文",
+    "category": "biography"
+  },
+  {
+    "title": "马克思传",
+    "author": "彼得·辛格",
+    "category": "biography"
+  },
+  {
+    "title": "麦当娜传",
+    "author": "克里斯托弗·安德森",
+    "category": "biography"
+  },
+  {
+    "title": "戴安娜王妃传",
+    "author": "安德鲁·莫顿",
+    "category": "biography"
+  },
+  {
+    "title": "邱吉尔自述",
+    "author": "温斯顿·丘吉尔",
+    "category": "biography"
+  },
+  {
+    "title": "门德尔松传",
+    "author": "塞巴斯蒂安·亨塞尔",
+    "category": "biography"
+  },
+  {
+    "title": "肖邦传",
+    "author": "乔治·桑",
+    "category": "biography"
+  },
+  {
+    "title": "瓦格纳传",
+    "author": "卡尔·施密特",
+    "category": "biography"
+  },
+  {
+    "title": "达芬奇传",
+    "author": "沃尔特·艾萨克森",
+    "category": "biography"
+  },
+  {
+    "title": "玛丽亚·卡拉斯传",
+    "author": "蒂莎·尤尔",
+    "category": "biography"
+  },
+  {
+    "title": "伊丽莎白一世传",
+    "author": "克莱尔·托迈林",
+    "category": "biography"
+  },
+  {
+    "title": "凯瑟琳大帝传",
+    "author": "罗伯特·K·马西",
+    "category": "biography"
+  },
+  {
+    "title": "约翰·F·肯尼迪传",
+    "author": "阿瑟·M·施莱辛格",
+    "category": "biography"
+  },
+  {
+    "title": "罗斯福传",
+    "author": "埃德蒙·莫利",
+    "category": "biography"
+  },
+  {
+    "title": "本杰明·富兰克林传",
+    "author": "卡尔·范多伦",
+    "category": "biography"
+  },
+  {
+    "title": "邓小平传",
+    "author": "傅高义",
+    "category": "biography"
+  },
+  {
+    "title": "雍正帝",
+    "author": "二月河",
+    "category": "biography"
+  },
+  {
+    "title": "李鸿章传",
+    "author": "茅海建",
+    "category": "biography"
+  },
+  {
+    "title": "胡雪岩全传",
+    "author": "高阳",
+    "category": "biography"
+  },
+  {
+    "title": "张居正传",
+    "author": "张德信",
+    "category": "biography"
+  },
+  {
+    "title": "秦始皇传",
+    "author": "茅盾",
+    "category": "biography"
+  },
+  {
+    "title": "汉武帝传",
+    "author": "韦弦",
+    "category": "biography"
+  },
+  {
+    "title": "唐太宗传",
+    "author": "易中天",
+    "category": "biography"
+  },
+  {
+    "title": "徐霞客游记",
+    "author": "徐霞客",
+    "category": "biography"
+  },
+  {
+    "title": "林则徐传",
+    "author": "陈宝良",
+    "category": "biography"
+  },
+  {
+    "title": "莫斯科的紳士",
+    "author": "阿莫尔·托尔斯",
+    "category": "novel"
+  },
+  {
+    "title": "蒙田随笔",
+    "author": "蒙田",
+    "category": "novel"
+  },
+  {
+    "title": "牡丹亭",
+    "author": "汤显祖",
+    "category": "novel"
+  },
+  {
+    "title": "春",
+    "author": "巴金",
+    "category": "novel"
+  },
+  {
+    "title": "秋",
+    "author": "巴金",
+    "category": "novel"
+  },
+  {
+    "title": "呼吸的痛",
+    "author": "郭敬明",
+    "category": "novel"
+  },
+  {
+    "title": "小时代",
+    "author": "郭敬明",
+    "category": "novel"
+  },
+  {
+    "title": "悟空传",
+    "author": "今何在",
+    "category": "novel"
+  },
+  {
+    "title": "此间的少年",
+    "author": "江南",
+    "category": "novel"
+  },
+  {
+    "title": "余罪",
+    "author": "常书欣",
+    "category": "novel"
+  },
+  {
+    "title": "死亡通知单",
+    "author": "周浩晖",
+    "category": "novel"
+  },
+  {
+    "title": "十宗罪",
+    "author": "蜘蛛",
+    "category": "novel"
+  },
+  {
+    "title": "恶魔法官",
+    "author": "蜘蛛",
+    "category": "novel"
+  },
+  {
+    "title": "爱情与灵魂",
+    "author": "保罗·柯埃略",
+    "category": "novel"
+  },
+  {
+    "title": "牧羊少年奇幻之旅",
+    "author": "保罗·柯埃略",
+    "category": "novel"
+  },
+  {
+    "title": "少年派的奇幻漂流",
+    "author": "扬·马特尔",
+    "category": "novel"
+  },
+  {
+    "title": "达·芬奇密码",
+    "author": "丹·布朗",
+    "category": "novel"
+  },
+  {
+    "title": "天使与魔鬼",
+    "author": "丹·布朗",
+    "category": "novel"
+  },
+  {
+    "title": "失落的秘符",
+    "author": "丹·布朗",
+    "category": "novel"
+  },
+  {
+    "title": "冰与火之歌：权力游戏",
+    "author": "乔治·R.R.马丁",
+    "category": "novel"
+  },
+  {
+    "title": "黑暗的左手",
+    "author": "厄休拉·K.勒古恩",
+    "category": "novel"
+  },
+  {
+    "title": "火星救援",
+    "author": "安迪·威尔",
+    "category": "novel"
+  },
+  {
+    "title": "幸福的方法",
+    "author": "泰勒·本-沙哈尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "改变心理学的50个实验",
+    "author": "罗杰·西普",
+    "category": "non_fiction"
+  },
+  {
+    "title": "冥想禅修入门",
+    "author": "乔·卡巴金",
+    "category": "non_fiction"
+  },
+  {
+    "title": "为什么我们不快乐",
+    "author": "约翰·艾莱德",
+    "category": "non_fiction"
+  },
+  {
+    "title": "困难谈话",
+    "author": "道格拉斯·斯通",
+    "category": "non_fiction"
+  },
+  {
+    "title": "怪诞行为心理学",
+    "author": "丹·艾瑞里",
+    "category": "non_fiction"
+  },
+  {
+    "title": "今日简史",
+    "author": "尤瓦尔·赫拉利",
+    "category": "non_fiction"
+  },
+  {
+    "title": "优雅的宇宙",
+    "author": "布莱恩·格林",
+    "category": "non_fiction"
+  },
+  {
+    "title": "天体运行论",
+    "author": "尼古拉·哥白尼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人性的进步",
+    "author": "威廉·格拉汉姆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "上帝的眼泪",
+    "author": "理查德·道金斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "科学的诗篇",
+    "author": "理查德·道金斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "意识的本质",
+    "author": "克里斯托夫·科赫",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大脑如何工作",
+    "author": "约翰·鲁迪亚克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "脑与心智",
+    "author": "艾里克·坎德尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "感知与现实",
+    "author": "唐纳德·霍夫曼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "逻辑与哲学",
+    "author": "伯特兰·罗素",
+    "category": "non_fiction"
+  },
+  {
+    "title": "知识论导论",
+    "author": "埃德蒙·古塞菲尔德",
+    "category": "non_fiction"
+  },
+  {
+    "title": "伦理学与生活",
+    "author": "鲁思·麦基尼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "政治哲学简史",
+    "author": "亚历山大·麦比",
+    "category": "non_fiction"
+  },
+  {
+    "title": "艺术的精神",
+    "author": "瓦西里·康定斯基",
+    "category": "non_fiction"
+  },
+  {
+    "title": "雨果传",
+    "author": "格雷厄姆·罗布",
+    "category": "non_fiction"
+  },
+  {
+    "title": "女性的奥秘",
+    "author": "贝蒂·弗里丹",
+    "category": "non_fiction"
+  },
+  {
+    "title": "家庭、私有财产和国家的起源",
+    "author": "弗里德里希·恩格斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "甲午战争",
+    "author": "茅海建",
+    "category": "history"
+  },
+  {
+    "title": "帝国如何衰亡",
+    "author": "欧文·拉铁摩尔",
+    "category": "history"
+  },
+  {
+    "title": "十日谈",
+    "author": "薄伽丘",
+    "category": "history"
+  },
+  {
+    "title": "莫斯科大火",
+    "author": "列夫·托尔斯泰",
+    "category": "history"
+  },
+  {
+    "title": "彼得大帝",
+    "author": "阿列克谢·托尔斯泰",
+    "category": "history"
+  },
+  {
+    "title": "克伦威尔传",
+    "author": "托马斯·卡莱尔",
+    "category": "history"
+  },
+  {
+    "title": "美国独立战争史",
+    "author": "威廉·高登",
+    "category": "history"
+  },
+  {
+    "title": "苏联的最后一天",
+    "author": "叶利钦",
+    "category": "history"
+  },
+  {
+    "title": "希特勒传",
+    "author": "伊恩·克肖",
+    "category": "history"
+  },
+  {
+    "title": "凡尔赛条约与欧洲",
+    "author": "玛格丽特·麦克米兰",
+    "category": "history"
+  },
+  {
+    "title": "中国古代兵器史",
+    "author": "吕思勉",
+    "category": "history"
+  },
+  {
+    "title": "古代中国的统一与分裂",
+    "author": "吕思勉",
+    "category": "history"
+  },
+  {
+    "title": "唐宋变革",
+    "author": "气贺泽保规",
+    "category": "history"
+  },
+  {
+    "title": "南北朝史略",
+    "author": "周一良",
+    "category": "history"
+  },
+  {
+    "title": "汉帝国的衰亡",
+    "author": "罗威廉",
+    "category": "history"
+  },
+  {
+    "title": "唐帝国的衰亡",
+    "author": "田中谷",
+    "category": "history"
+  },
+  {
+    "title": "宋朝政治史",
+    "author": "漆侠",
+    "category": "history"
+  },
+  {
+    "title": "元朝政治史",
+    "author": "陈高华",
+    "category": "history"
+  },
+  {
+    "title": "明清经济史",
+    "author": "傅衣凌",
+    "category": "history"
+  },
+  {
+    "title": "民国时期的社会转型",
+    "author": "杨奎松",
+    "category": "history"
+  },
+  {
+    "title": "抗日战争完整史",
+    "author": "杨奎松",
+    "category": "history"
+  },
+  {
+    "title": "当代中国政治制度",
+    "author": "郎咸平",
+    "category": "history"
+  },
+  {
+    "title": "丝绸之路：一部全新的世界历史",
+    "author": "彼得·弗兰科潘",
+    "category": "history"
+  },
+  {
+    "title": "新丝绸之路",
+    "author": "彼得·弗兰科潘",
+    "category": "history"
+  },
+  {
+    "title": "奥斯曼帝国：一部世界帝国史",
+    "author": "罗杰·克劳利",
+    "category": "history"
+  },
+  {
+    "title": "海权争霸史",
+    "author": "罗杰·克劳利",
+    "category": "history"
+  },
+  {
+    "title": "伊斯兰文明的未来",
+    "author": "伯纳德·刘易斯",
+    "category": "history"
+  },
+  {
+    "title": "东方学",
+    "author": "爱德华·萨义德",
+    "category": "history"
+  },
+  {
+    "title": "权力与特权",
+    "author": "杰罕·沃尔夫",
+    "category": "history"
+  },
+  {
+    "title": "年鉴学派与史学新境",
+    "author": "彼得·伯克",
+    "category": "history"
+  },
+  {
+    "title": "隐喻与帝国",
+    "author": "亚当·萨顿",
+    "category": "history"
+  },
+  {
+    "title": "人民的历史",
+    "author": "霍华德·津恩",
+    "category": "history"
+  },
+  {
+    "title": "欧洲文明史",
+    "author": "威廉·麦克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "古代世界的衝突",
+    "author": "林恩·怀特",
+    "category": "history"
+  },
+  {
+    "title": "文艺复兴运动史",
+    "author": "约翰·阿迪森",
+    "category": "history"
+  },
+  {
+    "title": "心理创伤自救手册",
+    "author": "彼得·莱文",
+    "category": "psychology"
+  },
+  {
+    "title": "依恋理论",
+    "author": "约翰·鲍比",
+    "category": "psychology"
+  },
+  {
+    "title": "助人心理学",
+    "author": "卡尔·罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救箱",
+    "author": "盖伊·温奇",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑症和恐慌症自救",
+    "author": "艾德蒙德·博恩",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想与大脑",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "心理调适与生活质量",
+    "author": "芭芭拉·弗雷德里克森",
+    "category": "psychology"
+  },
+  {
+    "title": "积极心理学的力量",
+    "author": "克里斯托弗·彼得森",
+    "category": "psychology"
+  },
+  {
+    "title": "幸福的艺术",
+    "author": "马克·埃普斯坦",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗入门",
+    "author": "欧文·亚隆",
+    "category": "psychology"
+  },
+  {
+    "title": "认知行为治疗",
+    "author": "朱迪思·贝克",
+    "category": "psychology"
+  },
+  {
+    "title": "身心合一",
+    "author": "贝塞尔·范德寇克",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想禅修的科学",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "心理韧性",
+    "author": "安·道蒂",
+    "category": "psychology"
+  },
+  {
+    "title": "社交焦虑症自救",
+    "author": "埃德蒙德·博恩",
+    "category": "psychology"
+  },
+  {
+    "title": "儿童心理发展",
+    "author": "让·皮亚杰",
+    "category": "psychology"
+  },
+  {
+    "title": "道德发展心理学",
+    "author": "劳伦斯·科尔伯格",
+    "category": "psychology"
+  },
+  {
+    "title": "心理防御机制",
+    "author": "乔治·瓦利安特",
+    "category": "psychology"
+  },
+  {
+    "title": "共依赖关系",
+    "author": "梅琳达·宾厄姆",
+    "category": "psychology"
+  },
+  {
+    "title": "情绪管理",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "自尊心理学",
+    "author": "纳撒尼尔·布兰登",
+    "category": "psychology"
+  },
+  {
+    "title": "抑郁症自救手册",
+    "author": "大卫·D·伯恩斯",
+    "category": "psychology"
+  },
+  {
+    "title": "焦虑症自救指南",
+    "author": "埃德蒙德·博恩",
+    "category": "psychology"
+  },
+  {
+    "title": "自杀预防心理学",
+    "author": "托马斯·朱迪",
+    "category": "psychology"
+  },
+  {
+    "title": "群体心理学",
+    "author": "西格蒙德·弗洛伊德",
+    "category": "psychology"
+  },
+  {
+    "title": "心理分析导论",
+    "author": "西格蒙德·弗洛伊德",
+    "category": "psychology"
+  },
+  {
+    "title": "人格与心理治疗",
+    "author": "卡尔·罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "心理防御",
+    "author": "乔治·瓦利安特",
+    "category": "psychology"
+  },
+  {
+    "title": "积极生活的科学",
+    "author": "芭芭拉·弗雷德里克森",
+    "category": "psychology"
+  },
+  {
+    "title": "幸福的真谛",
+    "author": "米哈里·契克森米哈赖",
+    "category": "psychology"
+  },
+  {
+    "title": "冥想与心理健康",
+    "author": "乔·卡巴金",
+    "category": "psychology"
+  },
+  {
+    "title": "心理弹性",
+    "author": "安·道蒂",
+    "category": "psychology"
+  },
+  {
+    "title": "情绪的智慧",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗与精神医学",
+    "author": "欧文·亚隆",
+    "category": "psychology"
+  },
+  {
+    "title": "自我实现心理学",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "psychology"
+  },
+  {
+    "title": "从零到一",
+    "author": "彼得·蒂尔",
+    "category": "business"
+  },
+  {
+    "title": "人人都能用的数据分析",
+    "author": "埃里克·西蒙尼斯",
+    "category": "business"
+  },
+  {
+    "title": "影响力：为什么有些人更有说服力",
+    "author": "罗伯特·西奥迪尼",
+    "category": "business"
+  },
+  {
+    "title": "看不见的大猩猩",
+    "author": "克里斯托夫·查布里斯",
+    "category": "business"
+  },
+  {
+    "title": "硅谷之火",
+    "author": "罗伯特·莱利",
+    "category": "business"
+  },
+  {
+    "title": "品牌之道",
+    "author": "大卫·艾克",
+    "category": "business"
+  },
+  {
+    "title": "电梯里的陌生人",
+    "author": "保罗·莱维森",
+    "category": "business"
+  },
+  {
+    "title": "创新者的解题法",
+    "author": "克莱顿·克里斯坦森",
+    "category": "business"
+  },
+  {
+    "title": "精益制造",
+    "author": "詹姆斯·沃麦克",
+    "category": "business"
+  },
+  {
+    "title": "模式识别与战略竞争",
+    "author": "理查德·鲁梅尔特",
+    "category": "business"
+  },
+  {
+    "title": "群体性狂欢",
+    "author": "查尔斯·麦凯",
+    "category": "business"
+  },
+  {
+    "title": "股票大作手回忆录",
+    "author": "埃德温·勒费弗",
+    "category": "business"
+  },
+  {
+    "title": "金融怪杰",
+    "author": "杰克·施瓦格",
+    "category": "business"
+  },
+  {
+    "title": "时间管理禁书",
+    "author": "埃莱娜·托罗",
+    "category": "business"
+  },
+  {
+    "title": "GTD工作流程艺术",
+    "author": "戴维·艾伦",
+    "category": "business"
+  },
+  {
+    "title": "大数据时代",
+    "author": "维克托·迈尔-舍恩伯格",
+    "category": "business"
+  },
+  {
+    "title": "极简主义：让生活更简单",
+    "author": "乔舒亚·菲尔茨·米尔本",
+    "category": "business"
+  },
+  {
+    "title": "黑天鹅：如何应对不可预知的未来",
+    "author": "纳西姆·尼古拉斯·塔勒布",
+    "category": "business"
+  },
+  {
+    "title": "反脆弱：从不确定性中获利",
+    "author": "纳西姆·尼古拉斯·塔勒布",
+    "category": "business"
+  },
+  {
+    "title": "书呆子经济学",
+    "author": "泰勒·考恩",
+    "category": "business"
+  },
+  {
+    "title": "销售就是要玩转心理学",
+    "author": "凯文·霍根",
+    "category": "business"
+  },
+  {
+    "title": "幸福的秘密",
+    "author": "舒茨",
+    "category": "business"
+  },
+  {
+    "title": "一分钟经理人",
+    "author": "肯·布兰佳德",
+    "category": "business"
+  },
+  {
+    "title": "目标：简易绩效管理法",
+    "author": "埃利亚胡·高德拉特",
+    "category": "business"
+  },
+  {
+    "title": "深度工作：在浮躁的时代坚守专注",
+    "author": "卡尔·纽波特",
+    "category": "business"
+  },
+  {
+    "title": "原则：生活和工作的法则",
+    "author": "瑞·达利欧",
+    "category": "business"
+  },
+  {
+    "title": "系统之美：决策者的系统思考",
+    "author": "德内拉·梅多斯",
+    "category": "business"
+  },
+  {
+    "title": "增长的极限",
+    "author": "丹尼斯·梅多斯",
+    "category": "business"
+  },
+  {
+    "title": "动物精神",
+    "author": "罗伯特·希勒",
+    "category": "business"
+  },
+  {
+    "title": "经济学通俗读物",
+    "author": "托马斯·索维尔",
+    "category": "business"
+  },
+  {
+    "title": "金钱游戏",
+    "author": "亚当·斯密",
+    "category": "business"
+  },
+  {
+    "title": "看得见的手：美国企业的行政管理史",
+    "author": "阿尔弗雷德·钱德勒",
+    "category": "business"
+  },
+  {
+    "title": "企业的概念",
+    "author": "彼得·德鲁克",
+    "category": "business"
+  },
+  {
+    "title": "制造同意：新闻媒体的政治经济学",
+    "author": "爱德华·赫尔曼",
+    "category": "business"
+  },
+  {
+    "title": "怪诞行为学：可预测的非理性",
+    "author": "丹·艾瑞利",
+    "category": "business"
+  },
+  {
+    "title": "诚信漂流",
+    "author": "克里斯·阿吉里斯",
+    "category": "business"
+  },
+  {
+    "title": "聪明人办蠢事",
+    "author": "克里斯·阿吉里斯",
+    "category": "business"
+  },
+  {
+    "title": "第一哲学",
+    "author": "笛卡尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "道德形而上学基础",
+    "author": "康德",
+    "category": "philosophy"
+  },
+  {
+    "title": "人是有理性的动物吗",
+    "author": "亚里士多德",
+    "category": "philosophy"
+  },
+  {
+    "title": "政治学",
+    "author": "亚里士多德",
+    "category": "philosophy"
+  },
+  {
+    "title": "老子道德经",
+    "author": "老子",
+    "category": "philosophy"
+  },
+  {
+    "title": "大学",
+    "author": "曾子",
+    "category": "philosophy"
+  },
+  {
+    "title": "中庸",
+    "author": "孔伋",
+    "category": "philosophy"
+  },
+  {
+    "title": "荀子",
+    "author": "荀况",
+    "category": "philosophy"
+  },
+  {
+    "title": "论人类不平等的起源和基础",
+    "author": "卢梭",
+    "category": "philosophy"
+  },
+  {
+    "title": "人的条件",
+    "author": "汉娜·阿伦特",
+    "category": "philosophy"
+  },
+  {
+    "title": "莫诺斯提姆",
+    "author": "莱布尼茨",
+    "category": "philosophy"
+  },
+  {
+    "title": "常识",
+    "author": "托马斯·潘恩",
+    "category": "philosophy"
+  },
+  {
+    "title": "智慧的激情",
+    "author": "阿伦特",
+    "category": "philosophy"
+  },
+  {
+    "title": "二十世纪西方哲学导论",
+    "author": "罗蒂",
+    "category": "philosophy"
+  },
+  {
+    "title": "美的历史",
+    "author": "翁贝托·艾柯",
+    "category": "philosophy"
+  },
+  {
+    "title": "镜像与灯火",
+    "author": "M.H.艾布拉姆斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "分析哲学的兴衰",
+    "author": "伯曼",
+    "category": "philosophy"
+  },
+  {
+    "title": "后现代主义的轮廓",
+    "author": "伊哈布·哈桑",
+    "category": "philosophy"
+  },
+  {
+    "title": "权力关系中的身体",
+    "author": "福柯",
+    "category": "philosophy"
+  },
+  {
+    "title": "话语的秩序",
+    "author": "福柯",
+    "category": "philosophy"
+  },
+  {
+    "title": "他者的暴力",
+    "author": "德里达",
+    "category": "philosophy"
+  },
+  {
+    "title": "结构主义思想之后",
+    "author": "丹托",
+    "category": "philosophy"
+  },
+  {
+    "title": "现代性的哲学话语",
+    "author": "哈贝马斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "知识与兴趣",
+    "author": "哈贝马斯",
+    "category": "philosophy"
+  },
+  {
+    "title": "后现代条件",
+    "author": "詹姆逊",
+    "category": "philosophy"
+  },
+  {
+    "title": "欲望机器",
+    "author": "德勒兹和瓜塔里",
+    "category": "philosophy"
+  },
+  {
+    "title": "身体与肉体",
+    "author": "梅洛-庞蒂",
+    "category": "philosophy"
+  },
+  {
+    "title": "存在主义是一种人文主义",
+    "author": "萨特",
+    "category": "philosophy"
+  },
+  {
+    "title": "实践与矛盾",
+    "author": "毛泽东",
+    "category": "philosophy"
+  },
+  {
+    "title": "矛盾论",
+    "author": "毛泽东",
+    "category": "philosophy"
+  },
+  {
+    "title": "认识论在历史中的发展",
+    "author": "列宁",
+    "category": "philosophy"
+  },
+  {
+    "title": "哲学笔记",
+    "author": "列宁",
+    "category": "philosophy"
+  },
+  {
+    "title": "神圣的存在",
+    "author": "海德格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "诗意的栖居",
+    "author": "海德格尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "语言学转向",
+    "author": "罗蒂",
+    "category": "philosophy"
+  },
+  {
+    "title": "科学的结构",
+    "author": "库恩",
+    "category": "philosophy"
+  },
+  {
+    "title": "宇宙的奇迹",
+    "author": "卡尔·萨根",
+    "category": "philosophy"
+  },
+  {
+    "title": "对我们时代的诊断",
+    "author": "舍勒",
+    "category": "philosophy"
+  },
+  {
+    "title": "符号人的时代",
+    "author": "卡西尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "梦与现实",
+    "author": "弗洛姆",
+    "category": "philosophy"
+  },
+  {
+    "title": "逃离自由",
+    "author": "弗洛姆",
+    "category": "philosophy"
+  },
+  {
+    "title": "爱因斯坦自传",
+    "author": "阿尔伯特·爱因斯坦",
+    "category": "biography"
+  },
+  {
+    "title": "丘吉尔自传",
+    "author": "温斯顿·丘吉尔",
+    "category": "biography"
+  },
+  {
+    "title": "海明威传",
+    "author": "卡洛斯·贝克",
+    "category": "biography"
+  },
+  {
+    "title": "荣格传",
+    "author": "弗兰克·麦克林",
+    "category": "biography"
+  },
+  {
+    "title": "女王陛下：伊丽莎白二世传",
+    "author": "威廉·夏伊雷",
+    "category": "biography"
+  },
+  {
+    "title": "肯尼迪传",
+    "author": "阿瑟·M·施莱辛格",
+    "category": "biography"
+  },
+  {
+    "title": "本杰明·格林林传：美国思想家的人生",
+    "author": "沃尔特·艾萨克森",
+    "category": "biography"
+  },
+  {
+    "title": "莱昂纳多·达·芬奇传",
+    "author": "沃尔特·艾萨克森",
+    "category": "biography"
+  },
+  {
+    "title": "安娜·卡列尼娜式的自我解读",
+    "author": "列夫·托尔斯泰",
+    "category": "biography"
+  },
+  {
+    "title": "《我的奋斗》：希特勒自传",
+    "author": "阿道夫·希特勒",
+    "category": "biography"
+  },
+  {
+    "title": "丘吉尔传：不投降的人生",
+    "author": "安德鲁·罗伯茨",
+    "category": "biography"
+  },
+  {
+    "title": "洛克菲勒自传",
+    "author": "约翰·D·洛克菲勒",
+    "category": "biography"
+  },
+  {
+    "title": "卡内基自传",
+    "author": "安德鲁·卡内基",
+    "category": "biography"
+  },
+  {
+    "title": "巴顿将军传",
+    "author": "格伦·格雷",
+    "category": "biography"
+  },
+  {
+    "title": "邱吉尔：一生中的伟大时刻",
+    "author": "威廉·B·威尔逊",
+    "category": "biography"
+  },
+  {
+    "title": "艾森豪威尔传",
+    "author": "史蒂夫·内尔森",
+    "category": "biography"
+  },
+  {
+    "title": "杰斐逊传",
+    "author": "兰德尔·塔克",
+    "category": "biography"
+  },
+  {
+    "title": "麦迪逊传",
+    "author": "加里·威尔斯",
+    "category": "biography"
+  },
+  {
+    "title": "圣雄甘地的生平",
+    "author": "卢易丝·费舍尔",
+    "category": "biography"
+  },
+  {
+    "title": "慈禧太后传",
+    "author": "张学良",
+    "category": "biography"
+  },
+  {
+    "title": "唐太宗李世民传",
+    "author": "陈寅恪",
+    "category": "biography"
+  },
+  {
+    "title": "朱元璋传",
+    "author": "吴晗",
+    "category": "biography"
+  },
+  {
+    "title": "乾隆帝的十全武功",
+    "author": "张鸣",
+    "category": "biography"
+  },
+  {
+    "title": "侠岛",
+    "author": "大仲马",
+    "category": "novel"
+  },
+  {
+    "title": "孤星血泪",
+    "author": "查尔斯·狄更斯",
+    "category": "novel"
+  },
+  {
+    "title": "鲁滨孙漂流记",
+    "author": "丹尼尔·笛福",
+    "category": "novel"
+  },
+  {
+    "title": "秘密花园",
+    "author": "弗朗西丝·霍奇森·伯内特",
+    "category": "novel"
+  },
+  {
+    "title": "王子与贫儿",
+    "author": "马克·吐温",
+    "category": "novel"
+  },
+  {
+    "title": "太阳照样升起",
+    "author": "欧内斯特·海明威",
+    "category": "novel"
+  },
+  {
+    "title": "一百年的孤独",
+    "author": "加夫列尔·加西亚·马尔克斯",
+    "category": "novel"
+  },
+  {
+    "title": "在没有人迹的地方",
+    "author": "卡洛斯·鲁依斯·萨丰",
+    "category": "novel"
+  },
+  {
+    "title": "风之影",
+    "author": "卡洛斯·鲁依斯·萨丰",
+    "category": "novel"
+  },
+  {
+    "title": "莫扎特的故事",
+    "author": "斯特凡·茨威格",
+    "category": "novel"
+  },
+  {
+    "title": "三体X",
+    "author": "刘慈欣",
+    "category": "novel"
+  },
+  {
+    "title": "超新星纪元",
+    "author": "刘慈欣",
+    "category": "novel"
+  },
+  {
+    "title": "全职高手",
+    "author": "蝴蝶蓝",
+    "category": "novel"
+  },
+  {
+    "title": "狼图腾",
+    "author": "姜戎",
+    "category": "novel"
+  },
+  {
+    "title": "莫言小说集",
+    "author": "莫言",
+    "category": "novel"
+  },
+  {
+    "title": "人性中的善良天使",
+    "author": "史蒂芬·平克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "必然",
+    "author": "凯文·凯利",
+    "category": "non_fiction"
+  },
+  {
+    "title": "岛屿花园",
+    "author": "玛格丽特·默罕",
+    "category": "non_fiction"
+  },
+  {
+    "title": "挺立在地球边缘",
+    "author": "蔡骏",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人工智能简史",
+    "author": "李开复",
+    "category": "non_fiction"
+  },
+  {
+    "title": "生命的由来",
+    "author": "理查德·道金斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "奇特的一生",
+    "author": "格拉宁",
+    "category": "non_fiction"
+  },
+  {
+    "title": "工作、消费、重复",
+    "author": "佛兰克林",
+    "category": "non_fiction"
+  },
+  {
+    "title": "送你一个故事",
+    "author": "许知远",
+    "category": "non_fiction"
+  },
+  {
+    "title": "逆流而上",
+    "author": "樊登",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人工智能时代",
+    "author": "李彦宏",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国历代政治得失讲演集",
+    "author": "钱穆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "历史的终结",
+    "author": "弗朗西斯·福山",
+    "category": "non_fiction"
+  },
+  {
+    "title": "爱你就像爱生命",
+    "author": "王小波",
+    "category": "non_fiction"
+  },
+  {
+    "title": "沉默的羔羊",
+    "author": "托马斯·哈里斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "冰与火的世界",
+    "author": "乔治·马丁",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人类的故事",
+    "author": "房龙",
+    "category": "non_fiction"
+  },
+  {
+    "title": "古代中国的知识与权力",
+    "author": "罗伯特·梅",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中华人民共和国史",
+    "author": "阿瑟·沃尔德伦",
+    "category": "non_fiction"
+  },
+  {
+    "title": "现代中国的形成",
+    "author": "费正清",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国思想史上的现代化问题",
+    "author": "张灏",
+    "category": "non_fiction"
+  },
+  {
+    "title": "道可道",
+    "author": "陈鼓应",
+    "category": "non_fiction"
+  },
+  {
+    "title": "庄子哲学",
+    "author": "陈鼓应",
+    "category": "non_fiction"
+  },
+  {
+    "title": "诗经的故事",
+    "author": "黄永武",
+    "category": "non_fiction"
+  },
+  {
+    "title": "论语新解",
+    "author": "杨伯峻",
+    "category": "non_fiction"
+  },
+  {
+    "title": "修养十讲",
+    "author": "朱光潜",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人工智能未来",
+    "author": "杰夫·霍金斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "深度学习",
+    "author": "伊恩·古德费洛",
+    "category": "non_fiction"
+  },
+  {
+    "title": "终身学习",
+    "author": "斯坦因",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大转变",
+    "author": "卡尔·博兰尼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人文精神的价值",
+    "author": "季羡林",
+    "category": "history"
+  },
+  {
+    "title": "民族主义的兴衰",
+    "author": "埃里克·霍布斯鲍姆",
+    "category": "history"
+  },
+  {
+    "title": "十字军东征",
+    "author": "史蒂文·伦西曼",
+    "category": "history"
+  },
+  {
+    "title": "永恒的边疆：中国与长城外的世界",
+    "author": "彼得·弗兰科潘",
+    "category": "history"
+  },
+  {
+    "title": "东京审判",
+    "author": "哈罗德·敏德尔",
+    "category": "history"
+  },
+  {
+    "title": "冷战简史",
+    "author": "约翰·刘易斯·加迪斯",
+    "category": "history"
+  },
+  {
+    "title": "美国的故事",
+    "author": "戈迪斯",
+    "category": "history"
+  },
+  {
+    "title": "英国史",
+    "author": "克里斯托弗·希尔",
+    "category": "history"
+  },
+  {
+    "title": "日本近代史",
+    "author": "坂野潤治",
+    "category": "history"
+  },
+  {
+    "title": "韩国现代史",
+    "author": "李光濬",
+    "category": "history"
+  },
+  {
+    "title": "印度的故事",
+    "author": "沙希·塔鲁尔",
+    "category": "history"
+  },
+  {
+    "title": "中东的智慧",
+    "author": "伯纳德·刘易斯",
+    "category": "history"
+  },
+  {
+    "title": "伊斯兰文明简史",
+    "author": "胡麦迪",
+    "category": "history"
+  },
+  {
+    "title": "奥斯曼帝国的衰亡",
+    "author": "玛格丽特·麦克米兰",
+    "category": "history"
+  },
+  {
+    "title": "第一次世界大战简史",
+    "author": "克里斯·麦克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "第二次世界大战简史",
+    "author": "安东尼·比维尔",
+    "category": "history"
+  },
+  {
+    "title": "希特勒：一部传记",
+    "author": "伊恩·克肖",
+    "category": "history"
+  },
+  {
+    "title": "斯大林：权力的悖论",
+    "author": "加里斯·平斯基",
+    "category": "history"
+  },
+  {
+    "title": "华盛顿：一生",
+    "author": "罗恩·切诺",
+    "category": "history"
+  },
+  {
+    "title": "中国古代的政治与思想",
+    "author": "钱穆",
+    "category": "history"
+  },
+  {
+    "title": "中国文化对世界的贡献",
+    "author": "冯友兰",
+    "category": "history"
+  },
+  {
+    "title": "四库学与经学研究",
+    "author": "王鸣盛",
+    "category": "history"
+  },
+  {
+    "title": "中国官僚政治研究",
+    "author": "王亚南",
+    "category": "history"
+  },
+  {
+    "title": "康熙帝",
+    "author": "陈廷焯",
+    "category": "history"
+  },
+  {
+    "title": "雍正王朝",
+    "author": "二月河",
+    "category": "history"
+  },
+  {
+    "title": "红楼梦与中国古代社会",
+    "author": "周汝昌",
+    "category": "history"
+  },
+  {
+    "title": "明史讲义",
+    "author": "南炳文",
+    "category": "history"
+  },
+  {
+    "title": "清史讲义",
+    "author": "张捷",
+    "category": "history"
+  },
+  {
+    "title": "新编中国近代史",
+    "author": "陈旭麓",
+    "category": "history"
+  },
+  {
+    "title": "辛亥革命前的一百年中国",
+    "author": "王学典",
+    "category": "history"
+  },
+  {
+    "title": "民国纪事本末",
+    "author": "孙中山",
+    "category": "history"
+  },
+  {
+    "title": "晚清七十年",
+    "author": "唐德刚",
+    "category": "history"
+  },
+  {
+    "title": "蒋介石与现代中国",
+    "author": "陈谷嘉",
+    "category": "history"
+  },
+  {
+    "title": "一九四九年：中国革命胜利的故事",
+    "author": "麦克法夸尔",
+    "category": "history"
+  },
+  {
+    "title": "中国大陆自由史",
+    "author": "何清涟",
+    "category": "history"
+  },
+  {
+    "title": "中华帝国的衰落",
+    "author": "威廉·莱瑟基",
+    "category": "history"
+  },
+  {
+    "title": "中国与日本：从古代到现代",
+    "author": "冈田英弘",
+    "category": "history"
+  },
+  {
+    "title": "现代中国的起源",
+    "author": "宇野円",
+    "category": "history"
+  },
+  {
+    "title": "蒙古帝国的崛起与衰落",
+    "author": "杰克·威泽弗德",
+    "category": "history"
+  },
+  {
+    "title": "西域与海上丝绸之路的文明交汇",
+    "author": "向达",
+    "category": "history"
+  },
+  {
+    "title": "古埃及的故事",
+    "author": "托马斯·施奈德",
+    "category": "history"
+  },
+  {
+    "title": "古罗马的故事",
+    "author": "玛丽·比尔德",
+    "category": "history"
+  },
+  {
+    "title": "古希腊民主制度史",
+    "author": "莫尼格利亚诺",
+    "category": "history"
+  },
+  {
+    "title": "感受生活的意义",
+    "author": "维克多·弗兰克尔",
+    "category": "psychology"
+  },
+  {
+    "title": "认知行为疗法自助指南",
+    "author": "丹尼斯·格雷格利",
+    "category": "psychology"
+  },
+  {
+    "title": "依恋理论与亲子关系",
+    "author": "约翰·鲍尔比",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救现场",
+    "author": "盖伊·温奇",
+    "category": "psychology"
+  },
+  {
+    "title": "受伤的自我",
+    "author": "约瑟夫·门格拉",
+    "category": "psychology"
+  },
+  {
+    "title": "暗示的力量",
+    "author": "欧文·基尔希",
+    "category": "psychology"
+  },
+  {
+    "title": "说谎者的告白",
+    "author": "帕梅拉·迈耶",
+    "category": "psychology"
+  },
+  {
+    "title": "心理操纵术",
+    "author": "罗伯特·西奥迪尼",
+    "category": "psychology"
+  },
+  {
+    "title": "感受的智慧",
+    "author": "丹尼尔·西格尔",
+    "category": "psychology"
+  },
+  {
+    "title": "心理急救自救",
+    "author": "安德鲁·所罗门",
+    "category": "psychology"
+  },
+  {
+    "title": "青少年心理学",
+    "author": "劳伦斯·斯坦伯格",
+    "category": "psychology"
+  },
+  {
+    "title": "异常心理学",
+    "author": "大卫·巴洛",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗基础",
+    "author": "杰拉德·考瑞",
+    "category": "psychology"
+  },
+  {
+    "title": "自我的故事",
+    "author": "唐纳德·温尼科特",
+    "category": "psychology"
+  },
+  {
+    "title": "人性化管理",
+    "author": "道格拉斯·麦克格雷戈",
+    "category": "psychology"
+  },
+  {
+    "title": "团队心理学",
+    "author": "布鲁斯·w·塔克曼",
+    "category": "psychology"
+  },
+  {
+    "title": "改变的力量",
+    "author": "詹姆斯·普罗查斯卡",
+    "category": "psychology"
+  },
+  {
+    "title": "心理抗压力",
+    "author": "丹·西格尔",
+    "category": "psychology"
+  },
+  {
+    "title": "儿童心理学",
+    "author": "让·皮亚杰",
+    "category": "psychology"
+  },
+  {
+    "title": "认知心理学",
+    "author": "罗伯特·索尔索",
+    "category": "psychology"
+  },
+  {
+    "title": "生物心理学",
+    "author": "詹姆斯·卡拉特",
+    "category": "psychology"
+  },
+  {
+    "title": "行为心理学",
+    "author": "伯尔赫斯·弗雷德里克·斯金纳",
+    "category": "psychology"
+  },
+  {
+    "title": "积极心理学与幸福生活",
+    "author": "克里斯托弗·彼得森",
+    "category": "psychology"
+  },
+  {
+    "title": "心态的力量",
+    "author": "卡罗尔·德威克",
+    "category": "psychology"
+  },
+  {
+    "title": "情商指南",
+    "author": "丹尼尔·戈尔曼",
+    "category": "psychology"
+  },
+  {
+    "title": "幸福的方程式",
+    "author": "莫妮卡·比斯瓦斯-迪内",
+    "category": "psychology"
+  },
+  {
+    "title": "心理学的故事",
+    "author": "莫顿·亨特",
+    "category": "psychology"
+  },
+  {
+    "title": "生活的重新架构",
+    "author": "保罗·沃茨拉威克",
+    "category": "psychology"
+  },
+  {
+    "title": "心理咨询伦理",
+    "author": "林孟平",
+    "category": "psychology"
+  },
+  {
+    "title": "教育心理学",
+    "author": "张大均",
+    "category": "psychology"
+  },
+  {
+    "title": "犯罪心理学",
+    "author": "李玫瑾",
+    "category": "psychology"
+  },
+  {
+    "title": "消费心理学",
+    "author": "符国群",
+    "category": "psychology"
+  },
+  {
+    "title": "运动心理学",
+    "author": "毛志雄",
+    "category": "psychology"
+  },
+  {
+    "title": "工业组织心理学",
+    "author": "时勘",
+    "category": "psychology"
+  },
+  {
+    "title": "网络心理学",
+    "author": "牛更草",
+    "category": "psychology"
+  },
+  {
+    "title": "商战",
+    "author": "杰克·特劳特",
+    "category": "business"
+  },
+  {
+    "title": "竞争优势",
+    "author": "迈克尔·波特",
+    "category": "business"
+  },
+  {
+    "title": "第五项修炼",
+    "author": "彼得·圣吉",
+    "category": "business"
+  },
+  {
+    "title": "执行力",
+    "author": "拉姆·查兰",
+    "category": "business"
+  },
+  {
+    "title": "裂变增长",
+    "author": "肖恩·埃利斯",
+    "category": "business"
+  },
+  {
+    "title": "创新的两难",
+    "author": "克莱顿·克里斯坦森",
+    "category": "business"
+  },
+  {
+    "title": "品牌的起源",
+    "author": "劳拉·莱斯",
+    "category": "business"
+  },
+  {
+    "title": "感染力",
+    "author": "乔纳·博格",
+    "category": "business"
+  },
+  {
+    "title": "粘性",
+    "author": "奇普·希思",
+    "category": "business"
+  },
+  {
+    "title": "简单法则",
+    "author": "唐·诺曼",
+    "category": "business"
+  },
+  {
+    "title": "设计日常生活",
+    "author": "唐·诺曼",
+    "category": "business"
+  },
+  {
+    "title": "情感化设计",
+    "author": "唐·诺曼",
+    "category": "business"
+  },
+  {
+    "title": "商业的本质",
+    "author": "杰克·韦尔奇",
+    "category": "business"
+  },
+  {
+    "title": "韦尔奇自传",
+    "author": "杰克·韦尔奇",
+    "category": "business"
+  },
+  {
+    "title": "人的寻求意义",
+    "author": "维克多·弗兰克尔",
+    "category": "business"
+  },
+  {
+    "title": "稀缺",
+    "author": "穆来纳森",
+    "category": "business"
+  },
+  {
+    "title": "困境逻辑",
+    "author": "威廉·尤里",
+    "category": "business"
+  },
+  {
+    "title": "变革的力量",
+    "author": "约翰·科特",
+    "category": "business"
+  },
+  {
+    "title": "领导力21法则",
+    "author": "约翰·麦克斯韦尔",
+    "category": "business"
+  },
+  {
+    "title": "社交智慧",
+    "author": "丹尼尔·戈尔曼",
+    "category": "business"
+  },
+  {
+    "title": "感受力",
+    "author": "罗曼·克日扎内夫斯基",
+    "category": "business"
+  },
+  {
+    "title": "给予者与索取者",
+    "author": "亚当·格兰特",
+    "category": "business"
+  },
+  {
+    "title": "如何赢得朋友和影响他人",
+    "author": "戴尔·卡耐基",
+    "category": "business"
+  },
+  {
+    "title": "将来的工作",
+    "author": "阿里·罗素·林瑟尔",
+    "category": "business"
+  },
+  {
+    "title": "硅谷的故事",
+    "author": "迪克·科斯罗",
+    "category": "business"
+  },
+  {
+    "title": "组织能力",
+    "author": "沈涛",
+    "category": "business"
+  },
+  {
+    "title": "激进市场",
+    "author": "埃里克·A·波斯纳",
+    "category": "business"
+  },
+  {
+    "title": "估值的艺术",
+    "author": "达摩达兰",
+    "category": "business"
+  },
+  {
+    "title": "投资之光",
+    "author": "彼得·林奇",
+    "category": "business"
+  },
+  {
+    "title": "异化劳动论文",
+    "author": "马克思",
+    "category": "philosophy"
+  },
+  {
+    "title": "墨子",
+    "author": "墨子",
+    "category": "philosophy"
+  },
+  {
+    "title": "淮南子",
+    "author": "刘安",
+    "category": "philosophy"
+  },
+  {
+    "title": "人文主义精神",
+    "author": "周国平",
+    "category": "philosophy"
+  },
+  {
+    "title": "尼采传",
+    "author": "丹尼尔·哈莱维",
+    "category": "philosophy"
+  },
+  {
+    "title": "性、文明与不满",
+    "author": "威廉·莱希",
+    "category": "philosophy"
+  },
+  {
+    "title": "理性与激情",
+    "author": "鲁宾斯坦",
+    "category": "philosophy"
+  },
+  {
+    "title": "存在主义是人文主义",
+    "author": "萨特",
+    "category": "philosophy"
+  },
+  {
+    "title": "快乐哲学",
+    "author": "阿兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "我的哲学之路",
+    "author": "卡尔·波普尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "人的现代处境",
+    "author": "加布里埃尔·马塞尔",
+    "category": "philosophy"
+  },
+  {
+    "title": "理性的局限",
+    "author": "吴国盛",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国哲学与中国人",
+    "author": "陈荣捷",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国思想的特质",
+    "author": "文史哲编委",
+    "category": "philosophy"
+  },
+  {
+    "title": "冯友兰中国哲学简史",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "中国哲学大纲",
+    "author": "冯友兰",
+    "category": "philosophy"
+  },
+  {
+    "title": "人生智慧",
+    "author": "叔本华",
+    "category": "philosophy"
+  },
+  {
+    "title": "智者的石头",
+    "author": "保罗·科埃略",
+    "category": "philosophy"
+  },
+  {
+    "title": "人生的四大意义",
+    "author": "欧文·亚隆",
+    "category": "philosophy"
+  },
+  {
+    "title": "逃避自由",
+    "author": "艾里克·弗罗姆",
+    "category": "philosophy"
+  },
+  {
+    "title": "自我实现",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "philosophy"
+  },
+  {
+    "title": "精神宇宙学",
+    "author": "卡尔·萨根",
+    "category": "philosophy"
+  },
+  {
+    "title": "我们为什么生病",
+    "author": "伦敦",
+    "category": "philosophy"
+  },
+  {
+    "title": "生命的故事",
+    "author": "卡尔·萨根",
+    "category": "philosophy"
+  },
+  {
+    "title": "事物的本质",
+    "author": "李贤哲",
+    "category": "philosophy"
+  },
+  {
+    "title": "人生哲学漫谈",
+    "author": "梁启超",
+    "category": "philosophy"
+  },
+  {
+    "title": "人生修养",
+    "author": "沈相春",
+    "category": "philosophy"
+  },
+  {
+    "title": "宗教的本质",
+    "author": "鲁道夫·奥托",
+    "category": "philosophy"
+  },
+  {
+    "title": "艺术的本质",
+    "author": "列夫·托尔斯泰",
+    "category": "philosophy"
+  },
+  {
+    "title": "肯尼迪家族",
+    "author": "阿瑟·M·施莱辛格",
+    "category": "biography"
+  },
+  {
+    "title": "达尔文传",
+    "author": "詹姆斯·摩尔",
+    "category": "biography"
+  },
+  {
+    "title": "乔伊斯生平",
+    "author": "理查德·艾尔曼",
+    "category": "biography"
+  },
+  {
+    "title": "乔治·桑传记",
+    "author": "安德烈·莫罗瓦",
+    "category": "biography"
+  },
+  {
+    "title": "罗素传",
+    "author": "雷·蒙克",
+    "category": "biography"
+  },
+  {
+    "title": "波普尔传",
+    "author": "玛格丽特·波普尔",
+    "category": "biography"
+  },
+  {
+    "title": "哥德尔传",
+    "author": "约翰·霍瓦特",
+    "category": "biography"
+  },
+  {
+    "title": "图灵传",
+    "author": "安德鲁·霍奇斯",
+    "category": "biography"
+  },
+  {
+    "title": "香农传",
+    "author": "吉米·索尼",
+    "category": "biography"
+  },
+  {
+    "title": "冯·诺依曼传",
+    "author": "诺曼·麦克莱",
+    "category": "biography"
+  },
+  {
+    "title": "玛丽·居里传",
+    "author": "埃芙·居里",
+    "category": "biography"
+  },
+  {
+    "title": "居里夫人自传",
+    "author": "玛丽·居里",
+    "category": "biography"
+  },
+  {
+    "title": "卢瑟福传",
+    "author": "大卫·威尔逊",
+    "category": "biography"
+  },
+  {
+    "title": "普朗克传",
+    "author": "罗伯特·比林莫尔",
+    "category": "biography"
+  },
+  {
+    "title": "费曼传",
+    "author": "詹姆斯·格利克",
+    "category": "biography"
+  },
+  {
+    "title": "奥本海默传",
+    "author": "卡·鸟",
+    "category": "biography"
+  },
+  {
+    "title": "钱学森传",
+    "author": "叶永烈",
+    "category": "biography"
+  },
+  {
+    "title": "康熙帝传",
+    "author": "陈廷娇",
+    "category": "biography"
+  },
+  {
+    "title": "乾隆帝传",
+    "author": "冯尔康",
+    "category": "biography"
+  },
+  {
+    "title": "成吉思汗传",
+    "author": "林幹",
+    "category": "biography"
+  },
+  {
+    "title": "匹克威克外传",
+    "author": "狄更斯",
+    "category": "novel"
+  },
+  {
+    "title": "太阳照常升起",
+    "author": "海明威",
+    "category": "novel"
+  },
+  {
+    "title": "永别了，武器",
+    "author": "海明威",
+    "category": "novel"
+  },
+  {
+    "title": "荷马史诗",
+    "author": "荷马",
+    "category": "novel"
+  },
+  {
+    "title": "铁血男儿",
+    "author": "大仲马",
+    "category": "novel"
+  },
+  {
+    "title": "莱蒙托夫传",
+    "author": "莱蒙托夫",
+    "category": "novel"
+  },
+  {
+    "title": "少年维特的烦恼",
+    "author": "歌德",
+    "category": "novel"
+  },
+  {
+    "title": "浮士德",
+    "author": "歌德",
+    "category": "novel"
+  },
+  {
+    "title": "魔法师的学徒",
+    "author": "歌德",
+    "category": "novel"
+  },
+  {
+    "title": "地下室手记",
+    "author": "陀思妥耶夫斯基",
+    "category": "novel"
+  },
+  {
+    "title": "克鲁采奏鸣曲",
+    "author": "托尔斯泰",
+    "category": "novel"
+  },
+  {
+    "title": "异乡人",
+    "author": "加缪",
+    "category": "novel"
+  },
+  {
+    "title": "苍蝇",
+    "author": "萨特",
+    "category": "novel"
+  },
+  {
+    "title": "呕吐",
+    "author": "萨特",
+    "category": "novel"
+  },
+  {
+    "title": "野火春风斗古城",
+    "author": "李英儒",
+    "category": "novel"
+  },
+  {
+    "title": "影响力：让人说\"是\"的6大武器",
+    "author": "罗伯特·西奥迪尼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "牛津通识读本系列：古代中国",
+    "author": "迈克尔·洛维",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大宅门的故事",
+    "author": "郑念",
+    "category": "non_fiction"
+  },
+  {
+    "title": "陈寅恪的最后二十年",
+    "author": "陆键东",
+    "category": "non_fiction"
+  },
+  {
+    "title": "美国众神",
+    "author": "尼尔·盖曼",
+    "category": "non_fiction"
+  },
+  {
+    "title": "知识的界限",
+    "author": "尼古拉斯·蒙克",
+    "category": "non_fiction"
+  },
+  {
+    "title": "极简主义：优化生活的艺术",
+    "author": "约书亚·菲尔茨·米尔本",
+    "category": "non_fiction"
+  },
+  {
+    "title": "认知升级：从新手到高手",
+    "author": "安德斯·埃里克森",
+    "category": "non_fiction"
+  },
+  {
+    "title": "反脆弱：从不确定性中获益",
+    "author": "纳西姆·尼古拉斯·塔勒布",
+    "category": "non_fiction"
+  },
+  {
+    "title": "品味的迷思",
+    "author": "保罗·布卢姆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "大明王朝的财政",
+    "author": "樊树志",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国民族主义思想史",
+    "author": "萧公权",
+    "category": "non_fiction"
+  },
+  {
+    "title": "民族国家与民族主义",
+    "author": "埃里克·霍布斯鲍姆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "清朝那些事儿",
+    "author": "当年明月",
+    "category": "non_fiction"
+  },
+  {
+    "title": "唐宋变革通论",
+    "author": "陈寅恪",
+    "category": "non_fiction"
+  },
+  {
+    "title": "秦汉帝国的兴衰",
+    "author": "许倬云",
+    "category": "non_fiction"
+  },
+  {
+    "title": "古罗马十三帝",
+    "author": "苏埃托尼乌斯",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中世纪的故事",
+    "author": "克里斯托弗·达林",
+    "category": "non_fiction"
+  },
+  {
+    "title": "法国大革命的起源",
+    "author": "托克维尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "美国的民主",
+    "author": "托克维尔",
+    "category": "non_fiction"
+  },
+  {
+    "title": "美国经济史",
+    "author": "托马斯·皮凯蒂",
+    "category": "non_fiction"
+  },
+  {
+    "title": "现代性的三个危机",
+    "author": "许知远",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国思想的传统",
+    "author": "余英时",
+    "category": "non_fiction"
+  },
+  {
+    "title": "五四运动与中国现代思想",
+    "author": "周策纵",
+    "category": "non_fiction"
+  },
+  {
+    "title": "从刘晓波到周恩来",
+    "author": "余英时",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国与世界：一部思想史",
+    "author": "许知远",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国在世界舞台上的兴衰",
+    "author": "李鸿章",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中华帝国的历程",
+    "author": "许倬云",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国古代政治制度研究",
+    "author": "钱穆",
+    "category": "non_fiction"
+  },
+  {
+    "title": "权力的距离：中国权力结构的历史演变",
+    "author": "许倬云",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国的城市生活",
+    "author": "许倬云",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国传统文化的现代性反思",
+    "author": "杜维明",
+    "category": "non_fiction"
+  },
+  {
+    "title": "儒教与中国文化",
+    "author": "许倬云",
+    "category": "non_fiction"
+  },
+  {
+    "title": "道教的历史与思想",
+    "author": "卿希泰",
+    "category": "non_fiction"
+  },
+  {
+    "title": "佛教在中国的传播与发展",
+    "author": "任继愈",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国民间信仰研究",
+    "author": "樊树志",
+    "category": "non_fiction"
+  },
+  {
+    "title": "儒家伦理与现代社会",
+    "author": "杜维明",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国艺术精神",
+    "author": "徐复观",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国书法美学史",
+    "author": "包含德",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国古代建筑史",
+    "author": "梁思成",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国陶瓷发展史",
+    "author": "冯先铭",
+    "category": "non_fiction"
+  },
+  {
+    "title": "中国古代绘画美学",
+    "author": "顾恺之",
+    "category": "non_fiction"
+  },
+  {
+    "title": "人生的意义与价值",
+    "author": "傅佩荣",
+    "category": "non_fiction"
+  },
+  {
+    "title": "西方文明的故事",
+    "author": "威廉·杜兰特",
+    "category": "history"
+  },
+  {
+    "title": "唐宋变革论",
+    "author": "田中萅吉",
+    "category": "history"
+  },
+  {
+    "title": "朝代循环与历史周期",
+    "author": "黄仁宇",
+    "category": "history"
+  },
+  {
+    "title": "十年论文·十年风雨",
+    "author": "钱穆",
+    "category": "history"
+  },
+  {
+    "title": "中国近三百年学术史",
+    "author": "梁启超",
+    "category": "history"
+  },
+  {
+    "title": "中国文明史",
+    "author": "吕思勉",
+    "category": "history"
+  },
+  {
+    "title": "大明帝国的幽灵",
+    "author": "黄仁宇",
+    "category": "history"
+  },
+  {
+    "title": "帝国的故事",
+    "author": "威廉·H·麦克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "人口史：从旧石器时代到近代早期",
+    "author": "威廉·麦克尼尔",
+    "category": "history"
+  },
+  {
+    "title": "从黎明到衰落",
+    "author": "雅克·巴尔赞",
+    "category": "history"
+  },
+  {
+    "title": "西方思想史",
+    "author": "伯特兰·罗素",
+    "category": "history"
+  },
+  {
+    "title": "伊斯兰文明史",
+    "author": "胡安·科尔",
+    "category": "history"
+  },
+  {
+    "title": "印度的历史与文化",
+    "author": "罗摩克里希南",
+    "category": "history"
+  },
+  {
+    "title": "日本历史",
+    "author": "约翰·道尔",
+    "category": "history"
+  },
+  {
+    "title": "俄罗斯历史",
+    "author": "尼古拉·里亚萨诺夫斯基",
+    "category": "history"
+  },
+  {
+    "title": "非洲历史",
+    "author": "巴西尔·戴维森",
+    "category": "history"
+  },
+  {
+    "title": "拉丁美洲简史",
+    "author": "埃德温·利维斯顿",
+    "category": "history"
+  },
+  {
+    "title": "犹太人的历史",
+    "author": "保罗·约翰逊",
+    "category": "history"
+  },
+  {
+    "title": "黑人的历史",
+    "author": "约翰·霍普·富兰克林",
+    "category": "history"
+  },
+  {
+    "title": "女性的历史",
+    "author": "格特鲁德·希美尔法布",
+    "category": "history"
+  },
+  {
+    "title": "中古欧洲的经济与社会",
+    "author": "多米尼克·巴尔索罗缪",
+    "category": "history"
+  },
+  {
+    "title": "文艺复兴时期的意大利",
+    "author": "雅各布·伯克哈特",
+    "category": "history"
+  },
+  {
+    "title": "黑死病与欧洲",
+    "author": "菲利普·津斯瑟",
+    "category": "history"
+  },
+  {
+    "title": "古罗马的兴衰",
+    "author": "迈克尔·格兰特",
+    "category": "history"
+  },
+  {
+    "title": "古代中国的军事与政治",
+    "author": "吴晗",
+    "category": "history"
+  },
+  {
+    "title": "长城的历史",
+    "author": "阿瑟·沃尔德龙",
+    "category": "history"
+  },
+  {
+    "title": "大运河与中国社会",
+    "author": "罗伯特·哈特韦尔",
+    "category": "history"
+  },
+  {
+    "title": "西安：帝都千年",
+    "author": "霍吉帕塔克",
+    "category": "history"
+  },
+  {
+    "title": "北京的城市历史",
+    "author": "黄朴民",
+    "category": "history"
+  },
+  {
+    "title": "上海简史",
+    "author": "陈旭麓",
+    "category": "history"
+  },
+  {
+    "title": "台湾的历史",
+    "author": "许介鳞",
+    "category": "history"
+  },
+  {
+    "title": "香港简史",
+    "author": "浦寿昌",
+    "category": "history"
+  },
+  {
+    "title": "澳门史话",
+    "author": "郑海泓",
+    "category": "history"
+  },
+  {
+    "title": "朝鲜与韩国的历史",
+    "author": "布鲁斯·卡明斯",
+    "category": "history"
+  },
+  {
+    "title": "越南历史",
+    "author": "威廉·杜克",
+    "category": "history"
+  },
+  {
+    "title": "东南亚历史",
+    "author": "尼古拉斯·塔林",
+    "category": "history"
+  },
+  {
+    "title": "南亚的历史与政治",
+    "author": "罗梅什·塔帕尔",
+    "category": "history"
+  },
+  {
+    "title": "中东的历史",
+    "author": "伯纳德·刘易斯",
+    "category": "history"
+  },
+  {
+    "title": "阿拉伯世界简史",
+    "author": "彼得·曼",
+    "category": "history"
+  },
+  {
+    "title": "土耳其帝国的历史",
+    "author": "卡罗琳·芬克尔",
+    "category": "history"
+  },
+  {
+    "title": "波斯帝国的衰落与伊斯兰的兴起",
+    "author": "彼得·布朗",
+    "category": "history"
+  },
+  {
+    "title": "犹太教与伊斯兰教的对话",
+    "author": "丹尼尔·哥德哈根",
+    "category": "history"
+  },
+  {
+    "title": "改变心理学的40项研究",
+    "author": "罗杰·霍克",
+    "category": "psychology"
+  },
+  {
+    "title": "自我肯定的力量",
+    "author": "谢丽尔·理查德森",
+    "category": "psychology"
+  },
+  {
+    "title": "心理治疗来访者中心疗法",
+    "author": "卡尔·罗杰斯",
+    "category": "psychology"
+  },
+  {
+    "title": "童年的秘密",
+    "author": "玛丽亚·蒙特梭利",
+    "category": "psychology"
+  },
+  {
+    "title": "消费者心理学",
+    "author": "莱昂·施iffman",
+    "category": "psychology"
+  },
+  {
+    "title": "领导力心理学",
+    "author": "彼得·诺斯",
+    "category": "psychology"
+  },
+  {
+    "title": "积极教育心理学",
+    "author": "克里斯多夫·彼得森",
+    "category": "psychology"
+  },
+  {
+    "title": "情绪心理学",
+    "author": "杰罗德·帕罗特",
+    "category": "psychology"
+  },
+  {
+    "title": "压力与应对",
+    "author": "理查德·拉扎鲁斯",
+    "category": "psychology"
+  },
+  {
+    "title": "人本主义心理学",
+    "author": "亚伯拉罕·马斯洛",
+    "category": "psychology"
+  },
+  {
+    "title": "行为主义心理学基础",
+    "author": "伯尔赫斯·弗雷德里克·斯金纳",
+    "category": "psychology"
+  },
+  {
+    "title": "认知疗法治疗抑郁症",
+    "author": "大卫·D·伯恩斯",
+    "category": "psychology"
+  },
+  {
+    "title": "焦点解决短期治疗",
+    "author": "因苏菲·金·伯格",
+    "category": "psychology"
+  },
+  {
+    "title": "格式塔疗法",
+    "author": "弗里茨·皮尔斯",
+    "category": "psychology"
+  },
+  {
+    "title": "精神分析引论",
+    "author": "西格蒙德·弗洛伊德",
+    "category": "psychology"
+  },
+  {
+    "title": "人格发展理论",
+    "author": "埃里克·埃里克森",
+    "category": "psychology"
+  },
+  {
+    "title": "道德发展理论",
+    "author": "劳伦斯·科尔伯格",
+    "category": "psychology"
+  },
+  {
+    "title": "认知发展理论",
+    "author": "让·皮亚杰",
+    "category": "psychology"
+  },
+  {
+    "title": "社会学习理论",
+    "author": "阿尔伯特·班杜拉",
+    "category": "psychology"
+  },
+  {
+    "title": "自我效能感理论",
+    "author": "阿尔伯特·班杜拉",
+    "category": "psychology"
+  },
+  {
+    "title": "心理学中的性别问题",
+    "author": "卡萝尔·塔夫里斯",
+    "category": "psychology"
+  },
+  {
+    "title": "跨文化心理学",
+    "author": "哈里·特里安迪斯",
+    "category": "psychology"
+  },
+  {
+    "title": "进化心理学",
+    "author": "大卫·巴斯",
+    "category": "psychology"
+  },
+  {
+    "title": "神经心理学",
+    "author": "布莱恩·科尔布",
+    "category": "psychology"
+  },
+  {
+    "title": "健康心理学",
+    "author": "谢莉·泰勒",
+    "category": "psychology"
+  },
+  {
+    "title": "法律心理学",
+    "author": "劳伦斯·S·克雷皮克",
+    "category": "psychology"
+  },
+  {
+    "title": "学习心理学",
+    "author": "罗伯特·比约克",
+    "category": "psychology"
+  },
+  {
+    "title": "记忆心理学",
+    "author": "艾伦·D·巴德利",
+    "category": "psychology"
+  },
+  {
+    "title": "语言与思维",
+    "author": "史蒂芬·平克",
+    "category": "psychology"
+  },
+  {
+    "title": "感知心理学",
+    "author": "朱利叶斯·戈尔茨坦",
+    "category": "psychology"
+  },
+  {
+    "title": "注意力心理学",
+    "author": "迈克尔·帕西恩",
+    "category": "psychology"
+  },
+  {
+    "title": "问题解决心理学",
+    "author": "约翰·D·布兰斯福德",
+    "category": "psychology"
+  },
+  {
+    "title": "创造力心理学",
+    "author": "米哈里·契克森米哈赖",
+    "category": "psychology"
+  },
+  {
+    "title": "天才的秘密",
+    "author": "米哈里·契克森米哈赖",
+    "category": "psychology"
+  }
+]

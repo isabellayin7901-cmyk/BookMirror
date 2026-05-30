@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Env
+.env
+.env.local
+
+# Node / Expo
+node_modules/
+.expo/
+.expo-shared/
+dist/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Build artifacts
+*.ipa
+*.apk
+*.aab
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Generated data
+backend/app/data/feedback.jsonl
+scripts/raw_books.txt

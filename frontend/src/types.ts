@@ -119,6 +119,8 @@ export type FeedbackReaction = 'useful' | 'too_hard' | 'not_interested' | 'want_
 export type RootStackParamList = {
   Tabs: undefined;
   LanguageSelect: undefined;
+  Auth: { onboarding?: boolean } | undefined;
+  PhoneAuth: { onboarding?: boolean } | undefined;
   Quiz: { onboarding?: boolean } | undefined;
   Result: { result: RecommendationResponse; onboarding?: boolean } | undefined;
   Feedback: { books: Book[] };

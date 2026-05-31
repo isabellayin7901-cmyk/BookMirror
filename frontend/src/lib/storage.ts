@@ -41,6 +41,7 @@ const KEYS = {
   synthesis: '@bookmirror/synthesis',
   bookFit: '@bookmirror/book_fit',
   userId: '@bookmirror/user_id',
+  authToken: '@bookmirror/auth_token',
 } as const;
 
 /** 匿名稳定设备/用户标识，用于后端持久化小镜子对话。首次生成后不变。 */
@@ -121,7 +122,7 @@ export const storage = {
   getUserProfile: () => getJSON<UserProfile | null>(KEYS.userProfile, null),
   setUserProfile: (p: UserProfile) => setJSON(KEYS.userProfile, p),
 
-  /** 取（必要时生成）匿名用户 ID，用于小镜子后端持久化。 */
+  /** 取（必要时生成）匿名用户 ID，用于小镜子后端持久化。登录后会被账号 user_id 覆盖。 */
   getUserId: async (): Promise<string> => {
     const existing = await AsyncStorage.getItem(KEYS.userId);
     if (existing) return existing;
@@ -129,6 +130,15 @@ export const storage = {
     await AsyncStorage.setItem(KEYS.userId, id);
     return id;
   },
+  /** 登录成功后用账号 user_id 覆盖匿名 ID，让对话/画像跟随账号。 */
+  setUserId: (id: string) => AsyncStorage.setItem(KEYS.userId, id),
+
+  // ---------- 账号登录态 ----------
+  getAuthToken: () => AsyncStorage.getItem(KEYS.authToken),
+  setAuthToken: (token: string) => AsyncStorage.setItem(KEYS.authToken, token),
+  /** 已登录账号？（有 token 即视为已登录） */
+  isAuthed: async (): Promise<boolean> => !!(await AsyncStorage.getItem(KEYS.authToken)),
+  clearAuth: () => AsyncStorage.removeItem(KEYS.authToken),
 
   // 综合画像（MBTI × 星座）：缓存并按签名判断是否过期
   getSynthesis: async (sig: string): Promise<SynthesisProfile | null> => {

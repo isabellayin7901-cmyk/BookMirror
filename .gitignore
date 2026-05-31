@@ -37,3 +37,7 @@ scripts/raw_books.txt
 
 # Claude Code 本机配置
 .claude/
+
+# 本地 SQLite 数据库（开发自测产物，勿提交）
+backend/data/
+*.db

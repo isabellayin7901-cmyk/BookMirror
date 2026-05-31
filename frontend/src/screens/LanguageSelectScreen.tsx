@@ -24,7 +24,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
     if (busy) return;
     setBusy(true);
     await setLang(code);
-    navigation.replace('Quiz', { onboarding: true });
+    navigation.replace('Auth', { onboarding: true });
   };
 
   return (

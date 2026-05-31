@@ -254,3 +254,51 @@ export async function submitFeedback(payload: {
     throw new Error(`Feedback failed (${res.status})`);
   }
 }
+
+// ---------- 账号系统：手机号验证码登录/注册 ----------
+
+export interface RequestCodeResult {
+  sent: boolean;
+  dev_code?: string | null; // 仅 mock 开发模式回传
+}
+
+export interface AuthResult {
+  token: string;
+  user_id: string;
+  is_new: boolean;
+}
+
+/** 请求短信验证码。countryCode 形如 "+86"，phone 为纯数字。 */
+export async function requestPhoneCode(
+  countryCode: string,
+  phone: string,
+): Promise<RequestCodeResult> {
+  const res = await fetch(`${baseUrl}/api/auth/request-code`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ country_code: countryCode, phone }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Request code failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+/** 校验验证码，自动注册或登录，返回 token / user_id / is_new。 */
+export async function verifyPhoneCode(
+  countryCode: string,
+  phone: string,
+  code: string,
+): Promise<AuthResult> {
+  const res = await fetch(`${baseUrl}/api/auth/verify-code`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ country_code: countryCode, phone, code }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Verify code failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}

@@ -8,6 +8,8 @@ import { useFonts, ZCOOLKuaiLe_400Regular } from '@expo-google-fonts/zcool-kuail
 
 import { TabsNavigator } from './src/navigation/TabsNavigator';
 import { LanguageSelectScreen } from './src/screens/LanguageSelectScreen';
+import { AuthScreen } from './src/screens/AuthScreen';
+import { PhoneAuthScreen } from './src/screens/PhoneAuthScreen';
 import { QuizScreen } from './src/screens/QuizScreen';
 import { ResultScreen } from './src/screens/ResultScreen';
 import { FeedbackScreen } from './src/screens/FeedbackScreen';
@@ -63,6 +65,8 @@ export default function App() {
             component={LanguageSelectScreen}
             options={{ headerShown: false }}
           />
+          <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
           <Stack.Screen
             name="Quiz"
             component={QuizScreen}

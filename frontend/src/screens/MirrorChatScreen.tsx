@@ -122,6 +122,7 @@ export function MirrorChatScreen() {
       ? [
           { role: 'assistant', content: t('mirror.greeting1') },
           { role: 'assistant', content: t('mirror.greeting2') },
+          { role: 'assistant', content: t('mirror.greeting3') },
         ]
       : messages;
 

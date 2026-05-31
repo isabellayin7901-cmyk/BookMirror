@@ -1,7 +1,7 @@
 """小镜子 (Little Mirror) chat endpoints with backend persistence."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -149,7 +149,12 @@ def mirror_history(user_id: str, limit: int = 200):
             MessageOut(
                 role=r.role,
                 content=r.content,
-                created_at=r.created_at.isoformat() if r.created_at else None,
+                # created_at 存的是 naive UTC，补上 UTC 时区再序列化，
+                # 前端 new Date() 才能正确解析并按设备本地时区显示。
+                created_at=(
+                    r.created_at.replace(tzinfo=timezone.utc).isoformat()
+                    if r.created_at else None
+                ),
             )
             for r in rows
         ])

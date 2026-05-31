@@ -23,11 +23,20 @@ class Settings(BaseSettings):
     otp_ttl_seconds: int = 300  # 验证码有效期
     otp_max_attempts: int = 5   # 单个验证码最多尝试次数
 
+    # ---- 社交登录 ----
+    # 允许的 Google OAuth Client ID（web/ios/android），逗号分隔。
+    # 校验 id_token 的 aud 必须命中其中之一。留空 = 未配置，端点返回未启用。
+    google_client_ids: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def google_client_ids_list(self) -> list[str]:
+        return [c.strip() for c in self.google_client_ids.split(",") if c.strip()]
 
 
 settings = Settings()

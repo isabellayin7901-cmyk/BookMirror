@@ -13,6 +13,7 @@ import secrets
 import re
 from datetime import datetime, timedelta
 
+import httpx
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select, delete
@@ -54,6 +55,10 @@ class VerifyCodeIn(BaseModel):
     country_code: str = Field(..., min_length=2, max_length=8)
     phone: str = Field(..., min_length=4, max_length=15)
     code: str = Field(..., min_length=4, max_length=8)
+
+
+class GoogleIn(BaseModel):
+    id_token: str = Field(..., min_length=20)
 
 
 class AuthOut(BaseModel):
@@ -167,6 +172,57 @@ def verify_code(payload: VerifyCodeIn):
         session.add(AuthToken(token=token, user_id=user.user_id))
         session.commit()
 
+        return AuthOut(token=token, user_id=user.user_id, is_new=is_new)
+    finally:
+        session.close()
+
+
+@router.post("/auth/google", response_model=AuthOut)
+def google_login(payload: GoogleIn):
+    allowed = settings.google_client_ids_list
+    if not allowed:
+        raise HTTPException(status_code=503, detail="Google 登录未配置")
+
+    # 用 Google 官方 tokeninfo 端点校验 id_token（验签名+有效期），再核对 aud / iss。
+    try:
+        resp = httpx.get(
+            "https://oauth2.googleapis.com/tokeninfo",
+            params={"id_token": payload.id_token},
+            timeout=8.0,
+        )
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"无法连接 Google: {e}")
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Google 凭证无效")
+    info = resp.json()
+
+    if info.get("aud") not in allowed:
+        raise HTTPException(status_code=401, detail="Google 凭证不属于本应用")
+    if info.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        raise HTTPException(status_code=401, detail="Google 凭证来源不可信")
+    sub = info.get("sub")
+    if not sub:
+        raise HTTPException(status_code=401, detail="Google 凭证缺少用户标识")
+
+    session = SessionLocal()
+    try:
+        user = session.execute(
+            select(User).where(User.provider == "google", User.provider_uid == sub)
+        ).scalars().first()
+        is_new = user is None
+        if is_new:
+            user = User(
+                user_id=f"u_{secrets.token_hex(10)}",
+                provider="google",
+                provider_uid=sub,
+            )
+            session.add(user)
+        else:
+            user.last_login = _now()
+
+        token = secrets.token_urlsafe(36)
+        session.add(AuthToken(token=token, user_id=user.user_id))
+        session.commit()
         return AuthOut(token=token, user_id=user.user_id, is_new=is_new)
     finally:
         session.close()

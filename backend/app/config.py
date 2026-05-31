@@ -26,7 +26,11 @@ class Settings(BaseSettings):
     # ---- 社交登录 ----
     # 允许的 Google OAuth Client ID（web/ios/android），逗号分隔。
     # 校验 id_token 的 aud 必须命中其中之一。留空 = 未配置，端点返回未启用。
-    google_client_ids: str = ""
+    google_client_ids: str = (
+        "496633672820-bkpvm6vltms05g9207vqvhl8dkijqfqo.apps.googleusercontent.com,"
+        "496633672820-5s0q742nfo2acnjfbn6rgtsj3t3d9l1u.apps.googleusercontent.com,"
+        "496633672820-q71l3u0t0ojdtiifnnr33emt1ps5il8u.apps.googleusercontent.com"
+    )
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 

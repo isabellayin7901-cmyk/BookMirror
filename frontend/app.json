@@ -45,6 +45,10 @@
     "extra": {
       "apiBaseUrl": "https://bookmirror-api.onrender.com",
       "appToken": "Xj8XJ6kBPuWufufJRg20gawlcRcR9bF0QNCj3xim7Jw",
+      "google": {
+        "webClientId": "496633672820-bkpvm6vltms05g9207vqvhl8dkijqfqo.apps.googleusercontent.com",
+        "iosClientId": "496633672820-5s0q742nfo2acnjfbn6rgtsj3t3d9l1u.apps.googleusercontent.com"
+      },
       "eas": {
         "projectId": "8cc1c5c4-820b-4ae6-a018-3d79dd20d52c"
       }
@@ -56,6 +60,12 @@
         "expo-image-picker",
         {
           "photosPermission": "允许 BookMirror 访问相册，用于设置你的头像。"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.496633672820-5s0q742nfo2acnjfbn6rgtsj3t3d9l1u"
         }
       ]
     ],

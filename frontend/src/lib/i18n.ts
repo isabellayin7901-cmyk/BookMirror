@@ -212,6 +212,8 @@ const zh: Dict = {
   'auth.verifyFailBody': '验证码不正确或已过期，再试一次吧',
   'auth.devCodeTitle': '开发模式验证码',
   'auth.devCodeBody': '已自动填入：',
+  'auth.googleFailTitle': 'Google 登录失败',
+  'auth.googleFailBody': '没能完成 Google 登录，稍后再试一下',
 
   // ===== persona（星格：MBTI + 星座 + 综合画像）=====
   'persona.title': '你的星格',
@@ -562,6 +564,8 @@ const en: Dict = {
   'auth.verifyFailBody': 'The code is wrong or expired, give it another try',
   'auth.devCodeTitle': 'Dev mode code',
   'auth.devCodeBody': 'Auto-filled:',
+  'auth.googleFailTitle': 'Google sign-in failed',
+  'auth.googleFailBody': "Couldn't complete Google sign-in, please try again later",
 
   // ===== persona (MBTI + Astrology + synthesis) =====
   'persona.title': 'Your Star Persona',

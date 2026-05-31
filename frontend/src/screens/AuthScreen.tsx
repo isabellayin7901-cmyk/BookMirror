@@ -1,12 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { Bunny } from '../illustrations/Bunny';
 import { Sparkle } from '../illustrations/Sparkle';
 import { useI18n } from '../lib/LanguageContext';
+import { storage } from '../lib/storage';
+import { googleLogin } from '../lib/api';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Auth'>;
@@ -19,12 +26,56 @@ const SOCIALS: { key: Social; icon: string; color: string }[] = [
   { key: 'wechat', icon: '微', color: '#07C160' },
 ];
 
+const googleCfg = (Constants.expoConfig?.extra as
+  | { google?: { webClientId?: string; iosClientId?: string } }
+  | undefined)?.google;
+
 export function AuthScreen({ navigation, route }: Props) {
   const { t } = useI18n();
   const onboarding = route.params?.onboarding ?? true;
+  const [busy, setBusy] = useState<Social | null>(null);
+
+  useEffect(() => {
+    if (googleCfg?.webClientId) {
+      GoogleSignin.configure({
+        webClientId: googleCfg.webClientId,
+        iosClientId: googleCfg.iosClientId,
+      });
+    }
+  }, []);
+
+  const signInGoogle = async () => {
+    setBusy('google');
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const userInfo: any = await GoogleSignin.signIn();
+      // 兼容新旧返回结构：{data:{idToken}} 或 {idToken}。
+      const idToken: string | undefined =
+        userInfo?.data?.idToken ?? userInfo?.idToken;
+      if (!idToken) {
+        throw new Error('no idToken');
+      }
+      const res = await googleLogin(idToken);
+      await storage.setAuthToken(res.token);
+      await storage.setUserId(res.user_id);
+      navigation.replace('Quiz', { onboarding });
+    } catch (e: any) {
+      if (e?.code === statusCodes.SIGN_IN_CANCELLED) {
+        // 用户主动取消，不提示。
+        return;
+      }
+      Alert.alert(t('auth.googleFailTitle'), t('auth.googleFailBody'));
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const social = (key: Social) => {
-    // 凭证尚未接入，占位提示。
+    if (key === 'google') {
+      signInGoogle();
+      return;
+    }
+    // 其余凭证尚未接入，占位提示。
     Alert.alert(t('auth.comingSoonTitle'), t('auth.comingSoonBody'));
   };
 
@@ -49,10 +100,20 @@ export function AuthScreen({ navigation, route }: Props) {
             <Pressable
               key={s.key}
               onPress={() => social(s.key)}
-              style={({ pressed }) => [styles.socialBtn, shadow.soft, pressed && { opacity: 0.85 }]}
+              disabled={busy !== null}
+              style={({ pressed }) => [
+                styles.socialBtn,
+                shadow.soft,
+                pressed && { opacity: 0.85 },
+                busy !== null && busy !== s.key && { opacity: 0.5 },
+              ]}
             >
               <View style={[styles.socialIcon, { backgroundColor: s.color }]}>
-                <Text style={styles.socialIconText}>{s.icon || ''}</Text>
+                {busy === s.key ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.socialIconText}>{s.icon || ''}</Text>
+                )}
               </View>
               <Text style={styles.socialLabel}>{t(`auth.social.${s.key}`)}</Text>
             </Pressable>

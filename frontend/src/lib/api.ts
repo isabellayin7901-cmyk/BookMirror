@@ -302,3 +302,17 @@ export async function verifyPhoneCode(
   }
   return res.json();
 }
+
+/** 用 Google idToken 登录/注册，返回 token / user_id / is_new。 */
+export async function googleLogin(idToken: string): Promise<AuthResult> {
+  const res = await fetch(`${baseUrl}/api/auth/google`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ id_token: idToken }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Google login failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}

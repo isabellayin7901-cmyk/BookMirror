@@ -116,10 +116,13 @@ export function MirrorChatScreen() {
     ]);
   };
 
-  // 没有历史时显示问候语（不入库，纯展示）
+  // 没有历史时显示问候语（不入库，纯展示）；拆成两条，更像真人
   const display: MirrorMessage[] =
     messages.length === 0 && !loading
-      ? [{ role: 'assistant', content: t('mirror.greeting') }]
+      ? [
+          { role: 'assistant', content: t('mirror.greeting1') },
+          { role: 'assistant', content: t('mirror.greeting2') },
+        ]
       : messages;
 
   return (
@@ -139,7 +142,7 @@ export function MirrorChatScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         {loading ? (

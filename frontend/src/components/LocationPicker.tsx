@@ -27,10 +27,14 @@ interface Props {
 }
 
 export function LocationPicker({ visible, onClose, onSelect }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [scope, setScope] = useState<'cn' | 'world'>('cn');
   const [region, setRegion] = useState<Region | null>(null);
   const [search, setSearch] = useState('');
+
+  // 英文模式显示英文/拼音名，中文模式显示中文名
+  const disp = (item: { name: string; name_en?: string }) =>
+    lang === 'en' ? item.name_en || item.name : item.name;
 
   const list = scope === 'cn' ? CHINA_PROVINCES : WORLD_COUNTRIES;
 
@@ -40,14 +44,17 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
 
   const flatHits = useMemo<FlatHit[]>(() => {
     if (region || !search.trim()) return [];
-    const s = search.trim();
+    const s = search.trim().toLowerCase();
+    const match = (item: { name: string; name_en?: string }) =>
+      item.name.toLowerCase().includes(s) ||
+      (item.name_en ?? '').toLowerCase().includes(s);
     const hits: FlatHit[] = [];
     for (const r of list) {
-      if (r.name.includes(s)) {
+      if (match(r)) {
         for (const c of r.cities) hits.push({ region: r, city: c });
       } else {
         for (const c of r.cities) {
-          if (c.name.includes(s)) hits.push({ region: r, city: c });
+          if (match(c)) hits.push({ region: r, city: c });
         }
       }
     }
@@ -69,8 +76,10 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
   const filteredCities = useMemo(() => {
     if (!region) return [];
     if (!search.trim()) return region.cities;
-    const s = search.trim();
-    return region.cities.filter((c) => c.name.includes(s));
+    const s = search.trim().toLowerCase();
+    return region.cities.filter(
+      (c) => c.name.toLowerCase().includes(s) || (c.name_en ?? '').toLowerCase().includes(s),
+    );
   }, [region, search]);
 
   const close = () => {
@@ -99,7 +108,7 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
               <Text style={styles.cancelText}>{t('loc.cancel')}</Text>
             </Pressable>
             <Text style={styles.title}>
-              {region ? `${region.name} · ${t('loc.pickCity')}` : t('loc.pickLocation')}
+              {region ? `${disp(region)} · ${t('loc.pickCity')}` : t('loc.pickLocation')}
             </Text>
             {region ? (
               <Pressable onPress={() => { setRegion(null); setSearch(''); }} hitSlop={12}>
@@ -137,7 +146,7 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
             style={styles.searchInput}
             placeholder={
               region
-                ? t('loc.searchCityIn', { region: region.name })
+                ? t('loc.searchCityIn', { region: disp(region) })
                 : scope === 'cn'
                 ? t('loc.searchCn')
                 : t('loc.searchWorld')
@@ -156,7 +165,7 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
                 onPress={() => pickCity(c)}
                 style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
               >
-                <Text style={styles.rowText}>{c.name}</Text>
+                <Text style={styles.rowText}>{disp(c)}</Text>
                 <Text style={styles.rowMeta}>
                   {c.latitude.toFixed(2)}°, {c.longitude.toFixed(2)}°
                 </Text>
@@ -175,8 +184,8 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
                 style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
               >
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.rowText}>{h.city.name}</Text>
-                  <Text style={styles.rowSub}>{h.region.name}</Text>
+                  <Text style={styles.rowText}>{disp(h.city)}</Text>
+                  <Text style={styles.rowSub}>{disp(h.region)}</Text>
                 </View>
                 <Text style={styles.rowMeta}>
                   {h.city.latitude.toFixed(2)}°, {h.city.longitude.toFixed(2)}°
@@ -191,7 +200,7 @@ export function LocationPicker({ visible, onClose, onSelect }: Props) {
                 onPress={() => { setRegion(r); setSearch(''); }}
                 style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
               >
-                <Text style={styles.rowText}>{r.name}</Text>
+                <Text style={styles.rowText}>{disp(r)}</Text>
                 <Text style={styles.rowArrow}>›</Text>
               </Pressable>
             ))}

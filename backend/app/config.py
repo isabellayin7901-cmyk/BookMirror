@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     rate_limit_max: int = 30
     rate_limit_window: int = 60
 
+    # ---- 短信验证码（账号系统）----
+    # sms_provider="mock" 时不真正发短信，仅记录日志；接入真实服务商后改为 twilio/aliyun 等。
+    sms_provider: str = "mock"
+    # mock 模式下把验证码直接回传给客户端，方便开发自测；生产务必设为 False。
+    otp_dev_echo: bool = True
+    otp_ttl_seconds: int = 300  # 验证码有效期
+    otp_max_attempts: int = 5   # 单个验证码最多尝试次数
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
     @property

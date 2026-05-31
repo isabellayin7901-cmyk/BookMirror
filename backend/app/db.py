@@ -8,6 +8,7 @@ Swappable to Postgres later by changing DATABASE_URL only.
 
 import os
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import String, Text, Integer, DateTime, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
@@ -69,6 +70,46 @@ class MirrorProfile(Base):
     keywords: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
     message_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class User(Base):
+    """A registered account. user_id doubles as the mirror conversation key."""
+
+    __tablename__ = "users"
+
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # phone is the login identity for now; null for social-only accounts later.
+    phone: Mapped[Optional[str]] = mapped_column(String(32), unique=True, index=True, nullable=True)
+    country_code: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)  # e.g. "+86"
+    # social provider linkage (apple/google/wechat) — reserved for later.
+    provider: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    provider_uid: Mapped[Optional[str]] = mapped_column(String(128), index=True, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    last_login: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class AuthToken(Base):
+    """An opaque bearer token handed to a logged-in client."""
+
+    __tablename__ = "auth_tokens"
+
+    token: Mapped[str] = mapped_column(String(80), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+
+
+class PhoneOtp(Base):
+    """A pending SMS verification code for a phone number."""
+
+    __tablename__ = "phone_otps"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # full E.164-ish identity: country_code + phone, e.g. "+8613800138000"
+    phone_key: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    code: Mapped[str] = mapped_column(String(8), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
 
 
 def init_db() -> None:

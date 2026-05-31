@@ -125,6 +125,16 @@ export function MirrorChatScreen() {
         ]
       : messages;
 
+  // 助手的长回复按空行拆成多条气泡，像真人连发好几条短消息
+  const bubbles: MirrorMessage[] = display.flatMap((m) => {
+    if (m.role !== 'assistant') return [m];
+    const parts = m.content
+      .split(/\n\s*\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return parts.length > 0 ? parts.map((content) => ({ role: 'assistant' as const, content })) : [m];
+  });
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -157,7 +167,7 @@ export function MirrorChatScreen() {
             onContentSizeChange={scrollToEnd}
             keyboardShouldPersistTaps="handled"
           >
-            {display.map((m, i) => (
+            {bubbles.map((m, i) => (
               <View
                 key={i}
                 style={[

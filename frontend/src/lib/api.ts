@@ -175,6 +175,7 @@ export async function fetchBookFit(payload: {
 export interface MirrorMessage {
   role: 'user' | 'assistant';
   content: string;
+  created_at?: string | null; // ISO 时间，前端画时间线分割用
 }
 
 export interface MirrorChatContext {

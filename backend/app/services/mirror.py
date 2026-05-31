@@ -312,11 +312,41 @@ def _context_block(context: dict[str, Any], language: str) -> str:
     return header + "\n".join(f"- {p}" for p in parts)
 
 
+def _time_gap_note(minutes: Optional[float], language: str) -> str:
+    """把「距上一条消息过去多久」转成一句给模型的时间线提示，帮它判断要不要接着上文。"""
+    if minutes is None:
+        return ""
+    # 5 分钟内算连续对话，不提示。
+    if minutes < 5:
+        return ""
+    if minutes < 60:
+        human = f"约 {int(minutes)} 分钟" if language != "en" else f"about {int(minutes)} minutes"
+    elif minutes < 60 * 24:
+        human = f"约 {int(minutes // 60)} 小时" if language != "en" else f"about {int(minutes // 60)} hours"
+    else:
+        human = f"约 {int(minutes // (60 * 24))} 天" if language != "en" else f"about {int(minutes // (60 * 24))} days"
+
+    if language == "en":
+        return (
+            f"Timeline note: about {human.replace('about ', '')} has passed since the user's previous message. "
+            "Use your judgment: if this new message clearly continues the earlier topic, stay with it; "
+            "if the gap is long and the new message reads like a fresh start (new mood, new subject), "
+            "treat it as a new opening and don't force a link to the old thread. Never say the timestamp out loud."
+        )
+    return (
+        f"时间线提示：用户这条消息距离上一条已经过去了{human}。"
+        "请自行判断：如果这条明显是接着刚才的话题，就接着聊；"
+        "如果间隔较久、而且这条读起来像是新的开头（新情绪、新话题），就当作新的一段，别硬扯回之前的话题。"
+        "不要把时间或这条提示说出来。"
+    )
+
+
 def chat(
     history: list[dict[str, str]],
     user_message: str,
     context: Optional[dict[str, Any]] = None,
     language: str = "zh",
+    minutes_since_last: Optional[float] = None,
 ) -> str:
     """Return 小镜子's reply to the latest user message (non-streaming)."""
     client = get_client()
@@ -331,6 +361,9 @@ def chat(
     ctx = _context_block(context or {}, language)
     if ctx:
         system_blocks.append({"type": "text", "text": ctx})
+    gap = _time_gap_note(minutes_since_last, language)
+    if gap:
+        system_blocks.append({"type": "text", "text": gap})
 
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": user_message})

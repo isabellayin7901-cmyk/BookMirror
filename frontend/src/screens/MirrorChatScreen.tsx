@@ -28,6 +28,36 @@ import type { RootStackParamList, UserProfile } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
+// 微信式时间戳：今天只显示时分，昨天加「昨天」，更早加日期。
+function formatTimeDivider(iso: string, lang: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dayDiff = Math.round((startOfDay(now) - startOfDay(d)) / 86400000);
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const en = lang === 'en';
+
+  if (dayDiff <= 0) return hm; // 今天
+  if (dayDiff === 1) return (en ? 'Yesterday ' : '昨天 ') + hm;
+  if (dayDiff < 7) {
+    const wd = en
+      ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()]
+      : ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+    return `${wd} ${hm}`;
+  }
+  if (en) {
+    const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+    return sameYear ? `${mon} ${d.getDate()}, ${hm}` : `${mon} ${d.getDate()}, ${d.getFullYear()} ${hm}`;
+  }
+  return sameYear
+    ? `${d.getMonth() + 1}月${d.getDate()}日 ${hm}`
+    : `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${hm}`;
+}
+
 export function MirrorChatScreen() {
   const navigation = useNavigation<Nav>();
   const { t, lang } = useI18n();
@@ -77,7 +107,10 @@ export function MirrorChatScreen() {
     const text = input.trim();
     if (!text || !userId || sending) return;
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: text }]);
+    setMessages((prev) => [
+      ...prev,
+      { role: 'user', content: text, created_at: new Date().toISOString() },
+    ]);
     setSending(true);
     scrollToEnd();
     try {
@@ -87,9 +120,15 @@ export function MirrorChatScreen() {
         context: buildContext(),
         language: lang,
       });
-      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: reply, created_at: new Date().toISOString() },
+      ]);
     } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: t('mirror.errorReply') }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: t('mirror.errorReply'), created_at: new Date().toISOString() },
+      ]);
     } finally {
       setSending(false);
       scrollToEnd();
@@ -126,14 +165,30 @@ export function MirrorChatScreen() {
         ]
       : messages;
 
-  // 助手的长回复按空行拆成多条气泡，像真人连发好几条短消息
+  // 助手的长回复按空行拆成多条气泡，像真人连发好几条短消息（拆出的气泡共用同一时间戳）
   const bubbles: MirrorMessage[] = display.flatMap((m) => {
     if (m.role !== 'assistant') return [m];
     const parts = m.content
       .split(/\n\s*\n/)
       .map((s) => s.trim())
       .filter(Boolean);
-    return parts.length > 0 ? parts.map((content) => ({ role: 'assistant' as const, content })) : [m];
+    return parts.length > 0
+      ? parts.map((content) => ({ role: 'assistant' as const, content, created_at: m.created_at }))
+      : [m];
+  });
+
+  // 像微信那样：相邻消息间隔超过 5 分钟，就在中间插一条时间分割
+  let prevTime: number | null = null;
+  const items = bubbles.map((m, i) => {
+    let timeLabel: string | null = null;
+    if (m.created_at) {
+      const tms = new Date(m.created_at).getTime();
+      if (!Number.isNaN(tms) && (prevTime === null || tms - prevTime >= 5 * 60 * 1000)) {
+        timeLabel = formatTimeDivider(m.created_at, lang);
+      }
+      if (!Number.isNaN(tms)) prevTime = tms;
+    }
+    return { m, timeLabel, key: i };
   });
 
   return (
@@ -168,30 +223,36 @@ export function MirrorChatScreen() {
             onContentSizeChange={scrollToEnd}
             keyboardShouldPersistTaps="handled"
           >
-            {bubbles.map((m, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.bubbleRow,
-                  m.role === 'user' ? styles.rowRight : styles.rowLeft,
-                ]}
-              >
+            {items.map(({ m, timeLabel, key }) => (
+              <React.Fragment key={key}>
+                {timeLabel && (
+                  <View style={styles.timeRow}>
+                    <Text style={styles.timeText}>{timeLabel}</Text>
+                  </View>
+                )}
                 <View
                   style={[
-                    styles.bubble,
-                    m.role === 'user' ? styles.bubbleUser : styles.bubbleMirror,
+                    styles.bubbleRow,
+                    m.role === 'user' ? styles.rowRight : styles.rowLeft,
                   ]}
                 >
-                  <Text
+                  <View
                     style={[
-                      styles.bubbleText,
-                      m.role === 'user' && { color: '#fff' },
+                      styles.bubble,
+                      m.role === 'user' ? styles.bubbleUser : styles.bubbleMirror,
                     ]}
                   >
-                    {m.content}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.bubbleText,
+                        m.role === 'user' && { color: '#fff' },
+                      ]}
+                    >
+                      {m.content}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              </React.Fragment>
             ))}
             {sending && (
               <View style={[styles.bubbleRow, styles.rowLeft]}>
@@ -252,6 +313,13 @@ const styles = StyleSheet.create({
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.md },
+  timeRow: { alignItems: 'center', marginVertical: spacing.sm },
+  timeText: {
+    ...typography.caption,
+    fontSize: 11,
+    color: colors.textFaint,
+    backgroundColor: 'transparent',
+  },
   bubbleRow: { flexDirection: 'row', marginBottom: spacing.md },
   rowLeft: { justifyContent: 'flex-start' },
   rowRight: { justifyContent: 'flex-end' },

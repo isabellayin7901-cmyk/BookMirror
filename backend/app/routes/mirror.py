@@ -1,6 +1,7 @@
 """小镜子 (Little Mirror) chat endpoints with backend persistence."""
 
 import json
+from datetime import datetime
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -34,6 +35,7 @@ class ChatResponse(BaseModel):
 class MessageOut(BaseModel):
     role: str
     content: str
+    created_at: Optional[str] = None  # ISO 时间，前端用来画时间线分割
 
 
 class HistoryResponse(BaseModel):
@@ -47,7 +49,7 @@ class ProfileResponse(BaseModel):
     message_count: int = 0
 
 
-def _load_history(session, user_id: str, limit: int) -> list[dict[str, str]]:
+def _load_history(session, user_id: str, limit: int) -> list[dict[str, Any]]:
     rows = session.execute(
         select(MirrorMessage)
         .where(MirrorMessage.user_id == user_id)
@@ -55,7 +57,26 @@ def _load_history(session, user_id: str, limit: int) -> list[dict[str, str]]:
         .limit(limit)
     ).scalars().all()
     rows.reverse()
-    return [{"role": r.role, "content": r.content} for r in rows]
+    return [
+        {"role": r.role, "content": r.content, "created_at": r.created_at}
+        for r in rows
+    ]
+
+
+def _minutes_since_last(history: list[dict[str, Any]]) -> Optional[float]:
+    """距离最后一条历史消息过去了多少分钟。用来让小镜子判断新消息要不要接着上文。
+
+    SQLite 存的是 naive UTC，所以这里也用 naive UTC 比较，避免时区报错。
+    """
+    if not history:
+        return None
+    last = history[-1].get("created_at")
+    if not isinstance(last, datetime):
+        return None
+    if last.tzinfo is not None:
+        last = last.replace(tzinfo=None)
+    delta = datetime.utcnow() - last
+    return max(0.0, delta.total_seconds() / 60.0)
 
 
 @router.post("/mirror/chat", response_model=ChatResponse)
@@ -76,6 +97,7 @@ def mirror_chat(payload: ChatRequest):
                 user_message=payload.message,
                 context=context,
                 language=payload.language,
+                minutes_since_last=_minutes_since_last(history),
             )
         except Exception as e:
             raise HTTPException(status_code=502, detail=f"Mirror chat error: {e}")
@@ -123,7 +145,14 @@ def mirror_history(user_id: str, limit: int = 200):
             .order_by(MirrorMessage.id.asc())
             .limit(max(1, min(limit, 500)))
         ).scalars().all()
-        return HistoryResponse(messages=[MessageOut(role=r.role, content=r.content) for r in rows])
+        return HistoryResponse(messages=[
+            MessageOut(
+                role=r.role,
+                content=r.content,
+                created_at=r.created_at.isoformat() if r.created_at else None,
+            )
+            for r in rows
+        ])
     finally:
         session.close()
 

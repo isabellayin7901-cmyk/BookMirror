@@ -38,7 +38,7 @@ export function LittleWorldScreen() {
       title: t('world.mirror'),
       subtitle: t('world.mirrorSub'),
       tone: colors.sage,
-      badge: t('common.comingSoon'),
+      onPress: () => navigation.navigate('MirrorChat'),
     },
   ];
 

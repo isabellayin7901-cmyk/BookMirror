@@ -128,6 +128,7 @@ export type RootStackParamList = {
   Astrology: { onboarding?: boolean } | undefined;
   AstrologyResult: { onboarding?: boolean } | undefined;
   Gender: { onboarding?: boolean } | undefined;
+  MirrorChat: undefined;
 };
 
 export type TabParamList = {

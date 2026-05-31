@@ -17,6 +17,7 @@ import { PersonaScreen } from './src/screens/PersonaScreen';
 import { AstrologyScreen } from './src/screens/AstrologyScreen';
 import { AstrologyResultScreen } from './src/screens/AstrologyResultScreen';
 import { GenderScreen } from './src/screens/GenderScreen';
+import { MirrorChatScreen } from './src/screens/MirrorChatScreen';
 import { storage } from './src/lib/storage';
 import { LanguageProvider } from './src/lib/LanguageContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -75,6 +76,7 @@ export default function App() {
           <Stack.Screen name="Astrology" component={AstrologyScreen} />
           <Stack.Screen name="AstrologyResult" component={AstrologyResultScreen} />
           <Stack.Screen name="Gender" component={GenderScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="MirrorChat" component={MirrorChatScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
       </LanguageProvider>

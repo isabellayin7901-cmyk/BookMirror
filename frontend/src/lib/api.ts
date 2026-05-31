@@ -170,6 +170,75 @@ export async function fetchBookFit(payload: {
   return res.json();
 }
 
+// ----------------------------- 小镜子 Little Mirror -----------------------------
+
+export interface MirrorMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface MirrorChatContext {
+  mbti?: string;
+  zodiac?: { sun_sign?: string; moon_sign?: string; element?: string };
+  gender?: string;
+}
+
+/** 发一句话给小镜子，拿回它的回复（后端持久化整段对话）。 */
+export async function mirrorChat(payload: {
+  user_id: string;
+  message: string;
+  context?: MirrorChatContext;
+  language: Language;
+}): Promise<{ reply: string }> {
+  const res = await fetch(`${baseUrl}/api/mirror/chat`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Mirror chat failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+/** 拉取历史对话（换设备/重装后从后端恢复）。 */
+export async function fetchMirrorHistory(userId: string): Promise<MirrorMessage[]> {
+  const res = await fetch(
+    `${baseUrl}/api/mirror/history?user_id=${encodeURIComponent(userId)}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Mirror history failed (${res.status})`);
+  const data = await res.json();
+  return data.messages ?? [];
+}
+
+export interface MirrorProfileResponse {
+  summary: string;
+  traits: string[];
+  keywords: string[];
+  message_count: number;
+}
+
+/** 拉取小镜子从对话中提炼的心理画像。 */
+export async function fetchMirrorProfile(userId: string): Promise<MirrorProfileResponse> {
+  const res = await fetch(
+    `${baseUrl}/api/mirror/profile?user_id=${encodeURIComponent(userId)}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Mirror profile failed (${res.status})`);
+  return res.json();
+}
+
+/** 清空小镜子的全部对话与心理画像。 */
+export async function deleteMirrorHistory(userId: string): Promise<void> {
+  const res = await fetch(
+    `${baseUrl}/api/mirror/history?user_id=${encodeURIComponent(userId)}`,
+    { method: 'DELETE', headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Mirror reset failed (${res.status})`);
+}
+
 export async function submitFeedback(payload: {
   book_id: string;
   reaction: FeedbackReaction;

@@ -40,7 +40,13 @@ const KEYS = {
   recommendSig: '@bookmirror/recommend_signature',
   synthesis: '@bookmirror/synthesis',
   bookFit: '@bookmirror/book_fit',
+  userId: '@bookmirror/user_id',
 } as const;
+
+/** 匿名稳定设备/用户标识，用于后端持久化小镜子对话。首次生成后不变。 */
+function genUserId(): string {
+  return 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
 
 /** 单本书「为什么适合你」的个性化文案（结合 MBTI×星座×需求），按 bookId+画像签名缓存。 */
 export interface BookFit {
@@ -114,6 +120,15 @@ export const storage = {
 
   getUserProfile: () => getJSON<UserProfile | null>(KEYS.userProfile, null),
   setUserProfile: (p: UserProfile) => setJSON(KEYS.userProfile, p),
+
+  /** 取（必要时生成）匿名用户 ID，用于小镜子后端持久化。 */
+  getUserId: async (): Promise<string> => {
+    const existing = await AsyncStorage.getItem(KEYS.userId);
+    if (existing) return existing;
+    const id = genUserId();
+    await AsyncStorage.setItem(KEYS.userId, id);
+    return id;
+  },
 
   // 综合画像（MBTI × 星座）：缓存并按签名判断是否过期
   getSynthesis: async (sig: string): Promise<SynthesisProfile | null> => {

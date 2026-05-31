@@ -8,11 +8,18 @@ services:
     dockerContext: ./backend
     healthCheckPath: /health
     plan: starter       # 付费档 $7/月；实例常驻不休眠，无冷启动。降回免费改 free
+    # 小镜子的对话/心理画像存 SQLite，挂持久盘，重新部署不丢数据。
+    disk:
+      name: mirror-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false          # 在面板里手填，勿入库
       - key: APP_TOKEN
         sync: false
+      - key: DATABASE_URL
+        value: sqlite:////data/mirror.db   # 指向持久盘
       - key: CLAUDE_MODEL
         value: claude-haiku-4-5-20251001
       - key: CORS_ORIGINS

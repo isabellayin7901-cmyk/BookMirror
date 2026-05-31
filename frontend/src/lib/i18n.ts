@@ -161,8 +161,21 @@ const zh: Dict = {
   'world.persona': '你的星格',
   'world.personaSub': 'MBTI ✕ 星座 · 综合人格画像',
   'world.mirror': '小镜子',
-  'world.mirrorSub': '一面照见自己的镜子',
+  'world.mirrorSub': '和 AI 聊聊，越聊越懂你',
   'common.comingSoon': '即将上线',
+
+  // ===== 小镜子（AI 阅读与心理陪伴）=====
+  'mirror.title': '小镜子',
+  'mirror.subtitle': '一个懂你的阅读与心理陪伴',
+  'mirror.greeting': '嗨，我是小镜子。你可以跟我聊聊最近在读什么、心里在想什么，我会慢慢更懂你。',
+  'mirror.inputPlaceholder': '说点什么…',
+  'mirror.thinking': '小镜子正在想…',
+  'mirror.errorReply': '我这会儿有点走神，待会儿再聊好吗？',
+  'mirror.reset': '清空对话',
+  'mirror.resetConfirm': '确定清空和小镜子的全部对话与心理画像吗？此操作不可恢复。',
+  'mirror.cancel': '取消',
+  'mirror.confirm': '清空',
+  'mirror.loadError': '加载历史失败，检查下网络～',
 
   // ===== persona（星格：MBTI + 星座 + 综合画像）=====
   'persona.title': '你的星格',
@@ -463,8 +476,20 @@ const en: Dict = {
   'world.persona': 'Your Star Persona',
   'world.personaSub': 'MBTI ✕ Astrology · your full portrait',
   'world.mirror': 'Little Mirror',
-  'world.mirrorSub': 'A mirror to see yourself',
+  'world.mirrorSub': 'Chat with AI — it gets you, bit by bit',
   'common.comingSoon': 'Coming soon',
+
+  'mirror.title': 'Little Mirror',
+  'mirror.subtitle': 'A reading & emotional companion that gets you',
+  'mirror.greeting': "Hi, I'm Little Mirror. Tell me what you're reading or what's on your mind — I'll come to understand you, little by little.",
+  'mirror.inputPlaceholder': 'Say something…',
+  'mirror.thinking': 'Little Mirror is thinking…',
+  'mirror.errorReply': "My mind wandered for a second — can we pick this up in a bit?",
+  'mirror.reset': 'Clear chat',
+  'mirror.resetConfirm': 'Clear all your conversations and the portrait Little Mirror has of you? This cannot be undone.',
+  'mirror.cancel': 'Cancel',
+  'mirror.confirm': 'Clear',
+  'mirror.loadError': 'Failed to load history — check your connection.',
 
   // ===== persona (MBTI + Astrology + synthesis) =====
   'persona.title': 'Your Star Persona',

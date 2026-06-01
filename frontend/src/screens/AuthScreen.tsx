@@ -9,7 +9,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Sparkle } from '../illustrations/Sparkle';
 import { useI18n } from '../lib/LanguageContext';
 import { storage } from '../lib/storage';
@@ -84,8 +84,8 @@ export function AuthScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.center}>
-        <View style={styles.bunny}>
-          <Bunny size={110} pose="wave" />
+        <View style={styles.mascot}>
+          <Snowman size={110} pose="wave" />
         </View>
 
         <View style={styles.titleRow}>
@@ -142,7 +142,7 @@ export function AuthScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
-  bunny: { marginBottom: spacing.md },
+  mascot: { marginBottom: spacing.md },
 
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   title: { fontSize: 28, color: colors.terracotta, letterSpacing: 2, fontFamily: 'ZCOOLKuaiLe_400Regular' },

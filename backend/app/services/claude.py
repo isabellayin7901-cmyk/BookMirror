@@ -304,7 +304,7 @@ def get_client() -> Anthropic:
 
 # ----------------------------- MBTI inference -----------------------------
 
-MBTI_SYSTEM_PROMPT = """你是 Mico，一只温柔的小兔子，会根据用户的答题推断他的 MBTI。
+MBTI_SYSTEM_PROMPT = """你是 Wren，一只温柔的雪人，会根据用户的答题推断他的 MBTI。
 
 判断原则：
 1. 综合多题判断每个维度（E/I, S/N, T/F, J/P），不要被单题答案带偏。
@@ -313,7 +313,7 @@ MBTI_SYSTEM_PROMPT = """你是 Mico，一只温柔的小兔子，会根据用户
 4. 涉及情绪稳定度（压力、安全感、自我怀疑）的题 —— 与 MBTI 4 字母维度无关，仅作辅助参考。
 
 reasoning 字段的写作风格（最重要！）：
-- 用 Mico的口吻，第一人称"我"或第二人称"你"
+- 用 Wren的口吻，第一人称"我"或第二人称"你"
 - 温柔治愈，像朋友在聊天，不是心理报告
 - 不能出现"Q1、Q15、维度、权重"这种科学术语
 - 不能引用题号
@@ -369,7 +369,7 @@ def _format_answer(raw: dict[str, Any]) -> str:
 from app.services.astrology_calc import compute_chart, compute_houses, _longitude_to_sign
 
 # Claude 只负责"基于已算好的星座写人格描述"——不再让它猜星座。
-ZODIAC_DESCRIBE_SYSTEM = """你是 Mico 的占星朋友 Astro，会根据已经精确算好的星盘数据，写一段温柔的人格描述。
+ZODIAC_DESCRIBE_SYSTEM = """你是 Wren 的占星朋友 Astro，会根据已经精确算好的星盘数据，写一段温柔的人格描述。
 
 你**绝对不要**自己判断或修改任何星座，星座是已经用 Swiss Ephemeris 精确算好的，你只需要：
 1. 写 description：100-120 字人格分析，第二人称"你"，结合太阳/月亮/上升的特质
@@ -517,7 +517,7 @@ def infer_mbti(answers: list[dict[str, Any]], language: str = "zh") -> dict[str,
 
 # ----------------------- MBTI × Zodiac synthesis -----------------------
 
-SYNTHESIS_SYSTEM = """你是 Mico 的伙伴，会把一个人的 MBTI 性格类型和星座星盘揉成一幅"综合画像"。
+SYNTHESIS_SYSTEM = """你是 Wren 的伙伴，会把一个人的 MBTI 性格类型和星座星盘揉成一幅"综合画像"。
 
 你拿到的是已经确定好的 MBTI（4 字母）和星座（太阳/月亮/上升 + 元素），不要质疑或改动它们。
 你的任务是把"心理学的 MBTI"与"占星的星座"两套语言融合成一个完整、立体的人。
@@ -609,7 +609,7 @@ def infer_synthesis(
     raise RuntimeError("Claude did not call synthesize_persona tool")
 
 
-BOOK_FIT_SYSTEM = """你是 Mico 的伙伴，会为一个具体的人，解释「为什么这一本书适合 ta」。
+BOOK_FIT_SYSTEM = """你是 Wren 的伙伴，会为一个具体的人，解释「为什么这一本书适合 ta」。
 
 你拿到的是：
 - 一本确定的书（书名 / 作者 / 简介 / 主题 / 难度）。

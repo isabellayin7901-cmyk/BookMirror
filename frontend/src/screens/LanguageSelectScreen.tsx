@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Sparkle } from '../illustrations/Sparkle';
 import { useI18n } from '../lib/LanguageContext';
 import type { Language, RootStackParamList } from '../types';
@@ -30,8 +30,8 @@ export function LanguageSelectScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.center}>
-        <View style={styles.bunny}>
-          <Bunny size={120} pose="wave" />
+        <View style={styles.mascot}>
+          <Snowman size={120} pose="wave" />
         </View>
 
         <View style={styles.titleRow}>
@@ -73,7 +73,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
-  bunny: { marginBottom: spacing.lg },
+  mascot: { marginBottom: spacing.lg },
 
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   title: {

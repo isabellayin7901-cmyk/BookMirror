@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius } from '../theme';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Cat } from '../illustrations/Cat';
 import { Sparkle, Leaf, Heart } from '../illustrations/Sparkle';
 import { WavyUnderline } from '../illustrations/Doodle';
@@ -55,9 +55,9 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* 主内容 */}
       <View style={styles.body}>
-        {/* 兔子主角 */}
+        {/* 雪人主角 */}
         <View style={styles.bunnyWrap}>
-          <Bunny size={170} pose="reading" />
+          <Snowman size={170} pose="reading" />
         </View>
 
         {/* Logo + slogan */}

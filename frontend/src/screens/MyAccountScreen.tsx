@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
 import { WavyUnderline } from '../illustrations/Doodle';
 import { storage, type CheckinDay } from '../lib/storage';
@@ -80,7 +80,7 @@ export function MyAccountScreen() {
             {profile?.avatarUri ? (
               <Image source={{ uri: profile.avatarUri }} style={styles.avatarImg} />
             ) : (
-              <Bunny size={88} pose="wave" />
+              <Snowman size={88} pose="wave" />
             )}
           </Pressable>
           <Text style={styles.avatarHint}>{t('account.changeAvatar')}</Text>
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.bunnyEar,
+    borderColor: colors.snowShade,
     marginBottom: spacing.xs,
     overflow: 'hidden',
   },

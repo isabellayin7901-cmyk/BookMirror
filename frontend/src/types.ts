@@ -73,7 +73,7 @@ export interface UserProfile {
   birthplace?: Birthplace;
   zodiac?: ZodiacReading;
   gender?: Gender;
-  /** 自定义头像本地 URI（来自相册）；缺省用小兔 Mico。 */
+  /** 自定义头像本地 URI（来自相册）；缺省用雪人 Wren。 */
   avatarUri?: string;
 }
 

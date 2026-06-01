@@ -71,7 +71,7 @@ export function TabsNavigator() {
         component={MyAccountScreen}
         options={{
           tabBarLabel: t('tab.account'),
-          tabBarIcon: ({ focused }) => <TabIcon icon="🐰" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="⛄" focused={focused} />,
         }}
       />
     </Tab.Navigator>

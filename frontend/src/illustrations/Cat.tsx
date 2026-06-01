@@ -31,15 +31,15 @@ export function Cat({ size = 100 }: Props) {
 
         {/* 三角耳朵（左） */}
         <Path d="M 34 30 L 30 16 L 42 25 Z" fill={colors.catBody} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
-        <Path d="M 35 26 L 33 20 L 39 24 Z" fill={colors.bunnyBlush} opacity={0.5} />
+        <Path d="M 35 26 L 33 20 L 39 24 Z" fill={colors.snowBlush} opacity={0.5} />
 
         {/* 三角耳朵（右） */}
         <Path d="M 66 30 L 70 16 L 58 25 Z" fill={colors.catBody} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
-        <Path d="M 65 26 L 67 20 L 61 24 Z" fill={colors.bunnyBlush} opacity={0.5} />
+        <Path d="M 65 26 L 67 20 L 61 24 Z" fill={colors.snowBlush} opacity={0.5} />
 
         {/* 腮红 */}
-        <Ellipse cx="35" cy="48" rx="4" ry="2.5" fill={colors.bunnyBlush} opacity={0.6} />
-        <Ellipse cx="65" cy="48" rx="4" ry="2.5" fill={colors.bunnyBlush} opacity={0.6} />
+        <Ellipse cx="35" cy="48" rx="4" ry="2.5" fill={colors.snowBlush} opacity={0.6} />
+        <Ellipse cx="65" cy="48" rx="4" ry="2.5" fill={colors.snowBlush} opacity={0.6} />
 
         {/* 眯眯眼 */}
         <Path d="M 40 41 Q 43 39 46 41" stroke={stroke} strokeWidth={sw} strokeLinecap="round" fill="none" />

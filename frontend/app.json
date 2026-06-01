@@ -31,8 +31,25 @@
           "taobao",
           "dangdang",
           "com.amazon.mobile.shopping",
+          "douban",
+          "weread",
+          "snssdk1112",
+          "qqreader",
+          "openapp.jdmobile",
+          "taobao",
+          "dangdang",
+          "com.amazon.mobile.shopping",
+          "douban",
+          "weread",
+          "snssdk1112",
+          "qqreader",
+          "openapp.jdmobile",
+          "taobao",
+          "dangdang",
+          "com.amazon.mobile.shopping",
           "douban"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -40,7 +57,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FAF7F2"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "extra": {
       "apiBaseUrl": "https://bookmirror-api.onrender.com",

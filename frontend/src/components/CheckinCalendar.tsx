@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   bubbleToday: {
     backgroundColor: colors.terracotta,
     borderWidth: 2,
-    borderColor: colors.bunnyBlush,
+    borderColor: colors.snowBlush,
   },
   cellText: { fontSize: 12, color: colors.text, fontWeight: '500' },
   cellTextChecked: { color: '#fff', fontWeight: '700' },

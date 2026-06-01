@@ -36,10 +36,14 @@ export const colors = {
   success: '#8FA582',
   danger: '#B8624C',
 
-  // 兔子/猫咪填充
-  bunnyBody: '#F3E6D7',
-  bunnyEar: '#E8D5BD',
-  bunnyBlush: '#E8B5A8',
+  // 雪人/猫咪填充
+  snowBody: '#FBFAF6',     // 雪人身体（米白）
+  snowShade: '#ECE7DD',    // 雪人暗部
+  snowHat: '#9DB39A',      // 格子尖帽（鼠尾草绿）
+  snowHatDark: '#7E977C',  // 帽子格纹
+  snowScarf: '#D7A39B',    // 围巾（豆沙粉）
+  snowCarrot: '#E59A4F',   // 胡萝卜鼻
+  snowBlush: '#E8B5A8',    // 腮红
   catBody: '#D4C5B0',
   catShadow: '#A89888',
 };

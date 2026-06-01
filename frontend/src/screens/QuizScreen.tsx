@@ -16,7 +16,7 @@ import { colors, spacing, typography, radius } from '../theme';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Chip } from '../components/Chip';
 import { QuestionCard } from '../components/QuestionCard';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Sparkle, Heart } from '../illustrations/Sparkle';
 import { WavyUnderline } from '../illustrations/Doodle';
 import { storage, profileSignature } from '../lib/storage';
@@ -436,12 +436,12 @@ function Step1(props: Step1Props) {
     );
   }
 
-  // inferred — Mico的判断结果
+  // inferred — Wren的判断结果
   return (
     <>
-      {/* Mico出场 */}
+      {/* Wren出场 */}
       <View style={styles.bunnyInferred}>
-        <Bunny size={120} pose="wave" />
+        <Snowman size={120} pose="wave" />
       </View>
 
       <Text style={styles.inferredTitle}>{t('quiz.step1.inferred', language)}</Text>
@@ -476,7 +476,7 @@ function Step1(props: Step1Props) {
       </View>
 
       <PrimaryButton
-        title={`🐰 ${t('quiz.step1.retake', language)}`}
+        title={`⛄ ${t('quiz.step1.retake', language)}`}
         variant="secondary"
         style={{ marginTop: spacing.lg }}
         onPress={() => props.setState({ kind: 'modePick' })}
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     letterSpacing: 6,
     fontStyle: 'italic',  // 卡通倾斜感
     // iOS 有 Marker Felt（写在 fontFamily 里），可惜中文不渲染
-    textShadowColor: colors.bunnyBlush,
+    textShadowColor: colors.snowBlush,
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 0,
   },

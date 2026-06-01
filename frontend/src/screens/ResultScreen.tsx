@@ -12,7 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
 import { WavyUnderline } from '../illustrations/Doodle';
 import { t } from '../lib/i18n';
@@ -38,9 +38,9 @@ export function ResultScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        {/* 小兔子在画像卡顶部 */}
+        {/* 雪人在画像卡顶部 */}
         <View style={styles.bunnyHeader}>
-          <Bunny size={100} pose="wave" />
+          <Snowman size={100} pose="wave" />
         </View>
 
         <View style={[styles.profileCard, shadow.soft]}>

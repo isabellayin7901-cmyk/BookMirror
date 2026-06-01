@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
-import { Bunny } from '../illustrations/Bunny';
+import { Snowman } from '../illustrations/Snowman';
 import { Cat } from '../illustrations/Cat';
 import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
 import { WavyUnderline, DashDivider } from '../illustrations/Doodle';
@@ -260,11 +260,11 @@ export function TodayBooksScreen() {
           </View>
         )}
 
-        {/* 顶部栏 —— 左侧 Mico 头像（点击展开抽屉）+ 标题 + MBTI 角标 */}
+        {/* 顶部栏 —— 左侧 Wren 头像（点击展开抽屉）+ 标题 + MBTI 角标 */}
         <View style={styles.header}>
           <Pressable onPress={() => setDrawerOpen(true)} hitSlop={8}>
             <View style={styles.avatarWrap}>
-              <Bunny size={56} pose="sit" />
+              <Snowman size={56} pose="sit" />
               {profile?.mbti && (
                 <View style={styles.mbtiBadge}>
                   <Text style={styles.mbtiBadgeText}>{profile.mbti}</Text>
@@ -356,7 +356,7 @@ export function TodayBooksScreen() {
               {profile?.mbti ? (
                 <>
                   <Text style={styles.emptyText}>
-                    {t('today.youAre')} <Text style={{ color: colors.terracotta, fontWeight: '800' }}>{profile.mbti}</Text> 🐰
+                    {t('today.youAre')} <Text style={{ color: colors.terracotta, fontWeight: '800' }}>{profile.mbti}</Text> ⛄
                   </Text>
                   <Text style={styles.emptyHint}>
                     {t('today.retryHint')}
@@ -430,7 +430,7 @@ export function TodayBooksScreen() {
             <View style={styles.moreHeader}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.miniMascot}>
-                  <Bunny size={36} pose="wave" />
+                  <Snowman size={36} pose="wave" />
                 </View>
                 <View>
                   <Text style={styles.cardTitle}>{t('today.moreTitle')}</Text>
@@ -479,8 +479,8 @@ export function TodayBooksScreen() {
       {/* 隐藏的左侧抽屉 —— 点头像才展开 */}
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <View style={styles.drawerHeader}>
-          <View style={styles.drawerBunny}>
-            <Bunny size={70} pose="wave" />
+          <View style={styles.drawerSnowman}>
+            <Snowman size={70} pose="wave" />
           </View>
           <Text style={styles.drawerHello}>{t('drawer.title')}</Text>
           {profile?.mbti && (
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: colors.bunnyEar,
+    borderColor: colors.snowShade,
     position: 'relative',
   },
   mbtiBadge: {
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
   helloHint: { ...typography.caption, marginTop: 4, color: colors.terracotta, fontSize: 11 },
 
   refreshBanner: {
-    backgroundColor: colors.bunnyBlush,
+    backgroundColor: colors.snowBlush,
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
   },
-  drawerBunny: {
+  drawerSnowman: {
     width: 90,
     height: 90,
     borderRadius: 45,
@@ -723,7 +723,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.bunnyEar,
+    borderColor: colors.snowShade,
     marginBottom: spacing.sm,
   },
   drawerHello: { ...typography.h3 },

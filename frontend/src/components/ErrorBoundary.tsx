@@ -32,7 +32,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (!this.state.hasError) return this.props.children;
     return (
       <View style={styles.wrap}>
-        <Text style={styles.emoji}>🐰💦</Text>
+        <Text style={styles.emoji}>⛄💦</Text>
         <Text style={styles.title}>出了点小状况</Text>
         <Text style={styles.titleEn}>Something went wrong</Text>
         <Text style={styles.hint}>

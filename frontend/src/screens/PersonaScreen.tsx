@@ -88,7 +88,7 @@ export function PersonaScreen() {
         {/* MBTI 行 */}
         <View style={[styles.row, shadow.soft]}>
           <View style={[styles.rowBubble, { backgroundColor: colors.rose }]}>
-            <Text style={styles.rowEmoji}>🐰</Text>
+            <Text style={styles.rowEmoji}>⛄</Text>
           </View>
           <View style={{ flex: 1, marginLeft: spacing.md }}>
             <Text style={styles.rowTitle}>{t('persona.mbtiTitle')}</Text>

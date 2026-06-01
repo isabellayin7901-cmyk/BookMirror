@@ -255,6 +255,103 @@ export async function deleteMirrorHistory(userId: string): Promise<void> {
   if (!res.ok) throw new Error(`Mirror reset failed (${res.status})`);
 }
 
+// ---------- 读后反馈「三合一」：评分 + 书评 + 成长自评 ----------
+
+export type Difficulty = 'too_easy' | 'just_right' | 'too_hard';
+
+export interface Review {
+  id: number;
+  user_id: string;
+  book_id: string;
+  rating: number;
+  difficulty: Difficulty;
+  emotions: string[];
+  text: string;
+  recommend_similar: boolean;
+  anonymous: boolean;
+  mbti?: string | null;
+  growth: Record<string, { before: number; after: number }>;
+  helped_problems: string[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface ReviewInput {
+  user_id: string;
+  book_id: string;
+  rating: number;
+  difficulty: Difficulty;
+  emotions: string[];
+  text: string;
+  recommend_similar: boolean;
+  anonymous: boolean;
+  mbti?: string | null;
+  growth: Record<string, { before: number; after: number }>;
+  helped_problems: string[];
+}
+
+export interface GrowthDimension {
+  dimension: string;
+  total_delta: number;
+  latest_after: number;
+  count: number;
+  points: { book_id: string; before: number; after: number; created_at?: string | null }[];
+}
+
+export interface GrowthData {
+  dimensions: GrowthDimension[];
+  helped_problem_counts: Record<string, number>;
+  review_count: number;
+}
+
+/** 提交/覆盖自己对某本书的读后反馈。 */
+export async function submitReview(input: ReviewInput): Promise<Review> {
+  const res = await fetch(`${baseUrl}/api/reviews`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`Submit review failed (${res.status})`);
+  return res.json();
+}
+
+/** 某本书的全部书评（书详情页展示）。 */
+export async function fetchBookReviews(bookId: string): Promise<Review[]> {
+  const res = await fetch(`${baseUrl}/api/reviews?book_id=${encodeURIComponent(bookId)}`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Fetch reviews failed (${res.status})`);
+  return res.json();
+}
+
+/** 取自己对某本书的反馈（回填表单）；没有则 null。 */
+export async function fetchMyReview(userId: string, bookId: string): Promise<Review | null> {
+  const res = await fetch(
+    `${baseUrl}/api/reviews/mine?user_id=${encodeURIComponent(userId)}&book_id=${encodeURIComponent(bookId)}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) return null;
+  return res.json();
+}
+
+/** 删除自己对某本书的反馈。 */
+export async function deleteReview(userId: string, bookId: string): Promise<void> {
+  const res = await fetch(
+    `${baseUrl}/api/reviews?user_id=${encodeURIComponent(userId)}&book_id=${encodeURIComponent(bookId)}`,
+    { method: 'DELETE', headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`Delete review failed (${res.status})`);
+}
+
+/** 跨书聚合的成长数据（成长曲线 + 解决的问题）。 */
+export async function fetchGrowth(userId: string): Promise<GrowthData> {
+  const res = await fetch(`${baseUrl}/api/growth?user_id=${encodeURIComponent(userId)}`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Fetch growth failed (${res.status})`);
+  return res.json();
+}
+
 export async function submitFeedback(payload: {
   book_id: string;
   reaction: FeedbackReaction;

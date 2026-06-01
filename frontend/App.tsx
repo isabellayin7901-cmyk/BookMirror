@@ -13,6 +13,8 @@ import { PhoneAuthScreen } from './src/screens/PhoneAuthScreen';
 import { QuizScreen } from './src/screens/QuizScreen';
 import { ResultScreen } from './src/screens/ResultScreen';
 import { FeedbackScreen } from './src/screens/FeedbackScreen';
+import { BookReviewScreen } from './src/screens/BookReviewScreen';
+import { GrowthScreen } from './src/screens/GrowthScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { PersonaScreen } from './src/screens/PersonaScreen';
@@ -74,6 +76,8 @@ export default function App() {
           />
           <Stack.Screen name="Result" component={ResultScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Feedback" component={FeedbackScreen} />
+          <Stack.Screen name="BookReview" component={BookReviewScreen} />
+          <Stack.Screen name="Growth" component={GrowthScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Persona" component={PersonaScreen} />

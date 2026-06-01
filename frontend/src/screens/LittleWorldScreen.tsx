@@ -40,6 +40,13 @@ export function LittleWorldScreen() {
       tone: colors.sage,
       onPress: () => navigation.navigate('MirrorChat'),
     },
+    {
+      emoji: '🌱',
+      title: t('world.growth'),
+      subtitle: t('world.growthSub'),
+      tone: colors.butter,
+      onPress: () => navigation.navigate('Growth'),
+    },
   ];
 
   return (

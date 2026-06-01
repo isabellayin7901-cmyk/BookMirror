@@ -13,6 +13,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Alert } from 'react-native';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
@@ -22,7 +25,8 @@ import { PlatformIcon } from '../illustrations/PlatformIcons';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { bookTitle, bookAuthor, bookSummary, bookChapters } from '../lib/bookDisplay';
-import type { Book, BookRecommendation } from '../types';
+import { fetchBookReviews, deleteReview, type Review } from '../lib/api';
+import type { Book, BookRecommendation, RootStackParamList } from '../types';
 
 const SCREEN_H = Dimensions.get('window').height;
 
@@ -36,6 +40,7 @@ interface Props {
 
 export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Props) {
   const { t, lang } = useI18n();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const [isFav, setIsFav] = useState(false);
@@ -197,6 +202,15 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
 
               {/* 在哪儿读 / 买 */}
               <PlatformJumpRow book={book} />
+
+              {/* 读者反馈（三合一书评） */}
+              <ReviewsSection
+                book={book}
+                onWrite={() => {
+                  onClose();
+                  navigation.navigate('BookReview', { book });
+                }}
+              />
             </ScrollView>
             )}
 
@@ -257,6 +271,83 @@ function PlatformJumpRow({ book }: { book: Book }) {
       <Text style={styles.platformHint}>
         {t('modal.platformHint')}
       </Text>
+    </View>
+  );
+}
+
+function ReviewsSection({ book, onWrite }: { book: Book; onWrite: () => void }) {
+  const { t } = useI18n();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [uid, setUid] = useState('');
+
+  const load = React.useCallback(async () => {
+    try {
+      const id = await storage.getUserId();
+      setUid(id);
+      setReviews(await fetchBookReviews(book.id));
+    } catch {
+      setReviews([]);
+    }
+  }, [book.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const mine = reviews.find((r) => r.user_id === uid);
+  const others = reviews.filter((r) => r.user_id !== uid);
+  const ordered = mine ? [mine, ...others] : others;
+
+  const removeMine = () => {
+    Alert.alert(t('book.deleteReview'), t('book.deleteReviewConfirm'), [
+      { text: t('settings.cancel'), style: 'cancel' },
+      {
+        text: t('book.deleteReview'),
+        style: 'destructive',
+        onPress: async () => {
+          try { await deleteReview(uid, book.id); } catch { /* ignore */ }
+          load();
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={{ marginTop: spacing.xl }}>
+      <Text style={styles.reviewsTitle}>{t('book.reviews')}</Text>
+
+      <Pressable onPress={onWrite} style={({ pressed }) => [styles.writeBtn, pressed && { opacity: 0.85 }]}>
+        <Text style={styles.writeBtnText}>{mine ? t('book.editReview') : t('book.writeReview')}</Text>
+      </Pressable>
+
+      {ordered.length === 0 ? (
+        <Text style={styles.noReviews}>{t('book.noReviews')}</Text>
+      ) : (
+        ordered.map((r) => {
+          const own = r.user_id === uid;
+          return (
+            <Pressable
+              key={r.id}
+              onLongPress={own ? removeMine : undefined}
+              style={styles.reviewCard}
+            >
+              <View style={styles.reviewHead}>
+                <Text style={styles.reviewStars}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</Text>
+                <Text style={styles.reviewName}>
+                  {own ? t('review.title') : r.anonymous ? t('book.anonReader') : t('book.aReader')}
+                </Text>
+              </View>
+              {r.emotions.length > 0 && (
+                <View style={styles.reviewEmos}>
+                  {r.emotions.map((e) => (
+                    <Text key={e} style={styles.reviewEmo}>{t(`review.emo.${e}`)}</Text>
+                  ))}
+                </View>
+              )}
+              {!!r.text && <Text style={styles.reviewText}>{r.text}</Text>}
+              {own && <Text style={styles.reviewDeleteHint}>{t('book.deleteReview')}</Text>}
+            </Pressable>
+          );
+        })
+      )}
     </View>
   );
 }
@@ -385,4 +476,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  reviewsTitle: { ...typography.h3, marginBottom: spacing.sm },
+  writeBtn: {
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.terracotta,
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  writeBtnText: { color: colors.terracotta, fontWeight: '700', fontSize: 15 },
+  noReviews: { ...typography.caption, color: colors.textFaint, textAlign: 'center', paddingVertical: spacing.md },
+  reviewCard: {
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.sm,
+  },
+  reviewHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  reviewStars: { color: '#E6A23C', fontSize: 14 },
+  reviewName: { ...typography.caption, color: colors.textMuted },
+  reviewEmos: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: spacing.xs },
+  reviewEmo: {
+    fontSize: 12,
+    color: colors.text,
+    backgroundColor: colors.bgSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+  },
+  reviewText: { ...typography.body, fontSize: 14, marginTop: spacing.xs, lineHeight: 20 },
+  reviewDeleteHint: { ...typography.caption, color: colors.textFaint, marginTop: spacing.xs },
 });

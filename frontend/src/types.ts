@@ -126,6 +126,8 @@ export type RootStackParamList = {
   Quiz: { onboarding?: boolean } | undefined;
   Result: { result: RecommendationResponse; onboarding?: boolean } | undefined;
   Feedback: { books: Book[] };
+  BookReview: { book: Book };
+  Growth: undefined;
   Settings: undefined;
   Profile: undefined;
   Persona: { onboarding?: boolean } | undefined;

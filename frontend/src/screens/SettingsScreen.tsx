@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius } from '../theme';
 import { storage, type SearchEngine } from '../lib/storage';
+import { getMe, type MeResult } from '../lib/api';
 import { useI18n } from '../lib/LanguageContext';
 import type { Language, RootStackParamList } from '../types';
 
@@ -16,10 +17,40 @@ const FEEDBACK_EMAIL = 'feedback@bookmirror.app';
 export function SettingsScreen({ navigation }: Props) {
   const { t, lang: language, setLang } = useI18n();
   const [searchEngine, setSearchEngine] = useState<SearchEngine>('ask');
+  const [me, setMe] = useState<MeResult | null>(null);
 
   useEffect(() => {
     storage.getSettings().then((s) => setSearchEngine(s.searchEngine ?? 'ask'));
+    getMe().then(setMe);
   }, []);
+
+  // 登录方式的可读标签
+  const loginMethodLabel = (): string => {
+    if (!me) return t('settings.notLoggedIn');
+    if (me.provider === 'google') return t('login.google');
+    if (me.provider === 'apple') return t('login.apple');
+    if (me.provider === 'wechat') return t('login.wechat');
+    if (me.phone) {
+      // 手机号脱敏：保留尾号
+      const tail = me.phone.replace(/\D/g, '').slice(-4);
+      return `${t('login.phone')} ··· ${tail}`;
+    }
+    return t('settings.notLoggedIn');
+  };
+
+  const logout = () => {
+    Alert.alert(t('settings.logout'), t('settings.logoutConfirm'), [
+      { text: t('settings.cancel'), style: 'cancel' },
+      {
+        text: t('settings.logout'),
+        style: 'destructive',
+        onPress: async () => {
+          await storage.clearAuth();
+          navigation.navigate('Auth', { onboarding: false });
+        },
+      },
+    ]);
+  };
 
   const changeLang = (lang: Language) => setLang(lang);
 
@@ -60,6 +91,13 @@ export function SettingsScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={{ padding: spacing.lg }}>
         <Text style={typography.h1}>{t('settings.title')}</Text>
+
+        {/* 账号：登录方式 */}
+        <Text style={styles.sectionLabel}>{t('settings.account')}</Text>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>{t('settings.loginMethod')}</Text>
+          <Text style={styles.infoValue}>{loginMethodLabel()}</Text>
+        </View>
 
         <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
         <View style={styles.row}>
@@ -127,6 +165,13 @@ export function SettingsScreen({ navigation }: Props) {
           <Text style={styles.dangerText}>{t('settings.clear')}</Text>
         </Pressable>
 
+        {/* 登出（仅已登录时显示），放在最下方 */}
+        {me && (
+          <Pressable onPress={logout} style={[styles.logout, { marginTop: spacing.md }]}>
+            <Text style={styles.logoutText}>{t('settings.logout')}</Text>
+          </Pressable>
+        )}
+
         <Text style={[typography.caption, { marginTop: spacing.xxl, textAlign: 'center' }]}>
           BookMirror v0.1.0
         </Text>
@@ -173,4 +218,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dangerText: { color: colors.danger, fontWeight: '600' },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  infoLabel: { ...typography.body, color: colors.textMuted },
+  infoValue: { ...typography.body, fontWeight: '600', color: colors.text },
+  logout: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.danger,
+    alignItems: 'center',
+  },
+  logoutText: { color: '#fff', fontWeight: '700' },
 });

@@ -319,6 +319,29 @@ export async function verifyPhoneCode(
   return res.json();
 }
 
+export interface MeResult {
+  user_id: string;
+  phone?: string | null;
+  country_code?: string | null;
+  provider?: string | null; // 'google' | 'apple' | 'wechat' | null(手机号)
+}
+
+/** 取当前登录账号信息（登录方式等）。未登录返回 null。 */
+export async function getMe(): Promise<MeResult | null> {
+  const { storage } = await import('./storage');
+  const token = await storage.getAuthToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${baseUrl}/api/auth/me`, {
+      headers: { ...authHeaders(), Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 /** 用 Google idToken 登录/注册，返回 token / user_id / is_new。 */
 export async function googleLogin(idToken: string): Promise<AuthResult> {
   const res = await fetch(`${baseUrl}/api/auth/google`, {

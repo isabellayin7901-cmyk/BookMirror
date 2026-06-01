@@ -88,6 +88,27 @@ class BookReview(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
+class ReadingStatus(Base):
+    """每本书的阅读状态 + 进度。读完(finished)才解锁三合一反馈。
+
+    因为读书发生在别的 App（微信读书/番茄/Kindle 等，无法读取进度），
+    所以由用户自报状态/进度；读完一键标记。
+    """
+
+    __tablename__ = "reading_status"
+    __table_args__ = (UniqueConstraint("user_id", "book_id", name="uq_reading_user_book"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    book_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="want")  # want / reading / finished
+    current_page: Mapped[int] = mapped_column(Integer, default=0)
+    total_pages: Mapped[int] = mapped_column(Integer, default=0)
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
 class MirrorProfile(Base):
     """A rolling psychological portrait distilled from the conversation."""
 

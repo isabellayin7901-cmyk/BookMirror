@@ -9,12 +9,17 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, delete
 
 from app.db import SessionLocal, MirrorMessage, MirrorProfile, init_db
+from app.models import Book
 from app.services import mirror as mirror_service
+from app.services.book_filter import load_books, shortlist_for_mirror
 
 router = APIRouter()
 
 # Make sure tables exist (idempotent).
 init_db()
+
+# 书库索引（id -> Book），用于把推荐的 book_id 水合成完整书卡。模块加载时建一次。
+_BOOK_INDEX: dict[str, Book] = {b.id: b for b in load_books()}
 
 # How many past turns to feed Claude, and how often to refresh the portrait.
 HISTORY_WINDOW = 24
@@ -30,12 +35,14 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     reply: str
+    book: Optional[Book] = None  # 小镜子此刻推荐的真实书（可点书卡），多数为 None
 
 
 class MessageOut(BaseModel):
     role: str
     content: str
     created_at: Optional[str] = None  # ISO 时间，前端用来画时间线分割
+    book: Optional[Book] = None       # 这条消息附带的推荐书卡
 
 
 class HistoryResponse(BaseModel):
@@ -91,20 +98,53 @@ def mirror_chat(payload: ChatRequest):
         if prof and prof.summary:
             context["portrait"] = prof.summary
 
+        # 基于画像，从真实书库挑候选书（供小镜子精准荐书，杜绝编造）。
+        # 已推荐过的书排除，避免重复；聊了至少一轮后才开始备选。
+        candidates = []
+        if prof and (prof.message_count or 0) >= 1:
+            recommended_ids = {
+                r[0] for r in session.execute(
+                    select(MirrorMessage.book_id).where(
+                        MirrorMessage.user_id == payload.user_id,
+                        MirrorMessage.book_id.isnot(None),
+                    )
+                ).all()
+            }
+            terms: list[str] = []
+            try:
+                terms += json.loads(prof.keywords or "[]")
+            except Exception:
+                pass
+            try:
+                terms += json.loads(prof.traits or "[]")
+            except Exception:
+                pass
+            candidates = shortlist_for_mirror(
+                terms, language=payload.language, exclude_ids=recommended_ids, limit=12,
+            )
+
         try:
-            reply = mirror_service.chat(
+            result = mirror_service.chat(
                 history=history,
                 user_message=payload.message,
                 context=context,
                 language=payload.language,
                 minutes_since_last=_minutes_since_last(history),
+                candidate_books=candidates,
             )
         except Exception as e:
             raise HTTPException(status_code=502, detail=f"Mirror chat error: {e}")
 
-        # Persist both turns.
+        reply = result["reply"]
+        rec_book_id = result.get("book_id")
+        rec_book = _BOOK_INDEX.get(rec_book_id) if rec_book_id else None
+
+        # Persist both turns（推荐的书 id 存在助手那条消息上，历史可回放书卡）。
         session.add(MirrorMessage(user_id=payload.user_id, role="user", content=payload.message))
-        session.add(MirrorMessage(user_id=payload.user_id, role="assistant", content=reply))
+        session.add(MirrorMessage(
+            user_id=payload.user_id, role="assistant", content=reply,
+            book_id=rec_book_id if rec_book else None,
+        ))
 
         # Track user message count; refresh the portrait every PROFILE_EVERY turns.
         if prof is None:
@@ -130,7 +170,7 @@ def mirror_chat(payload: ChatRequest):
             except Exception:
                 session.rollback()  # portrait refresh is best-effort
 
-        return ChatResponse(reply=reply)
+        return ChatResponse(reply=reply, book=rec_book)
     finally:
         session.close()
 
@@ -155,6 +195,7 @@ def mirror_history(user_id: str, limit: int = 200):
                     r.created_at.replace(tzinfo=timezone.utc).isoformat()
                     if r.created_at else None
                 ),
+                book=_BOOK_INDEX.get(r.book_id) if getattr(r, "book_id", None) else None,
             )
             for r in rows
         ])

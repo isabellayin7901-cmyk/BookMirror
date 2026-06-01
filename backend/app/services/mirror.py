@@ -350,14 +350,62 @@ def _time_gap_note(minutes: Optional[float], language: str) -> str:
     )
 
 
+def _candidate_block(candidates: list[Any], language: str) -> str:
+    """把真实候选书渲染成系统提示，让小镜子只能从这里凭 book_id 推荐，杜绝编造。"""
+    if not candidates:
+        return ""
+    lines = []
+    for b in candidates:
+        topics = "/".join(getattr(b, "topics", [])[:4])
+        summ = (getattr(b, "summary", "") or "").strip().replace("\n", " ")
+        if len(summ) > 60:
+            summ = summ[:60] + "…"
+        title = getattr(b, "title", "")
+        author = getattr(b, "author", "")
+        lines.append(f"- [{b.id}] 《{title}》{author} | 主题:{topics} | {summ}")
+    body = "\n".join(lines)
+    if language == "en":
+        return (
+            "Real book candidates you MAY recommend (ONLY from this list, by book_id; never invent a title). "
+            "Most of the time just chat warmly and do NOT recommend; only call the recommend_book tool when a "
+            "book genuinely fits this person right now, and don't recommend two turns in a row. When you do "
+            "recommend, keep your words to one or two warm sentences on why it suits THEM (the card shows the "
+            "rest); never dump the summary.\n" + body
+        )
+    return (
+        "可推荐的真实书目候选（只能从这份列表里凭 book_id 选，绝不许编造书名）。"
+        "大多数时候只管温柔陪聊、不要推书；只有当某本书此刻真的适合这个人时，才调用 recommend_book 工具，"
+        "而且别连着两轮都推。推的时候，正文只用一两句温柔地说为什么适合 ta（书的详情书卡会显示），别复述简介。\n"
+        + body
+    )
+
+
+_RECOMMEND_TOOL: dict[str, Any] = {
+    "name": "recommend_book",
+    "description": "当且仅当此刻真的适合给用户推荐一本书时调用，从候选列表里选最贴合 ta 的一本。不合适就别调用。",
+    "input_schema": {
+        "type": "object",
+        "required": ["book_id"],
+        "properties": {
+            "book_id": {"type": "string", "description": "候选列表里那本书的 id"},
+        },
+    },
+}
+
+
 def chat(
     history: list[dict[str, str]],
     user_message: str,
     context: Optional[dict[str, Any]] = None,
     language: str = "zh",
     minutes_since_last: Optional[float] = None,
-) -> str:
-    """Return 小镜子's reply to the latest user message (non-streaming)."""
+    candidate_books: Optional[list[Any]] = None,
+) -> dict[str, Any]:
+    """Return 小镜子's reply + optional recommended book_id.
+
+    返回 {"reply": str, "book_id": Optional[str]}。book_id 一定来自 candidate_books（真实书库），
+    不会是编造的；多数情况下为 None（不推荐）。
+    """
     client = get_client()
 
     system_blocks: list[dict[str, Any]] = [
@@ -374,21 +422,41 @@ def chat(
     if gap:
         system_blocks.append({"type": "text", "text": gap})
 
+    candidates = candidate_books or []
+    valid_ids = {b.id for b in candidates}
+    if candidates:
+        system_blocks.append({"type": "text", "text": _candidate_block(candidates, language)})
+
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": user_message})
 
-    response = client.messages.create(
+    kwargs: dict[str, Any] = dict(
         model=settings.claude_model,
         # 物理兜底：限制输出长度，逼小镜子像发微信那样短，别写长篇咨询记录。
         max_tokens=320,
         system=system_blocks,
         messages=messages,
     )
-    chunks = [b.text for b in response.content if getattr(b, "type", None) == "text"]
+    if candidates:
+        kwargs["tools"] = [_RECOMMEND_TOOL]
+
+    response = client.messages.create(**kwargs)
+
+    book_id: Optional[str] = None
+    chunks: list[str] = []
+    for b in response.content:
+        btype = getattr(b, "type", None)
+        if btype == "text":
+            chunks.append(b.text)
+        elif btype == "tool_use" and getattr(b, "name", "") == "recommend_book":
+            bid = (b.input or {}).get("book_id")
+            if bid in valid_ids:
+                book_id = bid
+
     reply = "".join(chunks).strip()
     if not reply:
         reply = "嗯，我在听。" if language != "en" else "I'm here, listening."
-    return _sanitize(reply)
+    return {"reply": _sanitize(reply), "book_id": book_id}
 
 
 # 真人聊天从不用破折号。无论模型怎么生成，都在出口处兜底清掉，换成更口语的停顿。

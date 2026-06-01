@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +19,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
+import { BookDetailModal } from '../components/BookDetailModal';
+import { bookTitle, bookAuthor } from '../lib/bookDisplay';
+import type { Book } from '../types';
 import {
   mirrorChat,
   fetchMirrorHistory,
@@ -67,6 +71,7 @@ export function MirrorChatScreen() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [detailBook, setDetailBook] = useState<Book | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   const scrollToEnd = useCallback(() => {
@@ -114,7 +119,7 @@ export function MirrorChatScreen() {
     setSending(true);
     scrollToEnd();
     try {
-      const { reply } = await mirrorChat({
+      const { reply, book } = await mirrorChat({
         user_id: userId,
         message: text,
         context: buildContext(),
@@ -122,7 +127,7 @@ export function MirrorChatScreen() {
       });
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: reply, created_at: new Date().toISOString() },
+        { role: 'assistant', content: reply, created_at: new Date().toISOString(), book: book ?? null },
       ]);
     } catch {
       setMessages((prev) => [
@@ -172,9 +177,14 @@ export function MirrorChatScreen() {
       .split(/\n\s*\n/)
       .map((s) => s.trim())
       .filter(Boolean);
-    return parts.length > 0
-      ? parts.map((content) => ({ role: 'assistant' as const, content, created_at: m.created_at }))
-      : [m];
+    if (parts.length === 0) return [m];
+    // 书卡挂在这条消息拆出的最后一个气泡下面
+    return parts.map((content, idx) => ({
+      role: 'assistant' as const,
+      content,
+      created_at: m.created_at,
+      book: idx === parts.length - 1 ? m.book : null,
+    }));
   });
 
   // 像微信那样：相邻消息间隔超过 5 分钟，就在中间插一条时间分割
@@ -252,6 +262,31 @@ export function MirrorChatScreen() {
                     </Text>
                   </View>
                 </View>
+                {m.book && (
+                  <View style={[styles.bubbleRow, styles.rowLeft]}>
+                    <Pressable
+                      onPress={() => setDetailBook(m.book!)}
+                      style={({ pressed }) => [styles.bookCard, shadow.soft, pressed && { opacity: 0.9 }]}
+                    >
+                      {m.book.cover_url ? (
+                        <Image source={{ uri: m.book.cover_url }} style={styles.bookCover} />
+                      ) : (
+                        <View style={[styles.bookCover, styles.bookCoverFallback]}>
+                          <Text style={styles.bookCoverEmoji}>📖</Text>
+                        </View>
+                      )}
+                      <View style={styles.bookInfo}>
+                        <Text style={styles.bookTitle} numberOfLines={2}>
+                          {bookTitle(m.book, lang)}
+                        </Text>
+                        <Text style={styles.bookAuthor} numberOfLines={1}>
+                          {bookAuthor(m.book, lang)}
+                        </Text>
+                        <Text style={styles.bookCta}>{t('mirror.bookCta')}</Text>
+                      </View>
+                    </Pressable>
+                  </View>
+                )}
               </React.Fragment>
             ))}
             {sending && (
@@ -289,6 +324,12 @@ export function MirrorChatScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <BookDetailModal
+        visible={detailBook !== null}
+        book={detailBook}
+        onClose={() => setDetailBook(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -340,6 +381,26 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 4,
   },
   bubbleText: { ...typography.body, fontSize: 15, lineHeight: 22, color: colors.text },
+
+  bookCard: {
+    flexDirection: 'row',
+    maxWidth: '82%',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderTopLeftRadius: 4,
+    padding: spacing.sm,
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  bookCover: { width: 44, height: 62, borderRadius: 6, backgroundColor: colors.snowShade },
+  bookCoverFallback: { alignItems: 'center', justifyContent: 'center' },
+  bookCoverEmoji: { fontSize: 22 },
+  bookInfo: { flex: 1, gap: 2 },
+  bookTitle: { fontSize: 14, fontWeight: '700', color: colors.text },
+  bookAuthor: { fontSize: 12, color: colors.textMuted },
+  bookCta: { fontSize: 12, color: colors.terracotta, marginTop: 2 },
 
   inputBar: {
     flexDirection: 'row',

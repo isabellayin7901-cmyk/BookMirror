@@ -48,6 +48,8 @@ class UserProfile(BaseModel):
     birthday: Optional[Birthday] = None
     zodiac: Optional[ZodiacReading] = None
     gender: Optional[Literal["female", "male", "other"]] = None
+    # 小镜子聊天积累的心理画像（可选）。有就让荐书更贴近用户真实状态。
+    mirror_portrait: str = Field("", max_length=1200)
 
 
 # ---------- Book ----------

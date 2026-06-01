@@ -56,6 +56,8 @@ class MirrorMessage(Base):
     role: Mapped[str] = mapped_column(String(16), nullable=False)  # 'user' | 'assistant'
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    # 小镜子在这条消息里推荐的真实书 id（来自书库），用于渲染可点书卡。多数消息为空。
+    book_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
 
 class MirrorProfile(Base):
@@ -112,5 +114,21 @@ class PhoneOtp(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
 
 
+def _ensure_columns() -> None:
+    """轻量迁移：create_all 不会给已存在的表加新列。
+    这里手动检查并补列，保证线上旧库平滑升级（幂等）。"""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    try:
+        existing = {c["name"] for c in inspector.get_columns("mirror_messages")}
+    except Exception:
+        return  # 表还不存在，create_all 会按新 schema 建好
+    if "book_id" not in existing:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE mirror_messages ADD COLUMN book_id VARCHAR(64)"))
+
+
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
+    _ensure_columns()

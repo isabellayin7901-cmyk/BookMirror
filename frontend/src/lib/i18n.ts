@@ -167,6 +167,7 @@ const zh: Dict = {
   // ===== 小镜子（AI 阅读与心理陪伴）=====
   'mirror.title': '小镜子',
   'mirror.subtitle': '一个懂你的阅读与心理陪伴',
+  'mirror.bookCta': '点开看看这本书 →',
   'mirror.greeting1': '你好呀',
   'mirror.greeting2': '最近在读些什么书 或者心里在想些什么 都可以和我讲讲',
   'mirror.greeting3': '我想慢慢地认识你',
@@ -519,6 +520,7 @@ const en: Dict = {
 
   'mirror.title': 'Little Mirror',
   'mirror.subtitle': 'A reading & emotional companion that gets you',
+  'mirror.bookCta': 'Tap to see this book →',
   'mirror.greeting1': 'Hey there',
   'mirror.greeting2': "What you're reading lately   or whatever's on your mind   you can tell me anything",
   'mirror.greeting3': 'I want to get to know you, slowly',

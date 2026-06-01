@@ -73,6 +73,8 @@ export interface UserProfile {
   birthplace?: Birthplace;
   zodiac?: ZodiacReading;
   gender?: Gender;
+  /** 小镜子聊天积累的心理画像（可选，荐书时让主页推荐更贴近真实状态）。 */
+  mirror_portrait?: string;
   /** 自定义头像本地 URI（来自相册）；缺省用雪人 Wren。 */
   avatarUri?: string;
 }

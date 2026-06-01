@@ -211,7 +211,10 @@ def _build_user_prompt_zh(profile: UserProfile, candidates: list[Book]) -> str:
         f"- 当前目标：{goals_zh}\n"
         f"- 阅读偏好：{prefs_zh}，深度倾向 {profile.depth}/10\n"
         f"- 当前问题：{problems_zh}\n"
-        f"- 用户自述：\"{profile.free_text}\"\n\n"
+        f"- 用户自述：\"{profile.free_text}\"\n"
+        + (f"- 小镜子聊出来的心理画像（最贴近 ta 当下真实状态，请重点参考）：{profile.mirror_portrait}\n"
+           if profile.mirror_portrait else "")
+        + "\n"
         f"候选书库（{len(candidates)} 本，只能在这里选书）：\n"
         f"{json.dumps(candidate_dump, ensure_ascii=False, indent=2)}\n\n"
         f"请调用 generate_recommendation 工具返回结果。"
@@ -284,7 +287,10 @@ def _build_user_prompt_en(profile: UserProfile, candidates: list[Book]) -> str:
         f"- Current Goals: {goals_en}\n"
         f"- Reading Preferences: {prefs_en}, depth preference {profile.depth}/10\n"
         f"- Current Challenges: {problems_en}\n"
-        f"- User Notes: \"{profile.free_text}\"\n\n"
+        f"- User Notes: \"{profile.free_text}\"\n"
+        + (f"- Psychological portrait from Little Mirror chats (closest to their REAL current state, weigh it heavily): {profile.mirror_portrait}\n"
+           if profile.mirror_portrait else "")
+        + "\n"
         f"Candidate Books ({len(candidates)} total, select only from this list):\n"
         f"{json.dumps(candidate_dump, ensure_ascii=False, indent=2)}\n\n"
         f"Please call the generate_recommendation tool to return results.\n\n"

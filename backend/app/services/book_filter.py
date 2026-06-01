@@ -89,3 +89,50 @@ def shortlist_candidates(
 
     scored = sorted(pool, key=lambda b: _score(b, profile), reverse=True)
     return scored[:limit]
+
+
+def _mirror_score(book: Book, terms: list[str]) -> int:
+    """小镜子荐书打分：把画像关键词 + 最近聊的话，跟书的主题/痛点/简介/标题做匹配。"""
+    topics_l = [x.lower() for x in book.topics]
+    problems_l = [x.lower() for x in book.problems_solved]
+    hay = " ".join([
+        book.title, book.author, book.category,
+        " ".join(book.topics), " ".join(book.problems_solved),
+        book.summary or "",
+    ]).lower()
+    score = 0
+    for t in terms:
+        t = t.strip().lower()
+        if len(t) < 2:
+            continue
+        if t in topics_l or t in problems_l:
+            score += 3      # 主题/痛点命中，权重高
+        elif t in hay:
+            score += 1      # 简介/标题命中，权重低
+    return score
+
+
+def shortlist_for_mirror(
+    terms: list[str],
+    language: str = "zh",
+    exclude_ids: Optional[set[str]] = None,
+    limit: int = 12,
+    library: Optional[list[Book]] = None,
+) -> list[Book]:
+    """基于画像关键词 + 最近对话，从真实书库挑出最相关的候选书（供小镜子精准荐书）。
+
+    只返回真实存在于书库的书，杜绝编造书名。
+    """
+    books = library if library is not None else load_books()
+    exclude = exclude_ids or set()
+    pool = [b for b in books if b.language == language and b.id not in exclude]
+    if len(pool) < limit:
+        pool = [b for b in books if b.id not in exclude]
+
+    terms = [t for t in (terms or []) if t and len(t.strip()) >= 2]
+    if not terms:
+        return pool[:limit]
+
+    scored = sorted(pool, key=lambda b: _mirror_score(b, terms), reverse=True)
+    hits = [b for b in scored if _mirror_score(b, terms) > 0]
+    return (hits or scored)[:limit]

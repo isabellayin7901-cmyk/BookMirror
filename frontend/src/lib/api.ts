@@ -28,10 +28,24 @@ function authHeaders(json = false): Record<string, string> {
 export async function fetchRecommendation(
   profile: UserProfile,
 ): Promise<RecommendationResponse> {
+  // 尽力补上小镜子画像，让主页推荐更贴近用户真实状态（失败不影响推荐）。
+  let body: UserProfile = profile;
+  if (!profile.mirror_portrait) {
+    try {
+      const { storage } = await import('./storage');
+      const uid = await storage.getUserId();
+      if (uid) {
+        const mp = await fetchMirrorProfile(uid);
+        if (mp.summary) body = { ...profile, mirror_portrait: mp.summary };
+      }
+    } catch {
+      /* best-effort，忽略 */
+    }
+  }
   const res = await fetch(`${baseUrl}/api/recommend`, {
     method: 'POST',
     headers: authHeaders(true),
-    body: JSON.stringify(profile),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const detail = await res.text();
@@ -176,6 +190,7 @@ export interface MirrorMessage {
   role: 'user' | 'assistant';
   content: string;
   created_at?: string | null; // ISO 时间，前端画时间线分割用
+  book?: Book | null;         // 小镜子在这条消息里推荐的真实书（可点书卡）
 }
 
 export interface MirrorChatContext {
@@ -190,7 +205,7 @@ export async function mirrorChat(payload: {
   message: string;
   context?: MirrorChatContext;
   language: Language;
-}): Promise<{ reply: string }> {
+}): Promise<{ reply: string; book?: Book | null }> {
   const res = await fetch(`${baseUrl}/api/mirror/chat`, {
     method: 'POST',
     headers: authHeaders(true),

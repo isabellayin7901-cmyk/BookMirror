@@ -11,11 +11,12 @@ import {
   Dimensions,
   Easing,
   ActivityIndicator,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Alert } from 'react-native';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
@@ -25,7 +26,10 @@ import { PlatformIcon } from '../illustrations/PlatformIcons';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { bookTitle, bookAuthor, bookSummary, bookChapters } from '../lib/bookDisplay';
-import { fetchBookReviews, deleteReview, type Review } from '../lib/api';
+import {
+  fetchBookReviews, deleteReview, type Review,
+  getReadingStatus, setReadingStatus, type ReadingKind,
+} from '../lib/api';
 import type { Book, BookRecommendation, RootStackParamList } from '../types';
 
 const SCREEN_H = Dimensions.get('window').height;
@@ -41,6 +45,7 @@ interface Props {
 export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Props) {
   const { t, lang } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [canReview, setCanReview] = useState(false);
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const [isFav, setIsFav] = useState(false);
@@ -154,6 +159,9 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
                 </View>
               </View>
 
+              {/* 阅读状态：想读 / 在读 / 读完 */}
+              <ReadingStatusBar book={book} onStatus={(s) => setCanReview(s === 'finished')} />
+
               {/* 这本书在讲什么 */}
               <Section icon={<Leaf size={14} />} title={t('modal.summary')} underlineColor={colors.sage}>
                 <Text style={styles.bodyText}>{bookSummary(book, lang)}</Text>
@@ -203,9 +211,10 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
               {/* 在哪儿读 / 买 */}
               <PlatformJumpRow book={book} />
 
-              {/* 读者反馈（三合一书评） */}
+              {/* 读者反馈（三合一书评，读完才能写） */}
               <ReviewsSection
                 book={book}
+                canReview={canReview}
                 onWrite={() => {
                   onClose();
                   navigation.navigate('BookReview', { book });
@@ -275,7 +284,99 @@ function PlatformJumpRow({ book }: { book: Book }) {
   );
 }
 
-function ReviewsSection({ book, onWrite }: { book: Book; onWrite: () => void }) {
+function ReadingStatusBar({ book, onStatus }: { book: Book; onStatus: (s: ReadingKind) => void }) {
+  const { t } = useI18n();
+  const [uid, setUid] = useState('');
+  const [status, setStatus] = useState<ReadingKind>('want');
+  const [current, setCurrent] = useState('');
+  const [total, setTotal] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const id = await storage.getUserId();
+      setUid(id);
+      const rs = await getReadingStatus(id, book.id);
+      if (rs) {
+        setStatus(rs.status);
+        setCurrent(rs.current_page ? String(rs.current_page) : '');
+        setTotal(rs.total_pages ? String(rs.total_pages) : '');
+        onStatus(rs.status);
+      } else {
+        onStatus('want');
+      }
+    })();
+  }, [book.id]);
+
+  const choose = async (s: ReadingKind) => {
+    setStatus(s);
+    onStatus(s);
+    try {
+      const rs = await setReadingStatus({ user_id: uid, book_id: book.id, status: s });
+      setStatus(rs.status);
+      onStatus(rs.status);
+    } catch { /* ignore */ }
+  };
+
+  const saveProgress = async () => {
+    const cur = parseInt(current, 10) || 0;
+    const tot = parseInt(total, 10) || 0;
+    try {
+      const prevCur = (await getReadingStatus(uid, book.id))?.current_page ?? 0;
+      const rs = await setReadingStatus({
+        user_id: uid, book_id: book.id, status: 'reading', current_page: cur, total_pages: tot,
+      });
+      // 复用打卡：今天多读的页数计入打卡日历
+      if (cur > prevCur) await storage.addPages(cur - prevCur);
+      setStatus(rs.status);
+      setCurrent(rs.current_page ? String(rs.current_page) : '');
+      onStatus(rs.status);
+    } catch { /* ignore */ }
+  };
+
+  const OPTIONS: ReadingKind[] = ['want', 'reading', 'finished'];
+
+  return (
+    <View style={styles.readingWrap}>
+      <View style={styles.segment}>
+        {OPTIONS.map((s) => (
+          <Pressable
+            key={s}
+            onPress={() => choose(s)}
+            style={[styles.segBtn, status === s && styles.segBtnOn]}
+          >
+            <Text style={[styles.segText, status === s && styles.segTextOn]}>{t(`reading.${s}`)}</Text>
+          </Pressable>
+        ))}
+      </View>
+      {status === 'reading' && (
+        <View style={styles.progressRow}>
+          <TextInput
+            style={styles.pageInput}
+            value={current}
+            onChangeText={setCurrent}
+            keyboardType="number-pad"
+            placeholder={t('reading.current')}
+            placeholderTextColor={colors.textFaint}
+          />
+          <Text style={styles.pageSep}>/</Text>
+          <TextInput
+            style={styles.pageInput}
+            value={total}
+            onChangeText={setTotal}
+            keyboardType="number-pad"
+            placeholder={t('reading.total')}
+            placeholderTextColor={colors.textFaint}
+          />
+          <Pressable onPress={saveProgress} style={styles.saveBtn}>
+            <Text style={styles.saveBtnText}>{t('reading.save')}</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function ReviewsSection({ book, canReview, onWrite }: { book: Book; canReview: boolean; onWrite: () => void }) {
   const { t } = useI18n();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [uid, setUid] = useState('');
@@ -314,9 +415,15 @@ function ReviewsSection({ book, onWrite }: { book: Book; onWrite: () => void }) 
     <View style={{ marginTop: spacing.xl }}>
       <Text style={styles.reviewsTitle}>{t('book.reviews')}</Text>
 
-      <Pressable onPress={onWrite} style={({ pressed }) => [styles.writeBtn, pressed && { opacity: 0.85 }]}>
-        <Text style={styles.writeBtnText}>{mine ? t('book.editReview') : t('book.writeReview')}</Text>
-      </Pressable>
+      {canReview || mine ? (
+        <Pressable onPress={onWrite} style={({ pressed }) => [styles.writeBtn, pressed && { opacity: 0.85 }]}>
+          <Text style={styles.writeBtnText}>{mine ? t('book.editReview') : t('book.writeReview')}</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.lockedBtn}>
+          <Text style={styles.lockedText}>{t('book.reviewLocked')}</Text>
+        </View>
+      )}
 
       {ordered.length === 0 ? (
         <Text style={styles.noReviews}>{t('book.noReviews')}</Text>
@@ -476,6 +583,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  readingWrap: { marginTop: spacing.lg },
+  segment: {
+    flexDirection: 'row',
+    backgroundColor: colors.bgSoft,
+    borderRadius: radius.lg,
+    padding: 3,
+  },
+  segBtn: { flex: 1, paddingVertical: spacing.sm, borderRadius: radius.md, alignItems: 'center' },
+  segBtnOn: { backgroundColor: colors.terracotta },
+  segText: { ...typography.body, fontSize: 14, color: colors.textMuted, fontWeight: '600' },
+  segTextOn: { color: '#fff' },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
+  pageInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  pageSep: { color: colors.textMuted },
+  saveBtn: { paddingHorizontal: spacing.md, height: 40, borderRadius: radius.md, backgroundColor: colors.primary, justifyContent: 'center' },
+  saveBtnText: { color: '#fff', fontWeight: '700' },
+  lockedBtn: {
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgSoft,
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  lockedText: { color: colors.textMuted, fontSize: 13 },
 
   reviewsTitle: { ...typography.h3, marginBottom: spacing.sm },
   writeBtn: {

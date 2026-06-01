@@ -352,6 +352,47 @@ export async function fetchGrowth(userId: string): Promise<GrowthData> {
   return res.json();
 }
 
+// ---------- 阅读状态：想读 / 在读 / 读完 ----------
+
+export type ReadingKind = 'want' | 'reading' | 'finished';
+
+export interface ReadingStatus {
+  book_id: string;
+  status: ReadingKind;
+  current_page: number;
+  total_pages: number;
+  progress: number; // 0-1
+  started_at?: string | null;
+  finished_at?: string | null;
+}
+
+/** 取某本书的阅读状态；没有返回 null。 */
+export async function getReadingStatus(userId: string, bookId: string): Promise<ReadingStatus | null> {
+  const res = await fetch(
+    `${baseUrl}/api/reading/book?user_id=${encodeURIComponent(userId)}&book_id=${encodeURIComponent(bookId)}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) return null;
+  return res.json();
+}
+
+/** 设置/更新某本书的阅读状态或进度（进度到顶会自动判定读完）。 */
+export async function setReadingStatus(input: {
+  user_id: string;
+  book_id: string;
+  status?: ReadingKind;
+  current_page?: number;
+  total_pages?: number;
+}): Promise<ReadingStatus> {
+  const res = await fetch(`${baseUrl}/api/reading`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`Set reading status failed (${res.status})`);
+  return res.json();
+}
+
 export async function submitFeedback(payload: {
   book_id: string;
   reaction: FeedbackReaction;

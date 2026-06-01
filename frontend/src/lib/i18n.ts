@@ -242,6 +242,15 @@ const zh: Dict = {
   'book.aReader': '一位读者',
   'book.deleteReview': '删除我的反馈',
   'book.deleteReviewConfirm': '确定删除你对这本书的反馈吗？',
+  'book.reviewLocked': '读完这本书后才能写反馈哦',
+
+  // 阅读状态
+  'reading.want': '想读',
+  'reading.reading': '在读',
+  'reading.finished': '读完',
+  'reading.current': '当前页',
+  'reading.total': '总页数',
+  'reading.save': '记录',
   'mirror.greeting1': '你好呀',
   'mirror.greeting2': '最近在读些什么书 或者心里在想些什么 都可以和我讲讲',
   'mirror.greeting3': '我想慢慢地认识你',
@@ -669,6 +678,15 @@ const en: Dict = {
   'book.aReader': 'A reader',
   'book.deleteReview': 'Delete my review',
   'book.deleteReviewConfirm': 'Delete your review of this book?',
+  'book.reviewLocked': 'Finish the book to write a review',
+
+  // Reading status
+  'reading.want': 'Want',
+  'reading.reading': 'Reading',
+  'reading.finished': 'Finished',
+  'reading.current': 'Current',
+  'reading.total': 'Total',
+  'reading.save': 'Save',
   'mirror.greeting1': 'Hey there',
   'mirror.greeting2': "What you're reading lately   or whatever's on your mind   you can tell me anything",
   'mirror.greeting3': 'I want to get to know you, slowly',

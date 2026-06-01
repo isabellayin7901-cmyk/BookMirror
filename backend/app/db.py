@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import String, Text, Integer, DateTime, create_engine
+from sqlalchemy import String, Text, Integer, Boolean, DateTime, UniqueConstraint, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 
@@ -58,6 +58,34 @@ class MirrorMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
     # 小镜子在这条消息里推荐的真实书 id（来自书库），用于渲染可点书卡。多数消息为空。
     book_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+
+
+class BookReview(Base):
+    """读完一本书的「三合一」反馈：评分 + 书评 + 成长自评。
+
+    核心理念：不是评价书好坏，而是记录「这本书有没有帮到这个人」。
+    一个用户对一本书一条评价（可覆盖更新）。
+    """
+
+    __tablename__ = "book_reviews"
+    __table_args__ = (UniqueConstraint("user_id", "book_id", name="uq_review_user_book"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    book_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)          # 1-5 星
+    difficulty: Mapped[str] = mapped_column(String(16), default="just_right")  # too_easy/just_right/too_hard
+    emotions: Mapped[str] = mapped_column(Text, default="[]")             # JSON list[str] 情绪词条
+    text: Mapped[str] = mapped_column(Text, default="")                   # 想说的心里话
+    recommend_similar: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否推荐给相似人格
+    anonymous: Mapped[bool] = mapped_column(Boolean, default=False)       # 是否匿名展示
+    mbti: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)  # 快照，给相似人格匹配用
+    # 成长自评：{"expression": {"before": 40, "after": 72}, ...}（百分制，可选维度）
+    growth: Mapped[str] = mapped_column(Text, default="{}")
+    # 这本书帮自己解决了哪些问题：JSON list[str]（内耗/焦虑/拖延…）
+    helped_problems: Mapped[str] = mapped_column(Text, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
 class MirrorProfile(Base):

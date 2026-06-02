@@ -788,3 +788,72 @@ def generate_recommendation(
             return block.input  # type: ignore[return-value]
 
     raise RuntimeError("Claude did not call generate_recommendation tool")
+
+
+# ===================== 阅读塑造报告（P4） =====================
+
+SHAPING_TOOL: dict[str, Any] = {
+    "name": "shaping_report",
+    "description": "根据用户的 MBTI、读完的书、书评感受与成长自评，生成一份「阅读塑造报告」",
+    "input_schema": {
+        "type": "object",
+        "required": ["summary", "strengthening", "shifts", "encouragement"],
+        "properties": {
+            "summary": {"type": "string", "description": "2-3 句，概括最近这段时间 ta 在通过阅读关注/处理什么"},
+            "strengthening": {
+                "type": "array", "items": {"type": "string"},
+                "minItems": 2, "maxItems": 5,
+                "description": "正在被阅读增强的能力/特质，每条 2-6 字短语",
+            },
+            "shifts": {
+                "type": "array", "items": {"type": "string"},
+                "minItems": 1, "maxItems": 4,
+                "description": "兴趣或视角的变化，每条一句短话",
+            },
+            "encouragement": {"type": "string", "description": "一句温柔的鼓励，像懂 ta 的朋友说的"},
+        },
+    },
+}
+
+SHAPING_SYSTEM_ZH = """你是「阅读塑造分析师」。根据用户的 MBTI、读完的书、读后感受与成长自评，
+分析阅读正在把 ta 塑造成什么样——正在增强哪些能力、视角发生了什么变化。
+原则：
+- ★绝不改写或评判 ta 的 MBTI★，MBTI 只是底色；你描述的是「阅读带来的成长」，不是性格定论。
+- 基于真实数据说话（读了哪些主题的书、解决了什么问题、哪些维度自评提升了），不要空泛吹捧。
+- 温柔、具体、有洞察，像一个懂 ta 的朋友在帮 ta 看见自己的变化。
+- 必须调用 shaping_report 工具返回。"""
+
+SHAPING_SYSTEM_EN = """You are a "Reading Shaping Analyst". From the user's MBTI, the books they finished,
+their post-read feelings and self-rated growth, describe how reading is shaping them — which capacities are
+strengthening, how their perspective is shifting.
+Principles:
+- ★Never rewrite or judge their MBTI★; MBTI is only the backdrop. You describe growth FROM reading, not a verdict.
+- Ground everything in the real data (topics read, problems eased, dimensions that rose); no empty flattery.
+- Gentle, specific, insightful — like a friend helping them see their own change.
+- You must call the shaping_report tool."""
+
+
+def generate_shaping_report(data: dict[str, Any], language: str = "zh") -> dict[str, Any]:
+    """根据阅读史/书评/成长数据生成阅读塑造报告。data 由路由聚合好传入。"""
+    client = get_client()
+    system = SHAPING_SYSTEM_EN if language == "en" else SHAPING_SYSTEM_ZH
+    user_prompt = (
+        f"user_language: {language}\n\n"
+        f"MBTI: {data.get('mbti', '(未知)')}\n"
+        f"读完的书（主题）：{json.dumps(data.get('finished', []), ensure_ascii=False)}\n"
+        f"读后反馈：{json.dumps(data.get('reviews', []), ensure_ascii=False)}\n"
+        f"成长自评（维度→提升）：{json.dumps(data.get('growth', {}), ensure_ascii=False)}\n\n"
+        f"请调用 shaping_report 返回这份阅读塑造报告。"
+    )
+    response = client.messages.create(
+        model=settings.claude_model,
+        max_tokens=900,
+        system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+        tools=[SHAPING_TOOL],
+        tool_choice={"type": "tool", "name": "shaping_report"},
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+    for block in response.content:
+        if getattr(block, "type", None) == "tool_use" and block.name == "shaping_report":
+            return block.input  # type: ignore[return-value]
+    raise RuntimeError("Claude did not call shaping_report tool")

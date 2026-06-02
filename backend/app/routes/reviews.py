@@ -16,10 +16,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select, delete
 
-from app.db import SessionLocal, BookReview, init_db
+from app.db import SessionLocal, BookReview, ReadingStatus, init_db
 from app.models import Book, UserProfile
 from app.services.book_filter import load_books
 from app.services.mirror_score import compute_scores
+from app.services import claude as claude_service
 
 router = APIRouter()
 
@@ -219,6 +220,82 @@ def mirror_score(payload: MirrorScoreIn):
     try:
         scores = compute_scores(payload.profile, books, session, _BOOK_INDEX, payload.user_id)
         return MirrorScoreOut(scores=scores)
+    finally:
+        session.close()
+
+
+class ShapingIn(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=64)
+    mbti: Optional[str] = None
+    language: str = "zh"
+
+
+class ShapingOut(BaseModel):
+    available: bool
+    summary: str = ""
+    strengthening: list[str] = []
+    shifts: list[str] = []
+    encouragement: str = ""
+    finished_count: int = 0
+
+
+@router.post("/shaping-report", response_model=ShapingOut)
+def shaping_report(payload: ShapingIn):
+    """阅读塑造报告：LLM 结合 MBTI + 阅读史 + 书评 + 成长，生成「你正在增强…」（不改 MBTI）。"""
+    session = SessionLocal()
+    try:
+        finished = session.execute(
+            select(ReadingStatus).where(
+                ReadingStatus.user_id == payload.user_id,
+                ReadingStatus.status == "finished",
+            )
+        ).scalars().all()
+        reviews = session.execute(
+            select(BookReview).where(BookReview.user_id == payload.user_id)
+        ).scalars().all()
+
+        # 数据太少就先不生成（至少读完 1 本 或 有 1 条反馈）
+        if len(finished) == 0 and len(reviews) == 0:
+            return ShapingOut(available=False, finished_count=0)
+
+        finished_info = []
+        for r in finished:
+            b = _BOOK_INDEX.get(r.book_id)
+            if b:
+                finished_info.append({"title": b.title, "topics": b.topics})
+
+        review_info = []
+        growth_acc: dict[str, int] = {}
+        for r in reviews:
+            b = _BOOK_INDEX.get(r.book_id)
+            review_info.append({
+                "title": b.title if b else r.book_id,
+                "rating": r.rating,
+                "emotions": json.loads(r.emotions or "[]"),
+                "helped": json.loads(r.helped_problems or "[]"),
+            })
+            for dim, pair in json.loads(r.growth or "{}").items():
+                growth_acc[dim] = growth_acc.get(dim, 0) + (int(pair.get("after", 0)) - int(pair.get("before", 0)))
+
+        data = {
+            "mbti": payload.mbti,
+            "finished": finished_info,
+            "reviews": review_info,
+            "growth": growth_acc,
+        }
+        try:
+            rep = claude_service.generate_shaping_report(data, payload.language)
+        except Exception:
+            return ShapingOut(available=False, finished_count=len(finished))
+
+        return ShapingOut(
+            available=True,
+            summary=rep.get("summary", ""),
+            strengthening=rep.get("strengthening", []),
+            shifts=rep.get("shifts", []),
+            encouragement=rep.get("encouragement", ""),
+            finished_count=len(finished),
+        )
     finally:
         session.close()
 

@@ -17,10 +17,15 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, delete
 
 from app.db import SessionLocal, BookReview, init_db
+from app.models import Book, UserProfile
+from app.services.book_filter import load_books
+from app.services.mirror_score import compute_scores
 
 router = APIRouter()
 
 init_db()
+
+_BOOK_INDEX: dict[str, Book] = {b.id: b for b in load_books()}
 
 # 成长维度（固定核心 5 项，跨书可比、可累加）
 GROWTH_DIMENSIONS = ["expression", "emotion", "execution", "self_awareness", "relationship"]
@@ -192,6 +197,30 @@ class GrowthOut(BaseModel):
     dimensions: list[GrowthDimension]
     helped_problem_counts: dict[str, int]  # 各问题被「解决」的次数
     review_count: int
+
+
+class MirrorScoreIn(BaseModel):
+    profile: UserProfile
+    book_ids: list[str] = Field(default_factory=list)
+    user_id: str = ""
+
+
+class MirrorScoreOut(BaseModel):
+    scores: dict[str, int]  # book_id -> 0-100
+
+
+@router.post("/mirror-score", response_model=MirrorScoreOut)
+def mirror_score(payload: MirrorScoreIn):
+    """为一批书算 Mirror Score（这本书有没有帮到这个人，0-100）。"""
+    books = [_BOOK_INDEX[bid] for bid in payload.book_ids if bid in _BOOK_INDEX]
+    if not books:
+        return MirrorScoreOut(scores={})
+    session = SessionLocal()
+    try:
+        scores = compute_scores(payload.profile, books, session, _BOOK_INDEX, payload.user_id)
+        return MirrorScoreOut(scores=scores)
+    finally:
+        session.close()
 
 
 @router.get("/growth", response_model=GrowthOut)

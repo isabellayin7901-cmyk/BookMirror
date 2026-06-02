@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy import select, delete
 
@@ -87,7 +87,7 @@ def _minutes_since_last(history: list[dict[str, Any]]) -> Optional[float]:
 
 
 @router.post("/mirror/chat", response_model=ChatResponse)
-def mirror_chat(payload: ChatRequest):
+def mirror_chat(payload: ChatRequest, background_tasks: BackgroundTasks):
     session = SessionLocal()
     try:
         history = _load_history(session, payload.user_id, HISTORY_WINDOW)
@@ -154,23 +154,36 @@ def mirror_chat(payload: ChatRequest):
         should_refresh = prof.message_count % PROFILE_EVERY == 0
         session.commit()
 
+        # 画像提炼是额外一次 AI 调用，放到后台跑，不要卡住本次回复（否则每 4 轮明显变慢）。
         if should_refresh:
-            try:
-                full = _load_history(session, payload.user_id, HISTORY_WINDOW)
-                distilled = mirror_service.extract_profile(
-                    history=full,
-                    existing_summary=prof.summary or "",
-                    language=payload.language,
-                )
-                prof = session.get(MirrorProfile, payload.user_id)
-                prof.summary = distilled.get("summary", prof.summary)
-                prof.traits = json.dumps(distilled.get("traits", []), ensure_ascii=False)
-                prof.keywords = json.dumps(distilled.get("keywords", []), ensure_ascii=False)
-                session.commit()
-            except Exception:
-                session.rollback()  # portrait refresh is best-effort
+            background_tasks.add_task(
+                _refresh_profile_bg, payload.user_id, payload.language,
+            )
 
         return ChatResponse(reply=reply, book=rec_book)
+    finally:
+        session.close()
+
+
+def _refresh_profile_bg(user_id: str, language: str) -> None:
+    """后台提炼/更新心理画像（独立 session，best-effort）。"""
+    session = SessionLocal()
+    try:
+        prof = session.get(MirrorProfile, user_id)
+        if prof is None:
+            return
+        full = _load_history(session, user_id, HISTORY_WINDOW)
+        distilled = mirror_service.extract_profile(
+            history=full,
+            existing_summary=prof.summary or "",
+            language=language,
+        )
+        prof.summary = distilled.get("summary", prof.summary)
+        prof.traits = json.dumps(distilled.get("traits", []), ensure_ascii=False)
+        prof.keywords = json.dumps(distilled.get("keywords", []), ensure_ascii=False)
+        session.commit()
+    except Exception:
+        session.rollback()
     finally:
         session.close()
 

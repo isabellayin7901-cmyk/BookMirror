@@ -58,7 +58,6 @@ export function GrowthScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
         <Text style={typography.h1}>{t('growth.title')}</Text>
-        <Text style={styles.subtitle}>{t('growth.subtitle')}</Text>
 
         {loading ? (
           <ActivityIndicator color={colors.terracotta} style={{ marginTop: spacing.xxl }} />

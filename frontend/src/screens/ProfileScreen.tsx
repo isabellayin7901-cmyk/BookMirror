@@ -68,6 +68,17 @@ export function ProfileScreen({ navigation }: Props) {
           })}
         </View>
 
+        {/* 用户名 */}
+        <Text style={styles.sectionLabel}>{t('profile.username')}</Text>
+        <TextInput
+          style={styles.input}
+          value={profile?.username ?? ''}
+          onChangeText={(s) => setField({ username: s.slice(0, 20) })}
+          onBlur={persist}
+          placeholder={t('profile.usernamePlaceholder')}
+          placeholderTextColor={colors.textFaint}
+        />
+
         {/* 职业 / 专业 / 简介 */}
         <Text style={styles.sectionLabel}>{t('profile.occupation')}</Text>
         <TextInput

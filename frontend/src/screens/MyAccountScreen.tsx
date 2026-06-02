@@ -84,6 +84,11 @@ export function MyAccountScreen() {
             )}
           </Pressable>
           <Text style={styles.avatarHint}>{t('account.changeAvatar')}</Text>
+          <Pressable onPress={() => navigation.navigate('Profile')}>
+            <Text style={styles.username}>
+              {profile?.username?.trim() || t('account.setUsername')}
+            </Text>
+          </Pressable>
           {profile?.mbti ? (
             <>
               <Text style={styles.mbtiBig}>{profile.mbti}</Text>
@@ -195,11 +200,18 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginBottom: spacing.md,
   },
-  mbtiBig: {
-    fontSize: 38,
+  username: {
+    fontSize: 26,
     fontWeight: '800',
+    color: colors.text,
+    marginBottom: spacing.xs,
+    fontFamily: 'ZCOOLKuaiLe_400Regular',
+  },
+  mbtiBig: {
+    fontSize: 22,
+    fontWeight: '700',
     color: colors.terracotta,
-    letterSpacing: 4,
+    letterSpacing: 3,
     fontStyle: 'italic',
   },
   mbtiSource: { ...typography.caption, marginTop: spacing.xs },

@@ -482,7 +482,11 @@ export function TodayBooksScreen() {
           <View style={styles.drawerSnowman}>
             <Snowman size={70} pose="wave" />
           </View>
-          <Text style={styles.drawerHello}>{t('drawer.title')}</Text>
+          <Text style={styles.drawerHello}>
+            {profile?.username?.trim()
+              ? t('drawer.titleNamed').replace('{name}', profile.username.trim())
+              : t('drawer.title')}
+          </Text>
           {profile?.mbti && (
             <Text style={styles.drawerMbti}>{profile.mbti}</Text>
           )}

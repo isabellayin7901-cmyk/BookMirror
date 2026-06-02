@@ -94,18 +94,17 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* 账号：登录方式 */}
         <Text style={styles.sectionLabel}>{t('settings.account')}</Text>
-        <View style={styles.infoRow}>
+        <Pressable
+          onPress={() => navigation.navigate('Auth', { onboarding: false })}
+          style={({ pressed }) => [styles.infoRow, pressed && { opacity: 0.7 }]}
+        >
           <Text style={styles.infoLabel}>{t('settings.loginMethod')}</Text>
-          <Text style={styles.infoValue}>{loginMethodLabel()}</Text>
-        </View>
-        {!me && (
-          <Pressable
-            onPress={() => navigation.navigate('Auth', { onboarding: false })}
-            style={({ pressed }) => [styles.loginBtn, pressed && { opacity: 0.9 }]}
-          >
-            <Text style={styles.loginText}>{t('settings.login')}</Text>
-          </Pressable>
-        )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.infoValue}>{loginMethodLabel()}</Text>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </Pressable>
+        <Text style={styles.switchHint}>{t('settings.switchLoginHint')}</Text>
 
         <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
         <View style={styles.row}>
@@ -240,6 +239,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: { ...typography.body, color: colors.textMuted },
   infoValue: { ...typography.body, fontWeight: '600', color: colors.text },
+  switchHint: { ...typography.caption, color: colors.textFaint, marginTop: spacing.xs, marginLeft: spacing.xs },
   logout: {
     padding: spacing.md,
     borderRadius: radius.md,

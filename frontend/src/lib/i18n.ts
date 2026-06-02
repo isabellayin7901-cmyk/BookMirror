@@ -82,12 +82,15 @@ const zh: Dict = {
   'settings.loginMethod': '登录方式',
   'settings.notLoggedIn': '未登录',
   'settings.login': '登录 / 注册',
+  'settings.switchLoginHint': '点击可切换登录方式',
   'settings.logout': '登出',
   'settings.logoutConfirm': '确定要登出当前账号吗？',
   'login.google': 'Google',
   'login.apple': 'Apple',
   'login.wechat': '微信',
   'login.phone': '手机号',
+  'profile.username': '用户名',
+  'profile.usernamePlaceholder': '给自己起个名字',
   'profile.occupation': '职业',
   'profile.occupationPlaceholder': '比如：学生 / 设计师 / 产品经理',
   'profile.major': '专业 / 领域',
@@ -158,6 +161,7 @@ const zh: Dict = {
 
   // ===== drawer =====
   'drawer.title': 'Wren 的小书房 ⛄',
+  'drawer.titleNamed': '{name} 的小书房 ⛄',
   'drawer.checkin': '今日打卡',
   'drawer.readPages': '今天读了 {n} 页 📖',
   'drawer.noCheckin': '今天还没打卡哦 ✨',
@@ -233,7 +237,7 @@ const zh: Dict = {
   // ===== 成长轨迹 =====
   'growth.title': '成长轨迹',
   'growth.subtitle': '书有没有真的帮到你，看得见',
-  'growth.empty': '还没有成长记录\n读完书写一份反馈，这里就会长出你的成长曲线 🌱',
+  'growth.empty': '这里会慢慢生长出一个新的你🌱',
   'growth.reviewCount': '已记录 {n} 本书的反馈',
   'growth.dimensions': '各维度的变化',
   'growth.now': '现在',
@@ -351,6 +355,7 @@ const zh: Dict = {
   'account.settings': '⚙︎  设置',
   'account.addBirthday': '+ 添加你的破壳日，解锁星座 ✨',
   'account.changeAvatar': '点头像换照片',
+  'account.setUsername': '点这里设置用户名',
   'account.avatarPermission': '需要相册权限才能更换头像',
   'account.avatarNeedUpdate': '自定义头像需要更新到最新版 App（OTA 无法添加相册功能，请安装新的安装包）',
 
@@ -536,12 +541,15 @@ const en: Dict = {
   'settings.loginMethod': 'Login method',
   'settings.notLoggedIn': 'Not logged in',
   'settings.login': 'Log In / Sign Up',
+  'settings.switchLoginHint': 'Tap to switch login method',
   'settings.logout': 'Log Out',
   'settings.logoutConfirm': 'Log out of this account?',
   'login.google': 'Google',
   'login.apple': 'Apple',
   'login.wechat': 'WeChat',
   'login.phone': 'Phone',
+  'profile.username': 'Username',
+  'profile.usernamePlaceholder': 'Give yourself a name',
   'profile.occupation': 'Occupation',
   'profile.occupationPlaceholder': 'e.g. Student / Designer / PM',
   'profile.major': 'Field / Major',
@@ -611,6 +619,7 @@ const en: Dict = {
 
   // ===== drawer =====
   'drawer.title': "Wren's Library ⛄",
+  'drawer.titleNamed': "{name}'s Library ⛄",
   'drawer.checkin': "Today's check-in",
   'drawer.readPages': 'Read {n} pages today 📖',
   'drawer.noCheckin': 'No check-in yet today ✨',
@@ -685,7 +694,7 @@ const en: Dict = {
   // ===== Growth trajectory =====
   'growth.title': 'Growth',
   'growth.subtitle': 'See whether books actually help you',
-  'growth.empty': 'No growth logged yet\nWrite a post-read review and your growth curve grows here 🌱',
+  'growth.empty': 'A new you will slowly grow here 🌱',
   'growth.reviewCount': '{n} books reviewed',
   'growth.dimensions': 'Change by dimension',
   'growth.now': 'Now',
@@ -803,6 +812,7 @@ const en: Dict = {
   'account.settings': '⚙︎  Settings',
   'account.addBirthday': '+ Add your birthday to unlock your zodiac ✨',
   'account.changeAvatar': 'Tap to change photo',
+  'account.setUsername': 'Tap to set a username',
   'account.avatarPermission': 'Photo library permission is needed to change your avatar',
   'account.avatarNeedUpdate': 'Custom avatars need the latest app version (OTA can’t add photo access — please install the new build)',
 

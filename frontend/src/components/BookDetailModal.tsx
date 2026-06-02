@@ -29,6 +29,7 @@ import { bookTitle, bookAuthor, bookSummary, bookChapters } from '../lib/bookDis
 import {
   fetchBookReviews, deleteReview, type Review,
   getReadingStatus, setReadingStatus, type ReadingKind,
+  fetchMirrorScores,
 } from '../lib/api';
 import type { Book, BookRecommendation, RootStackParamList } from '../types';
 
@@ -155,6 +156,7 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
                     <View style={styles.metaTag}>
                       <Text style={styles.metaTagText}>{t('modal.difficulty', { n: book.difficulty })}</Text>
                     </View>
+                    <MirrorScoreBadge book={book} />
                   </View>
                 </View>
               </View>
@@ -280,6 +282,29 @@ function PlatformJumpRow({ book }: { book: Book }) {
       <Text style={styles.platformHint}>
         {t('modal.platformHint')}
       </Text>
+    </View>
+  );
+}
+
+function MirrorScoreBadge({ book }: { book: Book }) {
+  const { t } = useI18n();
+  const [score, setScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const profile = await storage.getUserProfile();
+      if (!profile) return;
+      const scores = await fetchMirrorScores(profile, [book.id]);
+      if (alive && scores[book.id] != null) setScore(scores[book.id]);
+    })();
+    return () => { alive = false; };
+  }, [book.id]);
+
+  if (score == null) return null;
+  return (
+    <View style={styles.scoreTag}>
+      <Text style={styles.scoreText}>{t('modal.mirrorScore')} {score}%</Text>
     </View>
   );
 }
@@ -502,7 +527,7 @@ const styles = StyleSheet.create({
   favBtnActive: { backgroundColor: '#F6E6E6' },
   author: { ...typography.caption, marginTop: 4 },
   difficulty: { color: colors.terracotta, letterSpacing: 2, marginTop: 6 },
-  metaRow: { flexDirection: 'row', marginTop: spacing.sm },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   metaTag: {
     backgroundColor: colors.surface,
     paddingHorizontal: 10, paddingVertical: 4,
@@ -583,6 +608,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  scoreTag: {
+    backgroundColor: colors.terracotta,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  scoreText: { color: '#fff', fontSize: 11, fontWeight: '800' },
 
   readingWrap: { marginTop: spacing.lg },
   segment: {

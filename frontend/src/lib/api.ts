@@ -352,6 +352,28 @@ export async function fetchGrowth(userId: string): Promise<GrowthData> {
   return res.json();
 }
 
+/** 算一批书的 Mirror Score（这本书有没有帮到这个人，0-100）。失败返回空。 */
+export async function fetchMirrorScores(
+  profile: UserProfile,
+  bookIds: string[],
+): Promise<Record<string, number>> {
+  if (bookIds.length === 0) return {};
+  try {
+    const { storage } = await import('./storage');
+    const uid = await storage.getUserId();
+    const res = await fetch(`${baseUrl}/api/mirror-score`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ profile, book_ids: bookIds, user_id: uid }),
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.scores ?? {};
+  } catch {
+    return {};
+  }
+}
+
 // ---------- 阅读状态：想读 / 在读 / 读完 ----------
 
 export type ReadingKind = 'want' | 'reading' | 'finished';

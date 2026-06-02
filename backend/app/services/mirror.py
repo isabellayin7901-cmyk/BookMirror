@@ -447,8 +447,9 @@ def chat(
 
     kwargs: dict[str, Any] = dict(
         model=settings.claude_model,
-        # 物理兜底：限制输出长度，逼小镜子像发微信那样短，别写长篇咨询记录。
-        max_tokens=320,
+        # 物理兜底：限制输出长度（靠 prompt 控简短，这里只防失控）。
+        # 不要太低，否则聊书聊深时会被从句子中间硬切断，很难看。
+        max_tokens=520,
         system=system_blocks,
         messages=messages,
     )

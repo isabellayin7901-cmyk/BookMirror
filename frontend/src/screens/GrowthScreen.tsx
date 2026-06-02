@@ -1,18 +1,37 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { colors, spacing, typography, radius } from '../theme';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
-import { fetchGrowth, type GrowthData } from '../lib/api';
+import { fetchGrowth, fetchShapingReport, type GrowthData, type ShapingReport } from '../lib/api';
 
 export function GrowthScreen() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigation = useNavigation();
   const [data, setData] = useState<GrowthData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<ShapingReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const genReport = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const profile = await storage.getUserProfile();
+      const rep = await fetchShapingReport(profile?.mbti, lang);
+      if (!rep.available) {
+        Alert.alert(t('growth.reportEmpty'));
+        return;
+      }
+      setReport(rep);
+    } catch {
+      Alert.alert(t('growth.reportFail'));
+    } finally {
+      setReportLoading(false);
+    }
+  }, [lang, t]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -93,6 +112,48 @@ export function GrowthScreen() {
               </>
             )}
 
+            {/* 阅读塑造报告 */}
+            <Text style={styles.section}>{t('growth.report')}</Text>
+            {report ? (
+              <View style={styles.reportCard}>
+                <Text style={styles.reportSummary}>{report.summary}</Text>
+                {report.strengthening.length > 0 && (
+                  <>
+                    <Text style={styles.reportLabel}>{t('growth.strengthening')}</Text>
+                    <View style={styles.chipRow}>
+                      {report.strengthening.map((s) => (
+                        <View key={s} style={styles.strengthChip}>
+                          <Text style={styles.strengthText}>✓ {s}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+                {report.shifts.length > 0 && (
+                  <>
+                    <Text style={styles.reportLabel}>{t('growth.shifts')}</Text>
+                    {report.shifts.map((s, i) => (
+                      <Text key={i} style={styles.shiftItem}>· {s}</Text>
+                    ))}
+                  </>
+                )}
+                {!!report.encouragement && (
+                  <Text style={styles.encouragement}>{report.encouragement}</Text>
+                )}
+                <Pressable onPress={genReport} disabled={reportLoading} style={styles.regenLink}>
+                  <Text style={styles.regenText}>{t('growth.regenReport')}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={genReport} disabled={reportLoading} style={styles.reportBtn}>
+                {reportLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.reportBtnText}>{t('growth.genReport')}</Text>
+                )}
+              </Pressable>
+            )}
+
             <Text style={styles.footnote}>{t('growth.footnote')}</Text>
           </>
         )}
@@ -141,4 +202,34 @@ const styles = StyleSheet.create({
   solvedCount: { ...typography.caption, color: colors.textMuted },
 
   footnote: { ...typography.caption, color: colors.textFaint, marginTop: spacing.xl, lineHeight: 18 },
+
+  reportBtn: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.terracotta,
+    alignItems: 'center',
+  },
+  reportBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  reportCard: {
+    marginTop: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.lavender,
+    backgroundColor: colors.surface,
+  },
+  reportSummary: { ...typography.body, lineHeight: 22, color: colors.text },
+  reportLabel: { ...typography.caption, color: colors.textMuted, marginTop: spacing.md, marginBottom: spacing.xs },
+  strengthChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.butter,
+  },
+  strengthText: { ...typography.body, fontSize: 14, color: colors.text, fontWeight: '600' },
+  shiftItem: { ...typography.body, fontSize: 14, color: colors.text, marginTop: 4, lineHeight: 20 },
+  encouragement: { ...typography.body, color: colors.terracotta, marginTop: spacing.md, lineHeight: 22 },
+  regenLink: { marginTop: spacing.md, alignItems: 'center' },
+  regenText: { ...typography.caption, color: colors.textMuted },
 });

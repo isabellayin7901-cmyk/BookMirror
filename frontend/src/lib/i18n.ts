@@ -240,6 +240,13 @@ const zh: Dict = {
   'growth.books': '{n} 本书',
   'growth.solved': '这些书帮你缓解了',
   'growth.footnote': '这是一份阅读塑造的轨迹，不会改写你的 MBTI，只记录书带给你的改变。',
+  'growth.report': '阅读塑造报告',
+  'growth.genReport': '✨ 生成我的阅读塑造报告',
+  'growth.regenReport': '重新生成',
+  'growth.strengthening': '你正在增强',
+  'growth.shifts': '视角的变化',
+  'growth.reportEmpty': '先读完书、写一份反馈，才能生成报告哦',
+  'growth.reportFail': '生成失败，稍后再试',
 
   // 书详情页的书评区
   'book.reviews': '读者反馈',
@@ -685,6 +692,13 @@ const en: Dict = {
   'growth.books': '{n} books',
   'growth.solved': 'These books helped ease',
   'growth.footnote': 'A trace of how reading shapes you. It never rewrites your MBTI — it just records what books changed.',
+  'growth.report': 'Reading Shaping Report',
+  'growth.genReport': '✨ Generate my reading shaping report',
+  'growth.regenReport': 'Regenerate',
+  'growth.strengthening': 'You are strengthening',
+  'growth.shifts': 'Shifts in perspective',
+  'growth.reportEmpty': 'Finish a book and write a review first',
+  'growth.reportFail': 'Generation failed, try later',
 
   // Book detail reviews section
   'book.reviews': 'Reader feedback',

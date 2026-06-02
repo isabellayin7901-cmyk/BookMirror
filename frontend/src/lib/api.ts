@@ -352,6 +352,28 @@ export async function fetchGrowth(userId: string): Promise<GrowthData> {
   return res.json();
 }
 
+export interface ShapingReport {
+  available: boolean;
+  summary: string;
+  strengthening: string[];
+  shifts: string[];
+  encouragement: string;
+  finished_count: number;
+}
+
+/** 生成阅读塑造报告（LLM 结合 MBTI + 阅读史 + 成长，不改 MBTI）。 */
+export async function fetchShapingReport(mbti: string | undefined, language: Language): Promise<ShapingReport> {
+  const { storage } = await import('./storage');
+  const uid = await storage.getUserId();
+  const res = await fetch(`${baseUrl}/api/shaping-report`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ user_id: uid, mbti: mbti ?? null, language }),
+  });
+  if (!res.ok) throw new Error(`Shaping report failed (${res.status})`);
+  return res.json();
+}
+
 /** 算一批书的 Mirror Score（这本书有没有帮到这个人，0-100）。失败返回空。 */
 export async function fetchMirrorScores(
   profile: UserProfile,

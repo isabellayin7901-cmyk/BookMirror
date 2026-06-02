@@ -50,6 +50,11 @@ class UserProfile(BaseModel):
     gender: Optional[Literal["female", "male", "other"]] = None
     # 小镜子聊天积累的心理画像（可选）。有就让荐书更贴近用户真实状态。
     mirror_portrait: str = Field("", max_length=1200)
+    # 职业 / 专业 / 简介（可选）；major_relevant=True 时荐书会侧重专业相关。
+    occupation: str = Field("", max_length=60)
+    major: str = Field("", max_length=60)
+    major_relevant: bool = False
+    bio: str = Field("", max_length=300)
 
 
 # ---------- Book ----------

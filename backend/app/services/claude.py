@@ -212,6 +212,12 @@ def _build_user_prompt_zh(profile: UserProfile, candidates: list[Book]) -> str:
         f"- 阅读偏好：{prefs_zh}，深度倾向 {profile.depth}/10\n"
         f"- 当前问题：{problems_zh}\n"
         f"- 用户自述：\"{profile.free_text}\"\n"
+        + (f"- 职业：{profile.occupation}\n" if profile.occupation else "")
+        + (f"- 专业：{profile.major}\n" if profile.major else "")
+        + (f"- 个人简介：{profile.bio}\n" if profile.bio else "")
+        + (f"- ★该用户希望多推荐与其专业（{profile.major}）相关的书★，请在保证贴合画像的前提下，"
+           f"适当多选与其专业领域相关的书。\n"
+           if profile.major_relevant and profile.major else "")
         + (f"- 小镜子聊出来的心理画像（最贴近 ta 当下真实状态，请重点参考）：{profile.mirror_portrait}\n"
            if profile.mirror_portrait else "")
         + "\n"
@@ -288,6 +294,12 @@ def _build_user_prompt_en(profile: UserProfile, candidates: list[Book]) -> str:
         f"- Reading Preferences: {prefs_en}, depth preference {profile.depth}/10\n"
         f"- Current Challenges: {problems_en}\n"
         f"- User Notes: \"{profile.free_text}\"\n"
+        + (f"- Occupation: {profile.occupation}\n" if profile.occupation else "")
+        + (f"- Field of study: {profile.major}\n" if profile.major else "")
+        + (f"- Bio: {profile.bio}\n" if profile.bio else "")
+        + (f"- ★This user wants more books related to their field ({profile.major})★; while staying true to "
+           f"their portrait, lean toward a few books relevant to that field.\n"
+           if profile.major_relevant and profile.major else "")
         + (f"- Psychological portrait from Little Mirror chats (closest to their REAL current state, weigh it heavily): {profile.mirror_portrait}\n"
            if profile.mirror_portrait else "")
         + "\n"

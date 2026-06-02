@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -26,9 +26,22 @@ export function ProfileScreen({ navigation }: Props) {
     await storage.setUserProfile(next);
   };
 
+  // 局部更新一个字段（输入时只改本地 state，失焦时落库）
+  const setField = (patch: Partial<UserProfile>) =>
+    setProfile((p) => (p ? { ...p, ...patch } : p));
+  const persist = async () => {
+    if (profile) await storage.setUserProfile(profile);
+  };
+  const toggleMajorRelevant = async () => {
+    if (!profile) return;
+    const next: UserProfile = { ...profile, major_relevant: !profile.major_relevant };
+    setProfile(next);
+    await storage.setUserProfile(next);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={{ padding: spacing.lg }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>{t('settings.profile')}</Text>
 
         {/* 性别 */}
@@ -55,6 +68,45 @@ export function ProfileScreen({ navigation }: Props) {
           })}
         </View>
 
+        {/* 职业 / 专业 / 简介 */}
+        <Text style={styles.sectionLabel}>{t('profile.occupation')}</Text>
+        <TextInput
+          style={styles.input}
+          value={profile?.occupation ?? ''}
+          onChangeText={(s) => setField({ occupation: s.slice(0, 60) })}
+          onBlur={persist}
+          placeholder={t('profile.occupationPlaceholder')}
+          placeholderTextColor={colors.textFaint}
+        />
+
+        <Text style={styles.sectionLabel}>{t('profile.major')}</Text>
+        <TextInput
+          style={styles.input}
+          value={profile?.major ?? ''}
+          onChangeText={(s) => setField({ major: s.slice(0, 60) })}
+          onBlur={persist}
+          placeholder={t('profile.majorPlaceholder')}
+          placeholderTextColor={colors.textFaint}
+        />
+
+        <Pressable style={styles.toggleRow} onPress={toggleMajorRelevant}>
+          <Text style={styles.toggleLabel}>{t('profile.majorRelevant')}</Text>
+          <View style={[styles.switch, profile?.major_relevant && styles.switchOn]}>
+            <View style={[styles.knob, profile?.major_relevant && styles.knobOn]} />
+          </View>
+        </Pressable>
+
+        <Text style={styles.sectionLabel}>{t('profile.bio')}</Text>
+        <TextInput
+          style={[styles.input, styles.bioInput]}
+          value={profile?.bio ?? ''}
+          onChangeText={(s) => setField({ bio: s.slice(0, 300) })}
+          onBlur={persist}
+          multiline
+          placeholder={t('profile.bioPlaceholder')}
+          placeholderTextColor={colors.textFaint}
+        />
+
         {/* 你的星空 */}
         <Text style={styles.sectionLabel}>{t('account.yourStars')}</Text>
         {profile?.zodiac ? (
@@ -76,7 +128,7 @@ export function ProfileScreen({ navigation }: Props) {
             <Text style={styles.chevron}>›</Text>
           </Pressable>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -116,4 +168,28 @@ const styles = StyleSheet.create({
     fontFamily: 'ZCOOLKuaiLe_400Regular',
   },
   chevron: { color: colors.textMuted, fontSize: 22, marginLeft: spacing.sm },
+  input: {
+    marginTop: spacing.sm,
+    minHeight: 46,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    fontSize: 15,
+  },
+  bioInput: { minHeight: 80, textAlignVertical: 'top' },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
+  },
+  toggleLabel: { ...typography.body, color: colors.text, flex: 1 },
+  switch: { width: 48, height: 28, borderRadius: 14, backgroundColor: colors.border, padding: 3, justifyContent: 'center' },
+  switchOn: { backgroundColor: colors.success },
+  knob: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff' },
+  knobOn: { alignSelf: 'flex-end' },
 });

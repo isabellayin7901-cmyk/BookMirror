@@ -98,6 +98,14 @@ export function SettingsScreen({ navigation }: Props) {
           <Text style={styles.infoLabel}>{t('settings.loginMethod')}</Text>
           <Text style={styles.infoValue}>{loginMethodLabel()}</Text>
         </View>
+        {!me && (
+          <Pressable
+            onPress={() => navigation.navigate('Auth', { onboarding: false })}
+            style={({ pressed }) => [styles.loginBtn, pressed && { opacity: 0.9 }]}
+          >
+            <Text style={styles.loginText}>{t('settings.login')}</Text>
+          </Pressable>
+        )}
 
         <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
         <View style={styles.row}>
@@ -239,4 +247,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutText: { color: '#fff', fontWeight: '700' },
+  loginBtn: {
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.terracotta,
+    alignItems: 'center',
+  },
+  loginText: { color: '#fff', fontWeight: '700' },
 });

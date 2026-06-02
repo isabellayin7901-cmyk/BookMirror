@@ -125,11 +125,27 @@ export function MirrorChatScreen() {
         context: buildContext(),
         language: lang,
       });
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: reply, created_at: new Date().toISOString(), book: book ?? null },
-      ]);
+      // 逐条冒泡，像真人连发好几条短消息（生成完一次性拿到，再分条显示）；
+      // 期间保留底部「正在输入」点点，到最后一条才收起。
+      const parts = reply.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+      const finalParts = parts.length > 0 ? parts : [reply];
+      for (let i = 0; i < finalParts.length; i++) {
+        if (i > 0) await new Promise((r) => setTimeout(r, 550));
+        const isLast = i === finalParts.length - 1;
+        if (isLast) setSending(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: finalParts[i],
+            created_at: new Date().toISOString(),
+            book: isLast ? (book ?? null) : null,
+          },
+        ]);
+        scrollToEnd();
+      }
     } catch {
+      setSending(false);
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: t('mirror.errorReply'), created_at: new Date().toISOString() },

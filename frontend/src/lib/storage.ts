@@ -120,7 +120,11 @@ export const storage = {
   setRecommendSignature: (sig: string) => setJSON(KEYS.recommendSig, sig),
 
   getUserProfile: () => getJSON<UserProfile | null>(KEYS.userProfile, null),
-  setUserProfile: (p: UserProfile) => setJSON(KEYS.userProfile, p),
+  setUserProfile: async (p: UserProfile) => {
+    await setJSON(KEYS.userProfile, p);
+    // 写档案时顺手同步到账号（跨设备恢复）；失败忽略，不阻塞本地。
+    import('./api').then((m) => m.uploadAccountProfile(p)).catch(() => {});
+  },
 
   /** 取（必要时生成）匿名用户 ID，用于小镜子后端持久化。登录后会被账号 user_id 覆盖。 */
   getUserId: async (): Promise<string> => {

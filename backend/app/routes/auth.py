@@ -8,10 +8,12 @@
 social（apple/google/wechat）目前只占位，待接入真实凭证后实现。
 """
 
+import json
 import logging
 import secrets
 import re
 from datetime import datetime, timedelta
+from typing import Any
 
 import httpx
 from fastapi import APIRouter, Header, HTTPException
@@ -19,7 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, delete
 
 from app.config import settings
-from app.db import SessionLocal, User, AuthToken, PhoneOtp, init_db, _now
+from app.db import SessionLocal, User, AuthToken, PhoneOtp, AccountProfile, init_db, _now
 
 
 def _utcnow_naive() -> datetime:
@@ -249,5 +251,46 @@ def me(authorization: str = Header(default="")):
             country_code=user.country_code,
             provider=user.provider,
         )
+    finally:
+        session.close()
+
+
+# ---------- 账号档案同步（跨设备恢复 性别/星座/MBTI/用户名 等） ----------
+
+class AccountProfileIn(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=64)
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+class AccountProfileOut(BaseModel):
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post("/account-profile", response_model=AccountProfileOut)
+def upsert_account_profile(payload: AccountProfileIn):
+    session = SessionLocal()
+    try:
+        row = session.get(AccountProfile, payload.user_id)
+        if row is None:
+            row = AccountProfile(user_id=payload.user_id)
+            session.add(row)
+        row.data = json.dumps(payload.data, ensure_ascii=False)
+        session.commit()
+        return AccountProfileOut(data=payload.data)
+    finally:
+        session.close()
+
+
+@router.get("/account-profile", response_model=AccountProfileOut)
+def get_account_profile(user_id: str):
+    session = SessionLocal()
+    try:
+        row = session.get(AccountProfile, user_id)
+        if row is None:
+            return AccountProfileOut(data={})
+        try:
+            return AccountProfileOut(data=json.loads(row.data or "{}"))
+        except Exception:
+            return AccountProfileOut(data={})
     finally:
         session.close()

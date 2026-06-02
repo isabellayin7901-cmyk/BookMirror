@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -34,6 +35,7 @@ import {
 import type { Book, BookRecommendation, RootStackParamList } from '../types';
 
 const SCREEN_H = Dimensions.get('window').height;
+const SCREEN_W = Dimensions.get('window').width;
 
 interface Props {
   visible: boolean;
@@ -47,10 +49,42 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
   const { t, lang } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [canReview, setCanReview] = useState(false);
-  const translateY = useRef(new Animated.Value(SCREEN_H)).current;
+  // 全屏页：从右滑入（x: SCREEN_W → 0）；可向左/右/上滑出（下方留给滚动）
+  const pan = useRef(new Animated.ValueXY({ x: SCREEN_W, y: 0 })).current;
   const fade = useRef(new Animated.Value(0)).current;
+  const scrollYRef = useRef(0);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const [isFav, setIsFav] = useState(false);
   const heartScale = useRef(new Animated.Value(1)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) => {
+        const horiz = Math.abs(g.dx) > Math.abs(g.dy) && Math.abs(g.dx) > 18;
+        const up = g.dy < -18 && Math.abs(g.dy) > Math.abs(g.dx) && scrollYRef.current <= 0;
+        return horiz || up;
+      },
+      onPanResponderMove: (_e, g) => {
+        // 只跟随 左/右/上，不允许向下（下方是滚动）
+        pan.setValue({ x: g.dx, y: g.dy < 0 ? g.dy : 0 });
+      },
+      onPanResponderRelease: (_e, g) => {
+        const TH = 110;
+        const flingX = Math.abs(g.dx) > TH;
+        const flingUp = g.dy < -TH && Math.abs(g.dy) > Math.abs(g.dx);
+        if (flingX || flingUp) {
+          const toX = flingX ? (g.dx > 0 ? SCREEN_W : -SCREEN_W) : 0;
+          const toY = flingUp && !flingX ? -SCREEN_H : 0;
+          Animated.timing(pan, { toValue: { x: toX, y: toY }, duration: 200, useNativeDriver: true })
+            .start(() => onCloseRef.current());
+          Animated.timing(fade, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+        } else {
+          Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: true, bounciness: 4 }).start();
+        }
+      },
+    }),
+  ).current;
 
   useEffect(() => {
     if (book && visible) {
@@ -72,35 +106,28 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
 
   useEffect(() => {
     if (visible) {
+      pan.setValue({ x: SCREEN_W, y: 0 });
       Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 320,
+        Animated.timing(pan, {
+          toValue: { x: 0, y: 0 },
+          duration: 300,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-        Animated.timing(fade, {
-          toValue: 0.5,
-          duration: 320,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fade, { toValue: 0.5, duration: 300, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: SCREEN_H,
-          duration: 260,
+        Animated.timing(pan, {
+          toValue: { x: SCREEN_W, y: 0 },
+          duration: 240,
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
         }),
-        Animated.timing(fade, {
-          toValue: 0,
-          duration: 260,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fade, { toValue: 0, duration: 240, useNativeDriver: true }),
       ]).start();
     }
-  }, [visible, translateY, fade]);
+  }, [visible, pan, fade]);
 
   if (!book) return null;
 
@@ -109,13 +136,14 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
   return (
     <Modal transparent visible={visible} onRequestClose={onClose} animationType="none">
       <View style={styles.root}>
-        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: fade }]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: fade }]} pointerEvents="none" />
 
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
-          <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-            {/* 顶部抓手 */}
+        <Animated.View
+          style={[styles.sheet, { transform: [{ translateX: pan.x }, { translateY: pan.y }] }]}
+          {...panResponder.panHandlers}
+        >
+          <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+            {/* 顶部抓手（提示可下滑外的方向滑出） */}
             <View style={styles.handleWrap}>
               <View style={styles.handle} />
             </View>
@@ -127,7 +155,11 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
                 <Text style={styles.fullLoadingText}>{t('modal.whyLoading')}</Text>
               </View>
             ) : (
-            <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
+            <ScrollView
+              contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+              scrollEventThrottle={16}
+              onScroll={(e) => { scrollYRef.current = e.nativeEvent.contentOffset.y; }}
+            >
               {/* 封面 + 标题 */}
               <View style={styles.titleSection}>
                 {book.cover_url ? (
@@ -500,15 +532,12 @@ function Section({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'flex-end' },
+  root: { flex: 1 },
   sheet: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.bg,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: SCREEN_H * 0.88,
-    minHeight: SCREEN_H * 0.6,
   },
-  handleWrap: { alignItems: 'center', paddingVertical: 12 },
+  handleWrap: { alignItems: 'center', paddingVertical: 8 },
   handle: { width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border },
 
   titleSection: { flexDirection: 'row' },

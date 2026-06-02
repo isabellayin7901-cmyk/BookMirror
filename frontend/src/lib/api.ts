@@ -501,6 +501,61 @@ export async function verifyPhoneCode(
   return res.json();
 }
 
+// ---------- 账号档案同步（性别/星座/MBTI/用户名 等，跨设备恢复） ----------
+
+const SYNCED_KEYS: (keyof UserProfile)[] = [
+  'username', 'gender', 'mbti', 'mbti_source', 'occupation', 'major',
+  'major_relevant', 'bio', 'zodiac', 'birthday', 'goals', 'preferences',
+  'problems', 'depth', 'free_text', 'language',
+];
+
+/** 把本地档案上传到账号（best-effort，失败忽略）。 */
+export async function uploadAccountProfile(profile: UserProfile): Promise<void> {
+  try {
+    const { storage } = await import('./storage');
+    const uid = await storage.getUserId();
+    if (!uid) return;
+    const data: Record<string, unknown> = {};
+    for (const k of SYNCED_KEYS) {
+      if (profile[k] !== undefined) data[k] = profile[k];
+    }
+    await fetch(`${baseUrl}/api/account-profile`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ user_id: uid, data }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 从账号拉取档案。 */
+export async function fetchAccountProfile(): Promise<Partial<UserProfile>> {
+  try {
+    const { storage } = await import('./storage');
+    const uid = await storage.getUserId();
+    if (!uid) return {};
+    const res = await fetch(`${baseUrl}/api/account-profile?user_id=${encodeURIComponent(uid)}`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) return {};
+    const json = await res.json();
+    return (json.data ?? {}) as Partial<UserProfile>;
+  } catch {
+    return {};
+  }
+}
+
+/** 拉取账号档案并合并进本地（本地优先，避免覆盖本机较新的修改）。 */
+export async function hydrateAccountProfile(): Promise<void> {
+  const remote = await fetchAccountProfile();
+  if (!remote || Object.keys(remote).length === 0) return;
+  const { storage } = await import('./storage');
+  const local = await storage.getUserProfile();
+  const merged = { ...remote, ...(local ?? {}) } as UserProfile;
+  await storage.setUserProfile(merged);
+}
+
 export interface MeResult {
   user_id: string;
   phone?: string | null;

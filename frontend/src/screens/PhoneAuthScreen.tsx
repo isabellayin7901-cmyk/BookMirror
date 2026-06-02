@@ -75,6 +75,13 @@ export function PhoneAuthScreen({ navigation, route }: Props) {
       const res = await verifyPhoneCode(country.dial, phone, c);
       await storage.setAuthToken(res.token);
       await storage.setUserId(res.user_id);
+      // 登录后：有本地档案就推到账号，没有就从账号拉取（跨设备恢复）。
+      try {
+        const { uploadAccountProfile, hydrateAccountProfile } = await import('../lib/api');
+        const local = await storage.getUserProfile();
+        if (local) await uploadAccountProfile(local);
+        else await hydrateAccountProfile();
+      } catch { /* best-effort */ }
       // 登录成功 → 进入 MBTI 等引导（覆盖式跳转，避免返回回登录页）。
       navigation.replace('Quiz', { onboarding });
     } catch (e) {

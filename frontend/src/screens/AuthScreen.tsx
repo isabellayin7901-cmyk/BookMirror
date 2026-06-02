@@ -58,6 +58,12 @@ export function AuthScreen({ navigation, route }: Props) {
       const res = await googleLogin(idToken);
       await storage.setAuthToken(res.token);
       await storage.setUserId(res.user_id);
+      try {
+        const { uploadAccountProfile, hydrateAccountProfile } = await import('../lib/api');
+        const local = await storage.getUserProfile();
+        if (local) await uploadAccountProfile(local);
+        else await hydrateAccountProfile();
+      } catch { /* best-effort */ }
       navigation.replace('Quiz', { onboarding });
     } catch (e: any) {
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) {

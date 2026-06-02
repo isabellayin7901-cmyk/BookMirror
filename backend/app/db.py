@@ -109,6 +109,19 @@ class ReadingStatus(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
+class AccountProfile(Base):
+    """账号档案同步：性别/星座/MBTI/用户名/职业等，按账号存，跨设备恢复。
+
+    存为 JSON，字段跟前端 UserProfile 对齐（不含设备本地的头像 URI）。
+    """
+
+    __tablename__ = "account_profiles"
+
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    data: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
 class MirrorProfile(Base):
     """A rolling psychological portrait distilled from the conversation."""
 

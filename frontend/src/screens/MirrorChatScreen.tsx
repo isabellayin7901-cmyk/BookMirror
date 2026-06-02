@@ -130,7 +130,11 @@ export function MirrorChatScreen() {
       const parts = reply.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
       const finalParts = parts.length > 0 ? parts : [reply];
       for (let i = 0; i < finalParts.length; i++) {
-        if (i > 0) await new Promise((r) => setTimeout(r, 550));
+        if (i > 0) {
+          // 温和、像真人打字：停顿随这一条的长度增加（越长越久），整体放慢。
+          const delay = Math.min(2400, 900 + finalParts[i].length * 45);
+          await new Promise((r) => setTimeout(r, delay));
+        }
         const isLast = i === finalParts.length - 1;
         if (isLast) setSending(false);
         setMessages((prev) => [

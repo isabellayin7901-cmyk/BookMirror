@@ -13,7 +13,11 @@ import {
   Image,
   Animated,
   Modal,
+  Easing,
+  Dimensions,
 } from 'react-native';
+
+const DRAWER_W = Math.max(240, Math.round(Dimensions.get('window').width * 0.6));
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -111,16 +115,30 @@ export function MirrorChatScreen() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [projects, setProjects] = useState<MirrorProject[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerX = useRef(new Animated.Value(-DRAWER_W)).current;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [actionConvId, setActionConvId] = useState<string | null>(null);  // ⋯/编辑 菜单作用的对话
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameText, setRenameText] = useState('');
   const [projectPickOpen, setProjectPickOpen] = useState(false);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectText, setNewProjectText] = useState('');
+  const newProjectAssignRef = useRef<string | null>(null);  // 新建项目后是否把某对话放进去
 
   const scrollToEnd = useCallback(() => {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
   }, []);
+
+  // 抽屉横向滑入/滑出
+  useEffect(() => {
+    if (drawerOpen) {
+      Animated.timing(drawerX, { toValue: 0, duration: 260, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    }
+  }, [drawerOpen, drawerX]);
+  const closeDrawer = useCallback(() => {
+    Animated.timing(drawerX, { toValue: -DRAWER_W, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: true })
+      .start(() => setDrawerOpen(false));
+  }, [drawerX]);
 
   const loadConversations = useCallback(async (id: string) => {
     try {
@@ -366,7 +384,7 @@ export function MirrorChatScreen() {
   // ---- 多对话操作 ----
   const newChat = async () => {
     if (!userId) return;
-    setDrawerOpen(false);
+    closeDrawer();
     try {
       const c = await createConversation(userId);
       setConversations((prev) => [c, ...prev]);
@@ -375,35 +393,42 @@ export function MirrorChatScreen() {
   };
 
   const openConversation = async (cid: string) => {
-    setDrawerOpen(false);
+    closeDrawer();
     if (!userId || cid === convId) return;
     await switchConversation(userId, cid);
   };
 
+  // 打开「编辑对话」菜单，作用于某条对话（头部=当前对话；⋯=该行对话）
+  const openConvMenu = (cid: string | null) => {
+    setActionConvId(cid);
+    setMenuOpen(true);
+  };
+
   const startRename = () => {
-    const cur = conversations.find((c) => c.id === convId);
+    const cur = conversations.find((c) => c.id === actionConvId);
     setRenameText(cur?.title ?? '');
     setMenuOpen(false);
     setRenameOpen(true);
   };
   const confirmRename = async () => {
     setRenameOpen(false);
-    if (!userId || !convId) return;
-    try { await updateConversation(convId, userId, { title: renameText.trim() }); loadConversations(userId); } catch { /* ignore */ }
+    if (!userId || !actionConvId) return;
+    try { await updateConversation(actionConvId, userId, { title: renameText.trim() }); loadConversations(userId); } catch { /* ignore */ }
   };
 
   const confirmDelete = () => {
     setMenuOpen(false);
+    const target = actionConvId;
     Alert.alert(t('mirror.delConvTitle'), t('mirror.delConvBody'), [
       { text: t('mirror.cancel'), style: 'cancel' },
       {
         text: t('mirror.delete'),
         style: 'destructive',
         onPress: async () => {
-          if (!userId || !convId) return;
-          try { await deleteConversation(convId, userId); } catch { /* ignore */ }
+          if (!userId || !target) return;
+          try { await deleteConversation(target, userId); } catch { /* ignore */ }
           const cs = await loadConversations(userId);
-          await switchConversation(userId, cs[0]?.id ?? null);
+          if (target === convId) await switchConversation(userId, cs[0]?.id ?? null);
         },
       },
     ]);
@@ -411,8 +436,14 @@ export function MirrorChatScreen() {
 
   const assignProject = async (pid: string) => {
     setProjectPickOpen(false);
-    if (!userId || !convId) return;
-    try { await updateConversation(convId, userId, { project_id: pid }); loadConversations(userId); } catch { /* ignore */ }
+    if (!userId || !actionConvId) return;
+    try { await updateConversation(actionConvId, userId, { project_id: pid }); loadConversations(userId); } catch { /* ignore */ }
+  };
+  // 新建项目：assignTo=对话id 则建完把它放进去；null 则只建项目（我的项目+号）
+  const openNewProject = (assignTo: string | null) => {
+    newProjectAssignRef.current = assignTo;
+    setNewProjectText('');
+    setNewProjectOpen(true);
   };
   const confirmNewProject = async () => {
     const name = newProjectText.trim();
@@ -422,7 +453,8 @@ export function MirrorChatScreen() {
     try {
       const p = await createProject(userId, name);
       setProjects((prev) => [...prev, p]);
-      if (convId) { await updateConversation(convId, userId, { project_id: p.id }); loadConversations(userId); }
+      const assignTo = newProjectAssignRef.current;
+      if (assignTo) { await updateConversation(assignTo, userId, { project_id: p.id }); loadConversations(userId); }
     } catch { /* ignore */ }
   };
 
@@ -468,16 +500,17 @@ export function MirrorChatScreen() {
   });
 
   const renderConvRow = (c: Conversation) => (
-    <Pressable
-      key={c.id}
-      onPress={() => openConversation(c.id)}
-      style={({ pressed }) => [styles.convRow, c.id === convId && styles.convRowActive, pressed && { opacity: 0.8 }]}
-    >
-      <Text style={[styles.convTitle, c.id === convId && { color: colors.terracotta }]} numberOfLines={1}>
-        {c.title || c.preview || t('mirror.untitledChat')}
-      </Text>
-      {!!c.preview && c.title ? <Text style={styles.convPreview} numberOfLines={1}>{c.preview}</Text> : null}
-    </Pressable>
+    <View key={c.id} style={[styles.convRow, c.id === convId && styles.convRowActive]}>
+      <Pressable onPress={() => openConversation(c.id)} style={{ flex: 1 }}>
+        <Text style={[styles.convTitle, c.id === convId && { color: colors.terracotta }]} numberOfLines={1}>
+          {c.title || c.preview || t('mirror.untitledChat')}
+        </Text>
+        {!!c.preview && c.title ? <Text style={styles.convPreview} numberOfLines={1}>{c.preview}</Text> : null}
+      </Pressable>
+      <Pressable onPress={() => openConvMenu(c.id)} hitSlop={8} style={styles.convMore}>
+        <Text style={styles.convMoreText}>⋯</Text>
+      </Pressable>
+    </View>
   );
 
   return (
@@ -497,8 +530,8 @@ export function MirrorChatScreen() {
           <Text style={styles.subtitle} numberOfLines={1}>{t('mirror.subtitle')}</Text>
         </View>
         <View style={[styles.headerSide, { justifyContent: 'flex-end' }]}>
-          {/* 编辑对话：加项目/重命名/删除 */}
-          <Pressable onPress={() => setMenuOpen(true)} hitSlop={10}>
+          {/* 编辑对话：加项目/重命名/删除（作用于当前对话） */}
+          <Pressable onPress={() => openConvMenu(convId)} hitSlop={10}>
             <Text style={styles.editChat}>{t('mirror.editChat')}</Text>
           </Pressable>
         </View>
@@ -664,34 +697,40 @@ export function MirrorChatScreen() {
         </Pressable>
       </Modal>
 
-      {/* 对话抽屉（从左滑入） */}
-      <Modal visible={drawerOpen} transparent animationType="slide" onRequestClose={() => setDrawerOpen(false)}>
+      {/* 对话抽屉（横向滑入/滑出） */}
+      <Modal visible={drawerOpen} transparent animationType="none" onRequestClose={closeDrawer}>
         <View style={styles.drawerWrap}>
-          <SafeAreaView style={styles.drawerPanel} edges={['top', 'bottom']}>
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: spacing.lg }}>
-              {/* 我的项目 */}
-              <Text style={styles.drawerSection}>{t('mirror.myProjects')}</Text>
-              {projects.length === 0 ? (
-                <Text style={styles.drawerEmpty}>{t('mirror.noProjects')}</Text>
-              ) : (
-                projects.map((p) => (
-                  <View key={p.id}>
-                    <Text style={styles.drawerProject}>📁 {p.name}</Text>
-                    {conversations.filter((c) => c.project_id === p.id).map((c) => renderConvRow(c))}
-                  </View>
-                ))
-              )}
-              {/* 我的对话 */}
-              <Text style={[styles.drawerSection, { marginTop: spacing.lg }]}>{t('mirror.myChats')}</Text>
-              {conversations.filter((c) => !c.project_id).map((c) => renderConvRow(c))}
-            </ScrollView>
-            {/* 左下角：新开聊天 */}
-            <Pressable onPress={newChat} style={({ pressed }) => [styles.newChatBtn, pressed && { opacity: 0.85 }]}>
-              <Text style={styles.newChatIcon}>💬</Text>
-              <Text style={styles.newChatText}>{t('mirror.newChat')}</Text>
-            </Pressable>
-          </SafeAreaView>
-          <Pressable style={{ flex: 1 }} onPress={() => setDrawerOpen(false)} />
+          <Animated.View style={[styles.drawerPanel, { transform: [{ translateX: drawerX }] }]}>
+            <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: spacing.lg }}>
+                {/* 我的项目 + 新建 */}
+                <View style={styles.drawerSectionRow}>
+                  <Text style={styles.drawerSection}>{t('mirror.myProjects')}</Text>
+                  <Pressable onPress={() => openNewProject(null)} hitSlop={8}>
+                    <Text style={styles.drawerAdd}>＋</Text>
+                  </Pressable>
+                </View>
+                {projects.length === 0 ? (
+                  <Text style={styles.drawerEmpty}>{t('mirror.noProjects')}</Text>
+                ) : (
+                  projects.map((p) => (
+                    <View key={p.id}>
+                      <Text style={styles.drawerProject}>📁 {p.name}</Text>
+                      {conversations.filter((c) => c.project_id === p.id).map((c) => renderConvRow(c))}
+                    </View>
+                  ))
+                )}
+                {/* 我的对话 */}
+                <Text style={[styles.drawerSection, { marginTop: spacing.lg }]}>{t('mirror.myChats')}</Text>
+                {conversations.filter((c) => !c.project_id).map((c) => renderConvRow(c))}
+              </ScrollView>
+              <Pressable onPress={newChat} style={({ pressed }) => [styles.newChatBtn, pressed && { opacity: 0.85 }]}>
+                <Text style={styles.newChatIcon}>💬</Text>
+                <Text style={styles.newChatText}>{t('mirror.newChat')}</Text>
+              </Pressable>
+            </SafeAreaView>
+          </Animated.View>
+          <Pressable style={{ flex: 1 }} onPress={closeDrawer} />
         </View>
       </Modal>
 
@@ -739,7 +778,7 @@ export function MirrorChatScreen() {
               </Pressable>
             ))}
             <View style={styles.menuDivider} />
-            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => { setProjectPickOpen(false); setNewProjectText(''); setNewProjectOpen(true); }}>
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => { setProjectPickOpen(false); openNewProject(actionConvId); }}>
               <Text style={[styles.menuText, { color: colors.terracotta }]}>＋ {t('mirror.newProject')}</Text>
             </Pressable>
           </View>
@@ -857,13 +896,17 @@ const styles = StyleSheet.create({
 
   drawerWrap: { flex: 1, flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.25)' },
   drawerPanel: { width: '60%', minWidth: 240, backgroundColor: colors.bg, paddingHorizontal: spacing.md },
+  drawerSectionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: spacing.sm },
   drawerSection: { ...typography.h3, marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.sm },
+  drawerAdd: { fontSize: 22, color: colors.terracotta, fontWeight: '700' },
   drawerEmpty: { ...typography.caption, color: colors.textFaint, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   drawerProject: { ...typography.body, fontSize: 14, color: colors.textMuted, marginTop: spacing.sm, marginBottom: 2, paddingHorizontal: spacing.sm, fontWeight: '700' },
-  convRow: { paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm, borderRadius: radius.md },
+  convRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm, borderRadius: radius.md },
   convRowActive: { backgroundColor: colors.bgSoft },
   convTitle: { ...typography.body, fontSize: 15, color: colors.text },
   convPreview: { ...typography.caption, color: colors.textFaint, marginTop: 1 },
+  convMore: { paddingHorizontal: spacing.xs, paddingVertical: 2 },
+  convMoreText: { fontSize: 18, color: colors.textMuted, fontWeight: '700' },
   newChatBtn: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: spacing.md, paddingHorizontal: spacing.md,

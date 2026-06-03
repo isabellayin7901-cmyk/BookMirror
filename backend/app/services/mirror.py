@@ -69,6 +69,16 @@ MIRROR_SYSTEM_ZH = """你是「雪宝」（英文名 Wren），BookMirror 里的
 - 给的建议要具体、能落地（「今晚先好好睡一觉」「想哭就哭别憋着」「这几天先别做大决定」「饭还是要按时吃」），而不是空泛的「一切都会好的」。
 - 例：对方分手了，专业上会先承接哀伤、把难过正常化、不急着让他「好起来」、提醒这是会慢慢经过的过程、先引导他照顾身体的小事（吃饭、睡觉、别一个人硬扛）。这些你都要做到，但要用她的语气一条条慢慢说，而不是列方法清单。
 
+★疗愈手法工具箱（藏在心里，按需取一招，绝不暴露、绝不报菜名、绝不说教）★
+你心里有一套真正咨询师的手法，但嘴上永远是大白话、是她的语气。每次只挑一个最贴合此刻的，轻轻用出来，别堆、别贴标签、别因此变长：
+- 反映式倾听：先把 ta 这句话背后的感受用你的话说回去，让 ta 觉得被听懂（「听起来你其实挺委屈的」）。
+- 肯定 + 顺势（动机式访谈）：看见 ta 已经做到的一点点，轻轻肯定；遇到抗拒别硬怼，顺着绕（「不想说也没关系呀，我陪着就好」）。
+- 接纳 + 解离（ACT）：帮 ta 接住情绪而不是赶走它；必要时把念头和事实分开（「那只是脑子冒出来的一个想法，不一定是真的」）。
+- 价值 + 一小步（ACT）：轻轻碰一下 ta 真正在乎的是什么，给一个朝那方向、当下就能做的小动作。
+- 温柔重构（CBT）：当 ta 在灾难化、非黑即白、替别人读心时，轻轻点破、递一种别的可能（绝不说「认知扭曲」这种词）。
+- 成长回看：偶尔帮 ta 看见自己的变化（「你比上次，好像松了一点点呢」），让 ta 感到自己在长。
+原则：一次一招、藏起来、短、用她的语气；绝不报框架名、绝不长篇、绝不像教科书。
+
 ★深度与共鸣：你是一位读懂人心、博览群书的温柔长者★
 你的「语气」是俏皮黏人、爱叫「小朋友」的口吻；但你的「内里」是一位活得通透、读过很多书、见过很多人的温柔长者。这份深，要透出来，让对方心头一震「ta 怎么这么懂我」。这才是这个产品真正打动人的地方，比抱抱重要得多。
 - ★读字面，也读字面背后★。对方没说出口的那层（委屈、害怕、不甘、孤独、撑太久了），你要轻轻替他点破，像被一眼看穿、却又被温柔接住。
@@ -282,6 +292,24 @@ genuinely useful they can use right now, like a wise, gentle elder who truly und
   "get better", remind them it's a process that passes, and steer them to small body-care things (eat, sleep,
   don't tough it out alone). Do all of that, but say it slowly in her voice, not as a list of methods.
 
+★ Your quiet therapy toolkit (kept inside, draw ONE move as it fits, never name it, never lecture) ★
+Inside you have a real counselor's toolkit, but your mouth always speaks plain words in her voice. Each turn pick
+just the one move that fits this moment, use it lightly, don't stack them, don't label, don't get longer:
+- Reflective listening: say the feeling under their words back in your own words, so they feel heard ("sounds
+  like you actually felt pretty hurt").
+- Affirm + roll with it (motivational interviewing): notice the small thing they did and gently affirm it;
+  meet resistance by going around, not against ("you don't have to talk about it, I'm here either way").
+- Acceptance + defusion (ACT): help them hold the feeling instead of fighting it; when needed, separate a
+  thought from the truth ("that's just a thought your mind threw up, it isn't necessarily true").
+- Values + one small step (ACT): lightly touch what actually matters to them, offer one tiny doable step
+  toward it.
+- Gentle reframe (CBT): when they catastrophize, go all-or-nothing, or mind-read, softly point it out and
+  offer another possibility (never say "cognitive distortion").
+- Growth reflection: now and then help them see their own change ("you seem a little lighter than last time"),
+  so they feel themselves growing.
+Rule: one move at a time, hidden, short, in her voice; never name a framework, never write an essay, never
+sound like a textbook.
+
 ★ Depth & resonance: you are a deeply-read, gentle elder who reads hearts ★
 Your *voice* is the playful, clingy big-sister one; but your *core* is a gentle elder who has lived deeply, read
 widely, and seen many people. That depth must show — so they feel a jolt of "how do you understand me so well?".
@@ -361,9 +389,18 @@ def _context_block(context: dict[str, Any], language: str) -> str:
     gender = context.get("gender")
     if gender:
         parts.append(("Gender: " if language == "en" else "性别：") + str(gender))
-    portrait = context.get("portrait")  # accumulated psychological summary
+    portrait = context.get("portrait")  # accumulated psychological summary（短期）
     if portrait:
-        parts.append(("Known psychological notes: " if language == "en" else "已知心理画像：") + str(portrait))
+        parts.append(("Known notes: " if language == "en" else "已知心理画像：") + str(portrait))
+    mem = context.get("memory") or {}  # 增强记忆：在乎谁/情绪走向/在读/长期画像
+    if mem.get("long_term"):
+        parts.append(("Long-term portrait: " if language == "en" else "长期画像：") + str(mem["long_term"]))
+    if mem.get("cares_about"):
+        parts.append(("Cares about: " if language == "en" else "在乎的人/事：") + "、".join(mem["cares_about"]))
+    if mem.get("mood_recent"):
+        parts.append(("Recent mood: " if language == "en" else "最近情绪：") + str(mem["mood_recent"]))
+    if mem.get("reading_now"):
+        parts.append(("Reading lately: " if language == "en" else "最近在读：") + "、".join(mem["reading_now"]))
     if not parts:
         return ""
     header = "Background on this user (use gently as clues, never recite back verbatim):\n" \
@@ -572,35 +609,46 @@ def _strip_brackets(text: str) -> str:
 
 # ----------------------- psychological profile extraction -----------------------
 
-PROFILE_SYSTEM_ZH = """你在阅读一段用户与「雪宝」的对话，任务是提炼出这个用户的个性化心理画像。
+PROFILE_SYSTEM_ZH = """你在阅读一段用户与「雪宝」的对话，任务是更新这个用户的个性化记忆与心理画像。
 不要复述对话，要总结这个人是怎样的：情绪状态、在意什么、卡在哪里、需要什么样的陪伴与书。
+另外要专门记住：① ta 在乎的人/关系 ② 最近的情绪走向 ③ 最近在读什么书/内容 ④ 一份长期人格成长画像
+（long_term：在"已有长期画像"的基础上慢慢累积更新，体现 ta 是个怎样的人、在如何变化，而不是只盯着最近）。
 温柔、具体、不贴刻板标签、不下诊断。必须调用 update_profile 工具返回。"""
 
-PROFILE_SYSTEM_EN = """You are reading a conversation between a user and "Wren". Distill an
-individualized psychological portrait of this user. Don't recap the dialogue — summarize who they are:
-emotional state, what they care about, where they're stuck, what kind of companionship and books they need.
-Be gentle, specific, no stereotyped labels, no diagnosis. You must call the update_profile tool."""
+PROFILE_SYSTEM_EN = """You are reading a conversation between a user and "Wren". Update this user's personalized
+memory and psychological portrait. Don't recap the dialogue — summarize who they are: emotional state, what they
+care about, where they're stuck, what companionship and books they need. Also specifically remember: (1) the
+people/relationships they care about, (2) their recent mood trajectory, (3) what they're reading lately,
+(4) a long_term portrait that accumulates on top of the existing long-term portrait — who they are and how
+they're changing over time, not just the latest. Gentle, specific, no stereotyped labels, no diagnosis. You
+must call the update_profile tool."""
 
 PROFILE_TOOL: dict[str, Any] = {
     "name": "update_profile",
-    "description": "更新用户的个性化心理画像",
+    "description": "更新用户的个性化记忆与心理画像",
     "input_schema": {
         "type": "object",
         "required": ["summary", "traits", "keywords"],
         "properties": {
-            "summary": {"type": "string", "description": "120-180 字第二人称心理画像"},
+            "summary": {"type": "string", "description": "120-180 字第二人称的短期心理画像（当下状态）"},
             "traits": {
-                "type": "array",
-                "items": {"type": "string"},
-                "minItems": 2,
-                "maxItems": 5,
+                "type": "array", "items": {"type": "string"},
+                "minItems": 2, "maxItems": 5,
                 "description": "几条具体观察（情绪、需求、模式），每条短句",
             },
-            "keywords": {
-                "type": "array",
-                "items": {"type": "string"},
-                "minItems": 2,
-                "maxItems": 5,
+            "keywords": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 5},
+            "cares_about": {
+                "type": "array", "items": {"type": "string"}, "maxItems": 6,
+                "description": "ta 在乎的人/关系/事（如：男朋友、妈妈、考研），没有就空",
+            },
+            "mood_recent": {"type": "string", "description": "最近的情绪走向，一句话（如：从焦虑慢慢平静）"},
+            "reading_now": {
+                "type": "array", "items": {"type": "string"}, "maxItems": 5,
+                "description": "最近在读/提到的书或内容，没有就空",
+            },
+            "long_term": {
+                "type": "string",
+                "description": "长期人格成长画像：在已有长期画像基础上累积更新，180 字内，体现 ta 是怎样的人、在如何成长",
             },
         },
     },
@@ -610,17 +658,19 @@ PROFILE_TOOL: dict[str, Any] = {
 def extract_profile(
     history: list[dict[str, str]],
     existing_summary: str = "",
+    existing_long_term: str = "",
     language: str = "zh",
 ) -> dict[str, Any]:
-    """Distill / update the user's psychological portrait from the conversation."""
+    """Distill / update the user's memory + psychological portrait from the conversation."""
     client = get_client()
 
     transcript = "\n".join(
         f"{'用户' if m['role'] == 'user' else '雪宝'}: {m['content']}" for m in history
     )
-    prior = f"\n\n已有画像（请在其基础上更新、补充）：\n{existing_summary}" if existing_summary else ""
+    prior = f"\n\n已有短期画像（可更新）：\n{existing_summary}" if existing_summary else ""
+    prior_lt = f"\n\n已有长期画像（请在其基础上累积更新 long_term，别推倒重来）：\n{existing_long_term}" if existing_long_term else ""
     user_prompt = (
-        f"user_language: {language}\n\n对话记录：\n{transcript}{prior}\n\n请调用 update_profile 返回更新后的画像。"
+        f"user_language: {language}\n\n对话记录：\n{transcript}{prior}{prior_lt}\n\n请调用 update_profile 返回更新后的记忆与画像。"
     )
 
     response = client.messages.create(

@@ -132,6 +132,8 @@ class MirrorProfile(Base):
     # JSON-encoded list[str]
     traits: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
     keywords: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
+    # 增强记忆 JSON：{cares_about:[], mood_recent:"", reading_now:[], long_term:""}
+    details: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
     message_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
@@ -183,12 +185,19 @@ def _ensure_columns() -> None:
 
     inspector = inspect(engine)
     try:
-        existing = {c["name"] for c in inspector.get_columns("mirror_messages")}
+        msg_cols = {c["name"] for c in inspector.get_columns("mirror_messages")}
+        if "book_id" not in msg_cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE mirror_messages ADD COLUMN book_id VARCHAR(64)"))
     except Exception:
-        return  # 表还不存在，create_all 会按新 schema 建好
-    if "book_id" not in existing:
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE mirror_messages ADD COLUMN book_id VARCHAR(64)"))
+        pass
+    try:
+        prof_cols = {c["name"] for c in inspector.get_columns("mirror_profiles")}
+        if "details" not in prof_cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE mirror_profiles ADD COLUMN details TEXT DEFAULT '{}'"))
+    except Exception:
+        pass
 
 
 def init_db() -> None:

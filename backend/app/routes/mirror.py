@@ -102,6 +102,11 @@ def mirror_chat(payload: ChatRequest, background_tasks: BackgroundTasks):
         context = dict(payload.context or {})
         if prof and prof.summary:
             context["portrait"] = prof.summary
+        if prof and getattr(prof, "details", None):
+            try:
+                context["memory"] = json.loads(prof.details or "{}")
+            except Exception:
+                pass
 
         # 基于画像，从真实书库挑候选书（供小镜子精准荐书，杜绝编造）。
         # 已推荐过的书排除，避免重复；聊了至少一轮后才开始备选。
@@ -175,21 +180,34 @@ def mirror_chat(payload: ChatRequest, background_tasks: BackgroundTasks):
 
 
 def _refresh_profile_bg(user_id: str, language: str) -> None:
-    """后台提炼/更新心理画像（独立 session，best-effort）。"""
+    """后台提炼/更新记忆与心理画像（独立 session，best-effort）。"""
     session = SessionLocal()
     try:
         prof = session.get(MirrorProfile, user_id)
         if prof is None:
             return
+        try:
+            old_details = json.loads(prof.details or "{}")
+        except Exception:
+            old_details = {}
         full = _load_history(session, user_id, HISTORY_WINDOW)
         distilled = mirror_service.extract_profile(
             history=full,
             existing_summary=prof.summary or "",
+            existing_long_term=old_details.get("long_term", ""),
             language=language,
         )
         prof.summary = distilled.get("summary", prof.summary)
         prof.traits = json.dumps(distilled.get("traits", []), ensure_ascii=False)
         prof.keywords = json.dumps(distilled.get("keywords", []), ensure_ascii=False)
+        # 增强记忆：在乎谁/情绪走向/在读/长期画像（long_term 累积更新）
+        new_details = {
+            "cares_about": distilled.get("cares_about", old_details.get("cares_about", [])),
+            "mood_recent": distilled.get("mood_recent", old_details.get("mood_recent", "")),
+            "reading_now": distilled.get("reading_now", old_details.get("reading_now", [])),
+            "long_term": distilled.get("long_term", old_details.get("long_term", "")),
+        }
+        prof.details = json.dumps(new_details, ensure_ascii=False)
         session.commit()
     except Exception:
         session.rollback()

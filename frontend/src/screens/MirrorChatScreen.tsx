@@ -47,7 +47,7 @@ function PopIn({ fromLeft, children }: { fromLeft: boolean; children: React.Reac
   const scale = v.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] });
   const translateX = v.interpolate({ inputRange: [0, 1], outputRange: [fromLeft ? -16 : 16, 0] });
   return (
-    <Animated.View style={{ opacity: v, transform: [{ scale }, { translateX }] }}>
+    <Animated.View style={{ maxWidth: '86%', opacity: v, transform: [{ scale }, { translateX }] }}>
       {children}
     </Animated.View>
   );
@@ -408,7 +408,6 @@ const styles = StyleSheet.create({
   rowLeft: { justifyContent: 'flex-start' },
   rowRight: { justifyContent: 'flex-end' },
   bubble: {
-    maxWidth: '82%',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.lg,

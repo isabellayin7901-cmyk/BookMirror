@@ -12,6 +12,7 @@ import {
   Alert,
   Image,
   Animated,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -94,6 +95,7 @@ export function MirrorChatScreen() {
   const [loading, setLoading] = useState(true);
   const [detailBook, setDetailBook] = useState<Book | null>(null);
   const [quoted, setQuoted] = useState<string | null>(null);
+  const [plusOpen, setPlusOpen] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const scrollToEnd = useCallback(() => {
@@ -218,6 +220,7 @@ export function MirrorChatScreen() {
 
   // 加号：从相册或拍照选图发给雪宝（看图）。
   const pickImage = async (fromCamera: boolean) => {
+    setPlusOpen(false);
     let ImagePicker: typeof import('expo-image-picker');
     try {
       ImagePicker = require('expo-image-picker');
@@ -249,12 +252,32 @@ export function MirrorChatScreen() {
     }
   };
 
-  const onPlus = () => {
-    Alert.alert(t('mirror.addTitle'), undefined, [
-      { text: t('mirror.fromAlbum'), onPress: () => pickImage(false) },
-      { text: t('mirror.fromCamera'), onPress: () => pickImage(true) },
-      { text: t('mirror.cancel'), style: 'cancel' },
-    ]);
+  // 文件：选任意文件；图片类直接给雪宝看图，其他类型暂提示即将上线。
+  const pickDocument = async () => {
+    setPlusOpen(false);
+    let DocumentPicker: typeof import('expo-document-picker');
+    let FileSystem: typeof import('expo-file-system');
+    try {
+      DocumentPicker = require('expo-document-picker');
+      FileSystem = require('expo-file-system');
+    } catch {
+      Alert.alert(t('mirror.needUpdate'));
+      return;
+    }
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
+      if (res.canceled || !res.assets?.[0]) return;
+      const a = res.assets[0];
+      if (a.mimeType?.startsWith('image/')) {
+        const b64 = await FileSystem.readAsStringAsync(a.uri, { encoding: 'base64' as any });
+        dispatch({ text: input.trim(), imageUri: a.uri, base64: b64, media: a.mimeType });
+        setInput('');
+      } else {
+        Alert.alert(t('mirror.fileSoon'));
+      }
+    } catch {
+      Alert.alert(t('mirror.imageFail'));
+    }
   };
 
   const onMic = () => {
@@ -457,8 +480,8 @@ export function MirrorChatScreen() {
             multiline
             onSubmitEditing={send}
           />
-          {/* 加号（图片/拍照） */}
-          <Pressable onPress={onPlus} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
+          {/* 加号（文件/相册/拍照） */}
+          <Pressable onPress={() => setPlusOpen(true)} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
             <Image source={require('../../assets/btn_plus.png')} style={styles.iconImg} />
           </Pressable>
           <Pressable
@@ -474,6 +497,29 @@ export function MirrorChatScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {/* 加号：治愈系上传菜单（文件 / 相册 / 拍照） */}
+      <Modal visible={plusOpen} transparent animationType="fade" onRequestClose={() => setPlusOpen(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setPlusOpen(false)}>
+          <View style={styles.menuCard}>
+            <Text style={styles.menuTitle}>{t('mirror.addTitle')}</Text>
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={pickDocument}>
+              <Text style={styles.menuEmoji}>📄</Text>
+              <Text style={styles.menuText}>{t('mirror.fromFile')}</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => pickImage(false)}>
+              <Text style={styles.menuEmoji}>🖼️</Text>
+              <Text style={styles.menuText}>{t('mirror.fromAlbum')}</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => pickImage(true)}>
+              <Text style={styles.menuEmoji}>📷</Text>
+              <Text style={styles.menuText}>{t('mirror.fromCamera')}</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
 
       <BookDetailModal
         visible={detailBook !== null}
@@ -532,8 +578,8 @@ const styles = StyleSheet.create({
   bubbleText: { ...typography.body, fontSize: 15, lineHeight: 22, color: colors.text },
   bubbleWithImage: { padding: 4 },
   sentImage: { width: 180, height: 180, borderRadius: 12, backgroundColor: colors.snowShade },
-  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  iconImg: { width: 32, height: 32, borderRadius: 8 },
+  iconBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  iconImg: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border },
   quoteBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -548,6 +594,22 @@ const styles = StyleSheet.create({
   quoteLine: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: colors.terracotta },
   quoteText: { flex: 1, ...typography.caption, color: colors.textMuted },
   quoteClose: { fontSize: 14, color: colors.textMuted, paddingHorizontal: 4 },
+
+  menuBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', justifyContent: 'flex-end', padding: spacing.lg, paddingBottom: spacing.xxl },
+  menuCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    ...shadow.soft,
+  },
+  menuTitle: { ...typography.caption, color: colors.textMuted, textAlign: 'center', paddingTop: spacing.md, paddingBottom: spacing.xs },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+  menuRowOn: { backgroundColor: colors.bgSoft },
+  menuEmoji: { fontSize: 20 },
+  menuText: { ...typography.body, fontSize: 16, color: colors.text },
+  menuDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.lg },
 
   bookCard: {
     flexDirection: 'row',

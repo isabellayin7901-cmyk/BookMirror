@@ -200,15 +200,61 @@ export interface MirrorChatContext {
   gender?: string;
 }
 
+export interface Conversation {
+  id: string;
+  title: string;
+  project_id?: string | null;
+  updated_at?: string | null;
+  preview?: string;
+}
+export interface MirrorProject { id: string; name: string; }
+
+/** 列出该用户的所有对话 + 项目。 */
+export async function listConversations(userId: string): Promise<{ conversations: Conversation[]; projects: MirrorProject[] }> {
+  const res = await fetch(`${baseUrl}/api/mirror/conversations?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
+  if (!res.ok) return { conversations: [], projects: [] };
+  return res.json();
+}
+export async function createConversation(userId: string, title = '', projectId?: string): Promise<Conversation> {
+  const res = await fetch(`${baseUrl}/api/mirror/conversations`, {
+    method: 'POST', headers: authHeaders(true),
+    body: JSON.stringify({ user_id: userId, title, project_id: projectId ?? null }),
+  });
+  if (!res.ok) throw new Error(`Create conversation failed (${res.status})`);
+  return res.json();
+}
+export async function updateConversation(convId: string, userId: string, patch: { title?: string; project_id?: string }): Promise<void> {
+  const res = await fetch(`${baseUrl}/api/mirror/conversations/${encodeURIComponent(convId)}`, {
+    method: 'PATCH', headers: authHeaders(true),
+    body: JSON.stringify({ user_id: userId, ...patch }),
+  });
+  if (!res.ok) throw new Error(`Update conversation failed (${res.status})`);
+}
+export async function deleteConversation(convId: string, userId: string): Promise<void> {
+  const res = await fetch(`${baseUrl}/api/mirror/conversations/${encodeURIComponent(convId)}?user_id=${encodeURIComponent(userId)}`, {
+    method: 'DELETE', headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Delete conversation failed (${res.status})`);
+}
+export async function createProject(userId: string, name: string): Promise<MirrorProject> {
+  const res = await fetch(`${baseUrl}/api/mirror/projects`, {
+    method: 'POST', headers: authHeaders(true),
+    body: JSON.stringify({ user_id: userId, name }),
+  });
+  if (!res.ok) throw new Error(`Create project failed (${res.status})`);
+  return res.json();
+}
+
 /** 发一句话/一张图给小镜子，拿回它的回复（后端持久化整段对话）。 */
 export async function mirrorChat(payload: {
   user_id: string;
   message: string;
   context?: MirrorChatContext;
   language: Language;
+  conversation_id?: string | null;
   image_base64?: string;       // 图片 base64（不含 data: 前缀）
   image_media_type?: string;   // 如 image/jpeg
-}): Promise<{ reply: string; book?: Book | null }> {
+}): Promise<{ reply: string; book?: Book | null; conversation_id?: string }> {
   const res = await fetch(`${baseUrl}/api/mirror/chat`, {
     method: 'POST',
     headers: authHeaders(true),
@@ -221,10 +267,11 @@ export async function mirrorChat(payload: {
   return res.json();
 }
 
-/** 拉取历史对话（换设备/重装后从后端恢复）。 */
-export async function fetchMirrorHistory(userId: string): Promise<MirrorMessage[]> {
+/** 拉取某段对话的历史（换设备/重装后从后端恢复）。 */
+export async function fetchMirrorHistory(userId: string, conversationId?: string | null): Promise<MirrorMessage[]> {
+  const q = conversationId ? `&conversation_id=${encodeURIComponent(conversationId)}` : '';
   const res = await fetch(
-    `${baseUrl}/api/mirror/history?user_id=${encodeURIComponent(userId)}`,
+    `${baseUrl}/api/mirror/history?user_id=${encodeURIComponent(userId)}${q}`,
     { headers: authHeaders() },
   );
   if (!res.ok) throw new Error(`Mirror history failed (${res.status})`);

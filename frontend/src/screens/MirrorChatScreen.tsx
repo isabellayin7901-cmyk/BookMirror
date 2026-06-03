@@ -27,8 +27,15 @@ import type { Book } from '../types';
 import {
   mirrorChat,
   fetchMirrorHistory,
+  listConversations,
+  createConversation,
+  updateConversation,
+  deleteConversation,
+  createProject,
   type MirrorMessage,
   type MirrorChatContext,
+  type Conversation,
+  type MirrorProject,
 } from '../lib/api';
 import type { RootStackParamList, UserProfile } from '../types';
 
@@ -99,28 +106,59 @@ export function MirrorChatScreen() {
   const [listening, setListening] = useState(false);
   const srSubsRef = useRef<boolean>(false);
   const scrollRef = useRef<ScrollView>(null);
+  // 多对话
+  const [convId, setConvId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [projects, setProjects] = useState<MirrorProject[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameText, setRenameText] = useState('');
+  const [projectPickOpen, setProjectPickOpen] = useState(false);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectText, setNewProjectText] = useState('');
 
   const scrollToEnd = useCallback(() => {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
   }, []);
 
-  // 初始化：拿用户 ID + 画像，从后端拉历史
+  const loadConversations = useCallback(async (id: string) => {
+    try {
+      const { conversations: cs, projects: ps } = await listConversations(id);
+      setConversations(cs);
+      setProjects(ps);
+      return cs;
+    } catch {
+      return [] as Conversation[];
+    }
+  }, []);
+
+  const switchConversation = useCallback(async (id: string, cid: string | null) => {
+    setConvId(cid);
+    setMessages([]);
+    setLoading(true);
+    try {
+      const history = await fetchMirrorHistory(id, cid);
+      setMessages(history);
+    } catch {
+      /* 留空靠问候语 */
+    } finally {
+      setLoading(false);
+      scrollToEnd();
+    }
+  }, [scrollToEnd]);
+
+  // 初始化：拿用户 ID + 画像 + 对话列表，加载最近一段
   useEffect(() => {
     (async () => {
       const [id, p] = await Promise.all([storage.getUserId(), storage.getUserProfile()]);
       setUserId(id);
       setProfile(p);
-      try {
-        const history = await fetchMirrorHistory(id);
-        setMessages(history);
-      } catch {
-        /* 离线/失败：留空，靠问候语兜底 */
-      } finally {
-        setLoading(false);
-        scrollToEnd();
-      }
+      const cs = await loadConversations(id);
+      const first = cs[0]?.id ?? null;
+      await switchConversation(id, first);
     })();
-  }, [scrollToEnd]);
+  }, [loadConversations, switchConversation]);
 
   const buildContext = (): MirrorChatContext => ({
     mbti: profile?.mbti,
@@ -145,14 +183,19 @@ export function MirrorChatScreen() {
     setSending(true);
     scrollToEnd();
     try {
-      const { reply, book } = await mirrorChat({
+      const resp = await mirrorChat({
         user_id: userId,
         message: apiText ?? text,
         context: buildContext(),
         language: lang,
+        conversation_id: convId,
         image_base64: base64,
         image_media_type: media,
       });
+      const { reply, book } = resp;
+      if (resp.conversation_id && resp.conversation_id !== convId) setConvId(resp.conversation_id);
+      // 发完刷新对话列表（标题/预览/排序）
+      loadConversations(userId);
       // 逐条冒泡，像真人连发好几条短消息（生成完一次性拿到，再分条显示）；
       // 期间保留底部「正在输入」点点，到最后一条才收起。
       const parts = reply.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
@@ -320,24 +363,67 @@ export function MirrorChatScreen() {
     }
   };
 
-  const confirmReset = () => {
-    Alert.alert(t('mirror.reset'), t('mirror.resetConfirm'), [
+  // ---- 多对话操作 ----
+  const newChat = async () => {
+    if (!userId) return;
+    setDrawerOpen(false);
+    try {
+      const c = await createConversation(userId);
+      setConversations((prev) => [c, ...prev]);
+      await switchConversation(userId, c.id);
+    } catch { /* ignore */ }
+  };
+
+  const openConversation = async (cid: string) => {
+    setDrawerOpen(false);
+    if (!userId || cid === convId) return;
+    await switchConversation(userId, cid);
+  };
+
+  const startRename = () => {
+    const cur = conversations.find((c) => c.id === convId);
+    setRenameText(cur?.title ?? '');
+    setMenuOpen(false);
+    setRenameOpen(true);
+  };
+  const confirmRename = async () => {
+    setRenameOpen(false);
+    if (!userId || !convId) return;
+    try { await updateConversation(convId, userId, { title: renameText.trim() }); loadConversations(userId); } catch { /* ignore */ }
+  };
+
+  const confirmDelete = () => {
+    setMenuOpen(false);
+    Alert.alert(t('mirror.delConvTitle'), t('mirror.delConvBody'), [
       { text: t('mirror.cancel'), style: 'cancel' },
       {
-        text: t('mirror.confirm'),
+        text: t('mirror.delete'),
         style: 'destructive',
         onPress: async () => {
-          if (!userId) return;
-          try {
-            const { deleteMirrorHistory } = await import('../lib/api');
-            await deleteMirrorHistory(userId);
-          } catch {
-            /* 后端删除失败也先清本地视图 */
-          }
-          setMessages([]);
+          if (!userId || !convId) return;
+          try { await deleteConversation(convId, userId); } catch { /* ignore */ }
+          const cs = await loadConversations(userId);
+          await switchConversation(userId, cs[0]?.id ?? null);
         },
       },
     ]);
+  };
+
+  const assignProject = async (pid: string) => {
+    setProjectPickOpen(false);
+    if (!userId || !convId) return;
+    try { await updateConversation(convId, userId, { project_id: pid }); loadConversations(userId); } catch { /* ignore */ }
+  };
+  const confirmNewProject = async () => {
+    const name = newProjectText.trim();
+    setNewProjectOpen(false);
+    setNewProjectText('');
+    if (!userId || !name) return;
+    try {
+      const p = await createProject(userId, name);
+      setProjects((prev) => [...prev, p]);
+      if (convId) { await updateConversation(convId, userId, { project_id: p.id }); loadConversations(userId); }
+    } catch { /* ignore */ }
   };
 
   // 没有历史时显示问候语（不入库，纯展示）；拆成两条，更像真人
@@ -381,19 +467,42 @@ export function MirrorChatScreen() {
     return { m, timeLabel, key: i };
   });
 
+  const renderConvRow = (c: Conversation) => (
+    <Pressable
+      key={c.id}
+      onPress={() => openConversation(c.id)}
+      style={({ pressed }) => [styles.convRow, c.id === convId && styles.convRowActive, pressed && { opacity: 0.8 }]}
+    >
+      <Text style={[styles.convTitle, c.id === convId && { color: colors.terracotta }]} numberOfLines={1}>
+        {c.title || c.preview || t('mirror.untitledChat')}
+      </Text>
+      {!!c.preview && c.title ? <Text style={styles.convPreview} numberOfLines={1}>{c.preview}</Text> : null}
+    </Pressable>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
-          <Text style={styles.back}>‹</Text>
-        </Pressable>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={styles.title}>🪞 {t('mirror.title')}</Text>
-          <Text style={styles.subtitle}>{t('mirror.subtitle')}</Text>
+        <View style={styles.headerSide}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+            <Text style={styles.back}>‹</Text>
+          </Pressable>
+          {/* 文件夹+：对话抽屉 */}
+          <Pressable onPress={() => { loadConversations(userId ?? ''); setDrawerOpen(true); }} hitSlop={10} style={styles.headerIconBtn}>
+            <Text style={styles.headerIcon}>🗂️</Text>
+            <Text style={styles.headerPlus}>+</Text>
+          </Pressable>
         </View>
-        <Pressable onPress={confirmReset} hitSlop={12}>
-          <Text style={styles.reset}>{t('mirror.reset')}</Text>
-        </Pressable>
+        <View style={{ alignItems: 'center', flex: 1 }}>
+          <Text style={styles.title} numberOfLines={1}>🪞 {t('mirror.title')}</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>{t('mirror.subtitle')}</Text>
+        </View>
+        <View style={[styles.headerSide, { justifyContent: 'flex-end' }]}>
+          {/* 三横杠：对话菜单 */}
+          <Pressable onPress={() => setMenuOpen(true)} hitSlop={10}>
+            <Text style={styles.hamburger}>☰</Text>
+          </Pressable>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -556,6 +665,99 @@ export function MirrorChatScreen() {
         </Pressable>
       </Modal>
 
+      {/* 对话抽屉（从左滑入） */}
+      <Modal visible={drawerOpen} transparent animationType="slide" onRequestClose={() => setDrawerOpen(false)}>
+        <View style={styles.drawerWrap}>
+          <SafeAreaView style={styles.drawerPanel} edges={['top', 'bottom']}>
+            <Text style={styles.drawerTitle}>{t('mirror.myChats')}</Text>
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: spacing.lg }}>
+              {projects.map((p) => {
+                const cs = conversations.filter((c) => c.project_id === p.id);
+                if (cs.length === 0) return null;
+                return (
+                  <View key={p.id}>
+                    <Text style={styles.drawerProject}>📁 {p.name}</Text>
+                    {cs.map((c) => renderConvRow(c))}
+                  </View>
+                );
+              })}
+              {conversations.filter((c) => !c.project_id).map((c) => renderConvRow(c))}
+            </ScrollView>
+            {/* 左下角：新开聊天 */}
+            <Pressable onPress={newChat} style={({ pressed }) => [styles.newChatBtn, pressed && { opacity: 0.85 }]}>
+              <Text style={styles.newChatIcon}>💬</Text>
+              <Text style={styles.newChatText}>{t('mirror.newChat')}</Text>
+            </Pressable>
+          </SafeAreaView>
+          <Pressable style={{ flex: 1 }} onPress={() => setDrawerOpen(false)} />
+        </View>
+      </Modal>
+
+      {/* 三横杠菜单 */}
+      <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
+          <View style={styles.menuCard}>
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => { setMenuOpen(false); setProjectPickOpen(true); }}>
+              <Text style={styles.menuText}>📁 {t('mirror.addToProject')}</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={startRename}>
+              <Text style={styles.menuText}>✏️ {t('mirror.renameChat')}</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={confirmDelete}>
+              <Text style={[styles.menuText, { color: colors.danger }]}>🗑️ {t('mirror.deleteChat')}</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* 重命名 */}
+      <Modal visible={renameOpen} transparent animationType="fade" onRequestClose={() => setRenameOpen(false)}>
+        <Pressable style={styles.centerBackdrop} onPress={() => setRenameOpen(false)}>
+          <Pressable style={styles.dialogCard} onPress={() => {}}>
+            <Text style={styles.dialogTitle}>{t('mirror.renameChat')}</Text>
+            <TextInput style={styles.dialogInput} value={renameText} onChangeText={setRenameText} autoFocus maxLength={40} placeholder={t('mirror.namePlaceholder')} placeholderTextColor={colors.textFaint} />
+            <View style={styles.dialogBtns}>
+              <Pressable onPress={() => setRenameOpen(false)}><Text style={styles.dialogCancel}>{t('mirror.cancel')}</Text></Pressable>
+              <Pressable onPress={confirmRename}><Text style={styles.dialogOk}>{t('mirror.ok')}</Text></Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* 选择项目 */}
+      <Modal visible={projectPickOpen} transparent animationType="fade" onRequestClose={() => setProjectPickOpen(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setProjectPickOpen(false)}>
+          <View style={styles.menuCard}>
+            <Text style={styles.menuTitle}>{t('mirror.addToProject')}</Text>
+            {projects.map((p) => (
+              <Pressable key={p.id} style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => assignProject(p.id)}>
+                <Text style={styles.menuText}>📁 {p.name}</Text>
+              </Pressable>
+            ))}
+            <View style={styles.menuDivider} />
+            <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => { setProjectPickOpen(false); setNewProjectText(''); setNewProjectOpen(true); }}>
+              <Text style={[styles.menuText, { color: colors.terracotta }]}>＋ {t('mirror.newProject')}</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* 新建项目 */}
+      <Modal visible={newProjectOpen} transparent animationType="fade" onRequestClose={() => setNewProjectOpen(false)}>
+        <Pressable style={styles.centerBackdrop} onPress={() => setNewProjectOpen(false)}>
+          <Pressable style={styles.dialogCard} onPress={() => {}}>
+            <Text style={styles.dialogTitle}>{t('mirror.newProject')}</Text>
+            <TextInput style={styles.dialogInput} value={newProjectText} onChangeText={setNewProjectText} autoFocus maxLength={20} placeholder={t('mirror.projectNamePlaceholder')} placeholderTextColor={colors.textFaint} />
+            <View style={styles.dialogBtns}>
+              <Pressable onPress={() => setNewProjectOpen(false)}><Text style={styles.dialogCancel}>{t('mirror.cancel')}</Text></Pressable>
+              <Pressable onPress={confirmNewProject}><Text style={styles.dialogOk}>{t('mirror.ok')}</Text></Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <BookDetailModal
         visible={detailBook !== null}
         book={detailBook}
@@ -646,6 +848,40 @@ const styles = StyleSheet.create({
   menuIcon: { width: 30, height: 30, borderRadius: 15 },
   menuText: { ...typography.body, fontSize: 16, color: colors.text },
   menuDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.lg },
+
+  headerSide: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minWidth: 76 },
+  headerIconBtn: { flexDirection: 'row', alignItems: 'flex-start' },
+  headerIcon: { fontSize: 20 },
+  headerPlus: { fontSize: 11, fontWeight: '800', color: colors.terracotta, marginLeft: -3, marginTop: -2 },
+  hamburger: { fontSize: 22, color: colors.textMuted },
+
+  drawerWrap: { flex: 1, flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.25)' },
+  drawerPanel: { width: '78%', backgroundColor: colors.bg, paddingHorizontal: spacing.md },
+  drawerTitle: { ...typography.h2, marginTop: spacing.md, marginBottom: spacing.sm, paddingHorizontal: spacing.sm },
+  drawerProject: { ...typography.caption, color: colors.textMuted, marginTop: spacing.md, marginBottom: 4, paddingHorizontal: spacing.sm, fontWeight: '700' },
+  convRow: { paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm, borderRadius: radius.md },
+  convRowActive: { backgroundColor: colors.bgSoft },
+  convTitle: { ...typography.body, fontSize: 15, color: colors.text },
+  convPreview: { ...typography.caption, color: colors.textFaint, marginTop: 1 },
+  newChatBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.md, paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm, borderRadius: radius.lg, backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.border, alignSelf: 'flex-start',
+  },
+  newChatIcon: { fontSize: 18 },
+  newChatText: { ...typography.body, fontWeight: '700', color: colors.terracotta },
+
+  centerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: spacing.xl },
+  dialogCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
+  dialogTitle: { ...typography.h3, marginBottom: spacing.md },
+  dialogInput: {
+    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, height: 46, fontSize: 16, color: colors.text, backgroundColor: colors.bg,
+  },
+  dialogBtns: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xl, marginTop: spacing.lg },
+  dialogCancel: { ...typography.body, color: colors.textMuted },
+  dialogOk: { ...typography.body, color: colors.terracotta, fontWeight: '700' },
 
   bookCard: {
     flexDirection: 'row',

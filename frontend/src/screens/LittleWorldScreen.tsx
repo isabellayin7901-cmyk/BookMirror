@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, type ImageSourcePropType } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,6 +14,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 interface Feature {
   emoji: string;
+  icon?: ImageSourcePropType;  // 有图标就用图标，否则用 emoji 气泡
   title: string;
   subtitle: string;
   tone: string;
@@ -28,6 +29,7 @@ export function LittleWorldScreen() {
   const features: Feature[] = [
     {
       emoji: '🌗',
+      icon: require('../../assets/persona_icon.png'),
       title: t('world.persona'),
       subtitle: t('world.personaSub'),
       tone: colors.lavender,
@@ -72,9 +74,13 @@ export function LittleWorldScreen() {
                 !f.onPress && { opacity: 0.7 },
               ]}
             >
-              <View style={[styles.emojiBubble, { backgroundColor: f.tone }]}>
-                <Text style={styles.emoji}>{f.emoji}</Text>
-              </View>
+              {f.icon ? (
+                <Image source={f.icon} style={styles.iconBubble} />
+              ) : (
+                <View style={[styles.emojiBubble, { backgroundColor: f.tone }]}>
+                  <Text style={styles.emoji}>{f.emoji}</Text>
+                </View>
+              )}
               <View style={{ flex: 1, marginLeft: spacing.md }}>
                 <View style={styles.cardTitleRow}>
                   <Text style={styles.cardTitle}>{f.title}</Text>
@@ -118,6 +124,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  iconBubble: { width: 56, height: 56, borderRadius: 28 },
   emoji: { fontSize: 26 },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   cardTitle: { ...typography.h3 },

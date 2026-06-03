@@ -189,7 +189,7 @@ const zh: Dict = {
 
   // ===== 小镜子（AI 阅读与心理陪伴）=====
   'mirror.title': '小镜子',
-  'mirror.subtitle': '一个懂你的阅读与心理陪伴',
+  'mirror.subtitle': '这里没有标准答案，只有更了解自己的路',
   'mirror.bookCta': '点开看看这本书 →',
   'mirror.addTitle': '发点什么给雪宝',
   'mirror.fromFile': '文件',
@@ -660,7 +660,7 @@ const en: Dict = {
   'common.comingSoon': 'Coming soon',
 
   'mirror.title': 'Little Mirror',
-  'mirror.subtitle': 'A reading & emotional companion that gets you',
+  'mirror.subtitle': 'No standard answers here, just the path to knowing yourself',
   'mirror.bookCta': 'Tap to see this book →',
   'mirror.addTitle': 'Send something to Wren',
   'mirror.fromFile': 'File',

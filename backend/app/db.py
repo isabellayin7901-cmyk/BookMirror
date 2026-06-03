@@ -58,6 +58,32 @@ class MirrorMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
     # 小镜子在这条消息里推荐的真实书 id（来自书库），用于渲染可点书卡。多数消息为空。
     book_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    # 所属对话 id（多对话）。旧消息为空 = 归到该用户的默认对话。
+    conversation_id: Mapped[Optional[str]] = mapped_column(String(64), index=True, nullable=True)
+
+
+class Conversation(Base):
+    """一段独立的小镜子对话（用户可建多段、可分类、可重命名/删除）。"""
+
+    __tablename__ = "mirror_conversations"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(120), default="")
+    project_id: Mapped[Optional[str]] = mapped_column(String(64), index=True, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class MirrorProject(Base):
+    """对话的分类「项目/文件夹」。"""
+
+    __tablename__ = "mirror_projects"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(80), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
 
 
 class BookReview(Base):
@@ -186,9 +212,11 @@ def _ensure_columns() -> None:
     inspector = inspect(engine)
     try:
         msg_cols = {c["name"] for c in inspector.get_columns("mirror_messages")}
-        if "book_id" not in msg_cols:
-            with engine.begin() as conn:
+        with engine.begin() as conn:
+            if "book_id" not in msg_cols:
                 conn.execute(text("ALTER TABLE mirror_messages ADD COLUMN book_id VARCHAR(64)"))
+            if "conversation_id" not in msg_cols:
+                conn.execute(text("ALTER TABLE mirror_messages ADD COLUMN conversation_id VARCHAR(64)"))
     except Exception:
         pass
     try:

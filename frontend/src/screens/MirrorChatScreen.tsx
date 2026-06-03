@@ -96,6 +96,8 @@ export function MirrorChatScreen() {
   const [detailBook, setDetailBook] = useState<Book | null>(null);
   const [quoted, setQuoted] = useState<string | null>(null);
   const [plusOpen, setPlusOpen] = useState(false);
+  const [listening, setListening] = useState(false);
+  const srSubsRef = useRef<boolean>(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const scrollToEnd = useCallback(() => {
@@ -280,9 +282,42 @@ export function MirrorChatScreen() {
     }
   };
 
-  const onMic = () => {
-    // 语音转文字需接 STT 服务，先占位。
-    Alert.alert(t('mirror.voiceSoonTitle'), t('mirror.voiceSoonBody'));
+  // 玫瑰麦克风：手机本地语音识别（免费，不走外部服务），转成文字填进输入框。
+  const onMic = async () => {
+    let SR: typeof import('expo-speech-recognition');
+    try {
+      SR = require('expo-speech-recognition');
+    } catch {
+      Alert.alert(t('mirror.voiceNeedRebuild'));
+      return;
+    }
+    const mod: any = (SR as any).ExpoSpeechRecognitionModule;
+    if (listening) {
+      try { mod.stop(); } catch { /* ignore */ }
+      setListening(false);
+      return;
+    }
+    try {
+      const perm = await mod.requestPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(t('mirror.needPermission'));
+        return;
+      }
+      if (!srSubsRef.current) {
+        (SR as any).addSpeechRecognitionListener('result', (e: any) => {
+          const txt = e?.results?.[0]?.transcript;
+          if (txt) setInput(txt);
+        });
+        (SR as any).addSpeechRecognitionListener('end', () => setListening(false));
+        (SR as any).addSpeechRecognitionListener('error', () => setListening(false));
+        srSubsRef.current = true;
+      }
+      mod.start({ lang: lang === 'en' ? 'en-US' : 'zh-CN', interimResults: true, continuous: false });
+      setListening(true);
+    } catch {
+      setListening(false);
+      Alert.alert(t('mirror.voiceFail'));
+    }
   };
 
   const confirmReset = () => {
@@ -467,9 +502,9 @@ export function MirrorChatScreen() {
           </View>
         )}
         <View style={styles.inputBar}>
-          {/* 玫瑰麦克风（语音，待接 STT） */}
+          {/* 玫瑰麦克风（本地语音识别） */}
           <Pressable onPress={onMic} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
-            <Image source={require('../../assets/btn_mic.png')} style={styles.iconImg} />
+            <Image source={require('../../assets/btn_mic.png')} style={[styles.iconImg, listening && styles.iconListening]} />
           </Pressable>
           <TextInput
             style={styles.input}
@@ -580,6 +615,7 @@ const styles = StyleSheet.create({
   sentImage: { width: 180, height: 180, borderRadius: 12, backgroundColor: colors.snowShade },
   iconBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
   iconImg: { width: 36, height: 36, borderRadius: 18 },
+  iconListening: { borderWidth: 2.5, borderColor: colors.terracotta },
   quoteBar: {
     flexDirection: 'row',
     alignItems: 'center',

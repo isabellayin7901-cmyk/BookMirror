@@ -202,6 +202,8 @@ const zh: Dict = {
   'mirror.imageFail': '图片没发出去，再试一次',
   'mirror.voiceSoonTitle': '语音功能即将上线',
   'mirror.voiceSoonBody': '玫瑰麦克风正在路上，先用文字或图片陪雪宝聊吧～',
+  'mirror.voiceNeedRebuild': '语音需要更新到新版本才能用哦',
+  'mirror.voiceFail': '没听清，再试一次吧～',
   'mirror.copy': '复制',
   'mirror.quote': '引用追问',
 
@@ -671,6 +673,8 @@ const en: Dict = {
   'mirror.imageFail': "Couldn't send the image, try again",
   'mirror.voiceSoonTitle': 'Voice is coming soon',
   'mirror.voiceSoonBody': 'The rose mic is on its way — chat with Wren by text or photo for now~',
+  'mirror.voiceNeedRebuild': 'Voice needs the latest app version',
+  'mirror.voiceFail': "Didn't catch that, try again~",
   'mirror.copy': 'Copy',
   'mirror.quote': 'Quote & ask',
 

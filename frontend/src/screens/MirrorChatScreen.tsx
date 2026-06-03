@@ -93,6 +93,7 @@ export function MirrorChatScreen() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [detailBook, setDetailBook] = useState<Book | null>(null);
+  const [quoted, setQuoted] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   const scrollToEnd = useCallback(() => {
@@ -129,9 +130,9 @@ export function MirrorChatScreen() {
     gender: profile?.gender,
   });
 
-  // 统一发送：可带文字、可带图片（base64）。
-  const dispatch = async (opts: { text: string; imageUri?: string; base64?: string; media?: string }) => {
-    const { text, imageUri, base64, media } = opts;
+  // 统一发送：可带文字、可带图片（base64）。apiText 用于带引用时发给后端的实际内容。
+  const dispatch = async (opts: { text: string; apiText?: string; imageUri?: string; base64?: string; media?: string }) => {
+    const { text, apiText, imageUri, base64, media } = opts;
     if ((!text && !base64) || !userId || sending) return;
     setMessages((prev) => [
       ...prev,
@@ -142,7 +143,7 @@ export function MirrorChatScreen() {
     try {
       const { reply, book } = await mirrorChat({
         user_id: userId,
-        message: text,
+        message: apiText ?? text,
         context: buildContext(),
         language: lang,
         image_base64: base64,
@@ -187,7 +188,32 @@ export function MirrorChatScreen() {
     const text = input.trim();
     if (!text) return;
     setInput('');
-    dispatch({ text });
+    const q = quoted;
+    setQuoted(null);
+    // 带引用时：气泡显示干净文字，发给后端的内容前面带上被引用的话，雪宝就知道在接哪句。
+    const apiText = q ? `（我想接着你刚说的这句聊：${q}）\n${text}` : undefined;
+    dispatch({ text, apiText });
+  };
+
+  // 长按消息：复制 / 引用追问
+  const onBubbleLongPress = (content: string) => {
+    if (!content) return;
+    const preview = content.length > 40 ? content.slice(0, 40) + '…' : content;
+    Alert.alert(preview, undefined, [
+      {
+        text: t('mirror.copy'),
+        onPress: async () => {
+          try {
+            const Clip = require('expo-clipboard');
+            await Clip.setStringAsync(content);
+          } catch {
+            Alert.alert(t('mirror.needUpdate'));
+          }
+        },
+      },
+      { text: t('mirror.quote'), onPress: () => setQuoted(content) },
+      { text: t('mirror.cancel'), style: 'cancel' },
+    ]);
   };
 
   // 加号：从相册或拍照选图发给雪宝（看图）。
@@ -343,7 +369,9 @@ export function MirrorChatScreen() {
                   ]}
                 >
                   <PopIn fromLeft={m.role !== 'user'}>
-                    <View
+                    <Pressable
+                      onLongPress={() => onBubbleLongPress(m.content)}
+                      delayLongPress={300}
                       style={[
                         styles.bubble,
                         m.role === 'user' ? styles.bubbleUser : styles.bubbleMirror,
@@ -364,7 +392,7 @@ export function MirrorChatScreen() {
                           {m.content}
                         </Text>
                       )}
-                    </View>
+                    </Pressable>
                   </PopIn>
                 </View>
                 {m.book && (
@@ -406,6 +434,15 @@ export function MirrorChatScreen() {
           </ScrollView>
         )}
 
+        {quoted && (
+          <View style={styles.quoteBar}>
+            <View style={styles.quoteLine} />
+            <Text style={styles.quoteText} numberOfLines={2}>{quoted}</Text>
+            <Pressable onPress={() => setQuoted(null)} hitSlop={8}>
+              <Text style={styles.quoteClose}>✕</Text>
+            </Pressable>
+          </View>
+        )}
         <View style={styles.inputBar}>
           {/* 玫瑰麦克风（语音，待接 STT） */}
           <Pressable onPress={onMic} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
@@ -497,6 +534,20 @@ const styles = StyleSheet.create({
   sentImage: { width: 180, height: 180, borderRadius: 12, backgroundColor: colors.snowShade },
   iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   iconImg: { width: 32, height: 32, borderRadius: 8 },
+  quoteBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.bgSoft,
+    borderRadius: radius.md,
+  },
+  quoteLine: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: colors.terracotta },
+  quoteText: { flex: 1, ...typography.caption, color: colors.textMuted },
+  quoteClose: { fontSize: 14, color: colors.textMuted, paddingHorizontal: 4 },
 
   bookCard: {
     flexDirection: 'row',

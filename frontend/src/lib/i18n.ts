@@ -200,6 +200,8 @@ const zh: Dict = {
   'mirror.imageFail': '图片没发出去，再试一次',
   'mirror.voiceSoonTitle': '语音功能即将上线',
   'mirror.voiceSoonBody': '玫瑰麦克风正在路上，先用文字或图片陪雪宝聊吧～',
+  'mirror.copy': '复制',
+  'mirror.quote': '引用追问',
 
   // ===== 读后反馈（三合一：评分+书评+成长） =====
   'review.title': '读后反馈',
@@ -665,6 +667,8 @@ const en: Dict = {
   'mirror.imageFail': "Couldn't send the image, try again",
   'mirror.voiceSoonTitle': 'Voice is coming soon',
   'mirror.voiceSoonBody': 'The rose mic is on its way — chat with Wren by text or photo for now~',
+  'mirror.copy': 'Copy',
+  'mirror.quote': 'Quote & ask',
 
   // ===== Post-read feedback (rating + review + growth) =====
   'review.title': 'How was it for you',

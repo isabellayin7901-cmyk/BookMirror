@@ -129,13 +129,13 @@ export function MirrorChatScreen() {
     gender: profile?.gender,
   });
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || !userId || sending) return;
-    setInput('');
+  // 统一发送：可带文字、可带图片（base64）。
+  const dispatch = async (opts: { text: string; imageUri?: string; base64?: string; media?: string }) => {
+    const { text, imageUri, base64, media } = opts;
+    if ((!text && !base64) || !userId || sending) return;
     setMessages((prev) => [
       ...prev,
-      { role: 'user', content: text, created_at: new Date().toISOString() },
+      { role: 'user', content: text, created_at: new Date().toISOString(), imageUri: imageUri ?? null },
     ]);
     setSending(true);
     scrollToEnd();
@@ -145,6 +145,8 @@ export function MirrorChatScreen() {
         message: text,
         context: buildContext(),
         language: lang,
+        image_base64: base64,
+        image_media_type: media,
       });
       // 逐条冒泡，像真人连发好几条短消息（生成完一次性拿到，再分条显示）；
       // 期间保留底部「正在输入」点点，到最后一条才收起。
@@ -179,6 +181,59 @@ export function MirrorChatScreen() {
       setSending(false);
       scrollToEnd();
     }
+  };
+
+  const send = () => {
+    const text = input.trim();
+    if (!text) return;
+    setInput('');
+    dispatch({ text });
+  };
+
+  // 加号：从相册或拍照选图发给雪宝（看图）。
+  const pickImage = async (fromCamera: boolean) => {
+    let ImagePicker: typeof import('expo-image-picker');
+    try {
+      ImagePicker = require('expo-image-picker');
+    } catch {
+      Alert.alert(t('mirror.needUpdate'));
+      return;
+    }
+    try {
+      const perm = fromCamera
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(t('mirror.needPermission'));
+        return;
+      }
+      const res = fromCamera
+        ? await ImagePicker.launchCameraAsync({ base64: true, quality: 0.6 })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            base64: true,
+            quality: 0.6,
+          });
+      if (res.canceled || !res.assets?.[0]?.base64) return;
+      const a = res.assets[0];
+      dispatch({ text: input.trim(), imageUri: a.uri, base64: a.base64!, media: a.mimeType || 'image/jpeg' });
+      setInput('');
+    } catch {
+      Alert.alert(t('mirror.imageFail'));
+    }
+  };
+
+  const onPlus = () => {
+    Alert.alert(t('mirror.addTitle'), undefined, [
+      { text: t('mirror.fromAlbum'), onPress: () => pickImage(false) },
+      { text: t('mirror.fromCamera'), onPress: () => pickImage(true) },
+      { text: t('mirror.cancel'), style: 'cancel' },
+    ]);
+  };
+
+  const onMic = () => {
+    // 语音转文字需接 STT 服务，先占位。
+    Alert.alert(t('mirror.voiceSoonTitle'), t('mirror.voiceSoonBody'));
   };
 
   const confirmReset = () => {
@@ -292,16 +347,23 @@ export function MirrorChatScreen() {
                       style={[
                         styles.bubble,
                         m.role === 'user' ? styles.bubbleUser : styles.bubbleMirror,
+                        m.imageUri && styles.bubbleWithImage,
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.bubbleText,
-                          m.role === 'user' && { color: '#fff' },
-                        ]}
-                      >
-                        {m.content}
-                      </Text>
+                      {m.imageUri && (
+                        <Image source={{ uri: m.imageUri }} style={styles.sentImage} resizeMode="cover" />
+                      )}
+                      {!!m.content && (
+                        <Text
+                          style={[
+                            styles.bubbleText,
+                            m.role === 'user' && { color: '#fff' },
+                            m.imageUri && { marginTop: spacing.xs },
+                          ]}
+                        >
+                          {m.content}
+                        </Text>
+                      )}
                     </View>
                   </PopIn>
                 </View>
@@ -345,6 +407,10 @@ export function MirrorChatScreen() {
         )}
 
         <View style={styles.inputBar}>
+          {/* 玫瑰麦克风（语音，待接 STT） */}
+          <Pressable onPress={onMic} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
+            <Image source={require('../../assets/btn_mic.png')} style={styles.iconImg} />
+          </Pressable>
           <TextInput
             style={styles.input}
             value={input}
@@ -354,6 +420,10 @@ export function MirrorChatScreen() {
             multiline
             onSubmitEditing={send}
           />
+          {/* 加号（图片/拍照） */}
+          <Pressable onPress={onPlus} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
+            <Image source={require('../../assets/btn_plus.png')} style={styles.iconImg} />
+          </Pressable>
           <Pressable
             onPress={send}
             disabled={!input.trim() || sending}
@@ -423,6 +493,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 4,
   },
   bubbleText: { ...typography.body, fontSize: 15, lineHeight: 22, color: colors.text },
+  bubbleWithImage: { padding: 4 },
+  sentImage: { width: 180, height: 180, borderRadius: 12, backgroundColor: colors.snowShade },
+  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  iconImg: { width: 32, height: 32, borderRadius: 8 },
 
   bookCard: {
     flexDirection: 'row',

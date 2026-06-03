@@ -191,6 +191,15 @@ const zh: Dict = {
   'mirror.title': '小镜子',
   'mirror.subtitle': '一个懂你的阅读与心理陪伴',
   'mirror.bookCta': '点开看看这本书 →',
+  'mirror.addTitle': '发点什么给雪宝',
+  'mirror.fromAlbum': '从相册选图',
+  'mirror.fromCamera': '拍一张',
+  'mirror.cancel': '取消',
+  'mirror.needUpdate': '这个功能需要更新到新版本哦',
+  'mirror.needPermission': '需要相册/相机权限才能发图～',
+  'mirror.imageFail': '图片没发出去，再试一次',
+  'mirror.voiceSoonTitle': '语音功能即将上线',
+  'mirror.voiceSoonBody': '玫瑰麦克风正在路上，先用文字或图片陪雪宝聊吧～',
 
   // ===== 读后反馈（三合一：评分+书评+成长） =====
   'review.title': '读后反馈',
@@ -278,7 +287,6 @@ const zh: Dict = {
   'mirror.errorReply': '欸 刚刚网络好像断了一下，你再发一次试试？',
   'mirror.reset': '清空对话',
   'mirror.resetConfirm': '确定清空和小镜子的全部对话与心理画像吗？此操作不可恢复。',
-  'mirror.cancel': '取消',
   'mirror.confirm': '清空',
   'mirror.loadError': '加载历史失败，检查下网络～',
 
@@ -648,6 +656,15 @@ const en: Dict = {
   'mirror.title': 'Little Mirror',
   'mirror.subtitle': 'A reading & emotional companion that gets you',
   'mirror.bookCta': 'Tap to see this book →',
+  'mirror.addTitle': 'Send something to Wren',
+  'mirror.fromAlbum': 'Choose from album',
+  'mirror.fromCamera': 'Take a photo',
+  'mirror.cancel': 'Cancel',
+  'mirror.needUpdate': 'This needs the latest app version',
+  'mirror.needPermission': 'Need album/camera permission to send a photo',
+  'mirror.imageFail': "Couldn't send the image, try again",
+  'mirror.voiceSoonTitle': 'Voice is coming soon',
+  'mirror.voiceSoonBody': 'The rose mic is on its way — chat with Wren by text or photo for now~',
 
   // ===== Post-read feedback (rating + review + growth) =====
   'review.title': 'How was it for you',
@@ -735,7 +752,6 @@ const en: Dict = {
   'mirror.errorReply': 'hey, looks like the connection hiccuped just now, mind sending that again?',
   'mirror.reset': 'Clear chat',
   'mirror.resetConfirm': 'Clear all your conversations and the portrait Little Mirror has of you? This cannot be undone.',
-  'mirror.cancel': 'Cancel',
   'mirror.confirm': 'Clear',
   'mirror.loadError': 'Failed to load history — check your connection.',
 

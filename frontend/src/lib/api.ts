@@ -191,6 +191,7 @@ export interface MirrorMessage {
   content: string;
   created_at?: string | null; // ISO 时间，前端画时间线分割用
   book?: Book | null;         // 小镜子在这条消息里推荐的真实书（可点书卡）
+  imageUri?: string | null;   // 本地图片 URI（用户发的图片，仅本地显示）
 }
 
 export interface MirrorChatContext {
@@ -199,12 +200,14 @@ export interface MirrorChatContext {
   gender?: string;
 }
 
-/** 发一句话给小镜子，拿回它的回复（后端持久化整段对话）。 */
+/** 发一句话/一张图给小镜子，拿回它的回复（后端持久化整段对话）。 */
 export async function mirrorChat(payload: {
   user_id: string;
   message: string;
   context?: MirrorChatContext;
   language: Language;
+  image_base64?: string;       // 图片 base64（不含 data: 前缀）
+  image_media_type?: string;   // 如 image/jpeg
 }): Promise<{ reply: string; book?: Book | null }> {
   const res = await fetch(`${baseUrl}/api/mirror/chat`, {
     method: 'POST',

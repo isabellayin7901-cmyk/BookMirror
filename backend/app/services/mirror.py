@@ -450,6 +450,8 @@ def chat(
     language: str = "zh",
     minutes_since_last: Optional[float] = None,
     candidate_books: Optional[list[Any]] = None,
+    image_base64: Optional[str] = None,
+    image_media_type: Optional[str] = None,
 ) -> dict[str, Any]:
     """Return 小镜子's reply + optional recommended book_id.
 
@@ -478,7 +480,22 @@ def chat(
         system_blocks.append({"type": "text", "text": _candidate_block(candidates, language)})
 
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
-    messages.append({"role": "user", "content": user_message})
+    # 带图片时，用户这条用多模态内容（图 + 文），让雪宝"看图说话"。
+    if image_base64:
+        user_content: Any = [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": image_media_type or "image/jpeg",
+                    "data": image_base64,
+                },
+            },
+            {"type": "text", "text": user_message or ("这是我想给你看的图～" if language != "en" else "Here's a picture I want to show you~")},
+        ]
+        messages.append({"role": "user", "content": user_content})
+    else:
+        messages.append({"role": "user", "content": user_message})
 
     kwargs: dict[str, Any] = dict(
         model=settings.claude_model,

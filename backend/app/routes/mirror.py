@@ -28,9 +28,12 @@ PROFILE_EVERY = 4  # re-distill the portrait every N user messages
 
 class ChatRequest(BaseModel):
     user_id: str = Field(..., min_length=1, max_length=64)
-    message: str = Field(..., min_length=1, max_length=4000)
+    message: str = Field("", max_length=4000)
     context: dict[str, Any] = Field(default_factory=dict)
     language: str = "zh"
+    # 可选：用户发来的图片（base64，不含 data: 前缀）+ 媒体类型，雪宝会看图。
+    image_base64: Optional[str] = None
+    image_media_type: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -88,6 +91,8 @@ def _minutes_since_last(history: list[dict[str, Any]]) -> Optional[float]:
 
 @router.post("/mirror/chat", response_model=ChatResponse)
 def mirror_chat(payload: ChatRequest, background_tasks: BackgroundTasks):
+    if not payload.message and not payload.image_base64:
+        raise HTTPException(status_code=400, detail="消息和图片不能都为空")
     session = SessionLocal()
     try:
         history = _load_history(session, payload.user_id, HISTORY_WINDOW)
@@ -131,6 +136,8 @@ def mirror_chat(payload: ChatRequest, background_tasks: BackgroundTasks):
                 language=payload.language,
                 minutes_since_last=_minutes_since_last(history),
                 candidate_books=candidates,
+                image_base64=payload.image_base64,
+                image_media_type=payload.image_media_type,
             )
         except Exception as e:
             raise HTTPException(status_code=502, detail=f"Mirror chat error: {e}")
@@ -140,7 +147,9 @@ def mirror_chat(payload: ChatRequest, background_tasks: BackgroundTasks):
         rec_book = _BOOK_INDEX.get(rec_book_id) if rec_book_id else None
 
         # Persist both turns（推荐的书 id 存在助手那条消息上，历史可回放书卡）。
-        session.add(MirrorMessage(user_id=payload.user_id, role="user", content=payload.message))
+        # 入库存文字（图片不进 DB）；纯图片消息存个占位，方便历史回看。
+        user_stored = payload.message or ("[图片]" if payload.image_base64 else "")
+        session.add(MirrorMessage(user_id=payload.user_id, role="user", content=user_stored))
         session.add(MirrorMessage(
             user_id=payload.user_id, role="assistant", content=reply,
             book_id=rec_book_id if rec_book else None,

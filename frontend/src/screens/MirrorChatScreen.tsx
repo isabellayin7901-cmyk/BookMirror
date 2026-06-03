@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   bubbleWithImage: { padding: 4 },
   sentImage: { width: 180, height: 180, borderRadius: 12, backgroundColor: colors.snowShade },
   iconBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
-  iconImg: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border },
+  iconImg: { width: 36, height: 36, borderRadius: 18 },
   quoteBar: {
     flexDirection: 'row',
     alignItems: 'center',

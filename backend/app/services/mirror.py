@@ -493,11 +493,16 @@ def chat(
 _DASH_RE = re.compile(r"\s*(?:——|—|--|―|‐|‑|‒|–)\s*")
 # 真人聊天也不会用「」『』 这种书面引号，太 AI。出口处一律删掉，保留里面的字。
 _BRACKET_RE = re.compile(r"[「」『』]")
+# 多个连续空格收成一个（不碰换行，保留分气泡的空行），避免出现难看的大间隔。
+_MULTISPACE_RE = re.compile(r"[ \t　]{2,}")
 
 
 def _sanitize(text: str) -> str:
-    """出口处兜底：清掉破折号 + 书面引号「」『』，让回复更像真人发消息。"""
-    return _strip_brackets(_strip_dashes(text))
+    """出口处兜底：清破折号 + 书面引号「」『』 + 多余空格，让回复更像真人发消息。"""
+    text = _strip_brackets(_strip_dashes(text))
+    # 按行收多余空格，保留 \n（分气泡）
+    lines = [_MULTISPACE_RE.sub(" ", ln).strip() for ln in text.split("\n")]
+    return "\n".join(lines).strip()
 
 
 def _strip_dashes(text: str) -> str:

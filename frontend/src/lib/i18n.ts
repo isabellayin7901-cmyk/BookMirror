@@ -728,7 +728,7 @@ const en: Dict = {
   'reading.total': 'Total',
   'reading.save': 'Save',
   'mirror.greeting1': 'Hey there',
-  'mirror.greeting2': "What you're reading lately   or whatever's on your mind   you can tell me anything",
+  'mirror.greeting2': "What you're reading lately, or whatever's on your mind, you can tell me anything",
   'mirror.greeting3': 'I want to get to know you, slowly',
   'mirror.inputPlaceholder': 'Say something…',
   'mirror.thinking': 'Little Mirror is thinking…',

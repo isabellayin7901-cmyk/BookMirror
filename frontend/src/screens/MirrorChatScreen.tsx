@@ -504,17 +504,17 @@ export function MirrorChatScreen() {
           <View style={styles.menuCard}>
             <Text style={styles.menuTitle}>{t('mirror.addTitle')}</Text>
             <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={pickDocument}>
-              <Text style={styles.menuEmoji}>📄</Text>
+              <Image source={require('../../assets/menu_file.png')} style={styles.menuIcon} />
               <Text style={styles.menuText}>{t('mirror.fromFile')}</Text>
             </Pressable>
             <View style={styles.menuDivider} />
             <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => pickImage(false)}>
-              <Text style={styles.menuEmoji}>🖼️</Text>
+              <Image source={require('../../assets/menu_album.png')} style={styles.menuIcon} />
               <Text style={styles.menuText}>{t('mirror.fromAlbum')}</Text>
             </Pressable>
             <View style={styles.menuDivider} />
             <Pressable style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowOn]} onPress={() => pickImage(true)}>
-              <Text style={styles.menuEmoji}>📷</Text>
+              <Image source={require('../../assets/menu_camera.png')} style={styles.menuIcon} />
               <Text style={styles.menuText}>{t('mirror.fromCamera')}</Text>
             </Pressable>
           </View>
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   menuTitle: { ...typography.caption, color: colors.textMuted, textAlign: 'center', paddingTop: spacing.md, paddingBottom: spacing.xs },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   menuRowOn: { backgroundColor: colors.bgSoft },
-  menuEmoji: { fontSize: 20 },
+  menuIcon: { width: 30, height: 30, borderRadius: 15 },
   menuText: { ...typography.body, fontSize: 16, color: colors.text },
   menuDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.lg },
 

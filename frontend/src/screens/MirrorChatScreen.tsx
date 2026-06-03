@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -31,6 +32,26 @@ import {
 import type { RootStackParamList, UserProfile } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+// QQ 式气泡：挂载时从侧边、由小到大、温柔弹出。
+function PopIn({ fromLeft, children }: { fromLeft: boolean; children: React.ReactNode }) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(v, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 70,
+    }).start();
+  }, [v]);
+  const scale = v.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] });
+  const translateX = v.interpolate({ inputRange: [0, 1], outputRange: [fromLeft ? -16 : 16, 0] });
+  return (
+    <Animated.View style={{ opacity: v, transform: [{ scale }, { translateX }] }}>
+      {children}
+    </Animated.View>
+  );
+}
 
 // 微信式时间戳：今天只显示时分，昨天加「昨天」，更早加日期。
 function formatTimeDivider(iso: string, lang: string): string {
@@ -266,21 +287,23 @@ export function MirrorChatScreen() {
                     m.role === 'user' ? styles.rowRight : styles.rowLeft,
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.bubble,
-                      m.role === 'user' ? styles.bubbleUser : styles.bubbleMirror,
-                    ]}
-                  >
-                    <Text
+                  <PopIn fromLeft={m.role !== 'user'}>
+                    <View
                       style={[
-                        styles.bubbleText,
-                        m.role === 'user' && { color: '#fff' },
+                        styles.bubble,
+                        m.role === 'user' ? styles.bubbleUser : styles.bubbleMirror,
                       ]}
                     >
-                      {m.content}
-                    </Text>
-                  </View>
+                      <Text
+                        style={[
+                          styles.bubbleText,
+                          m.role === 'user' && { color: '#fff' },
+                        ]}
+                      >
+                        {m.content}
+                      </Text>
+                    </View>
+                  </PopIn>
                 </View>
                 {m.book && (
                   <View style={[styles.bubbleRow, styles.rowLeft]}>

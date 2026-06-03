@@ -487,10 +487,9 @@ export function MirrorChatScreen() {
           <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
             <Text style={styles.back}>‹</Text>
           </Pressable>
-          {/* 文件夹+：对话抽屉 */}
-          <Pressable onPress={() => { loadConversations(userId ?? ''); setDrawerOpen(true); }} hitSlop={10} style={styles.headerIconBtn}>
-            <Text style={styles.headerIcon}>🗂️</Text>
-            <Text style={styles.headerPlus}>+</Text>
+          {/* 三道杠：对话抽屉 */}
+          <Pressable onPress={() => { loadConversations(userId ?? ''); setDrawerOpen(true); }} hitSlop={10}>
+            <Text style={styles.hamburger}>☰</Text>
           </Pressable>
         </View>
         <View style={{ alignItems: 'center', flex: 1 }}>
@@ -498,9 +497,9 @@ export function MirrorChatScreen() {
           <Text style={styles.subtitle} numberOfLines={1}>{t('mirror.subtitle')}</Text>
         </View>
         <View style={[styles.headerSide, { justifyContent: 'flex-end' }]}>
-          {/* 三横杠：对话菜单 */}
+          {/* 编辑对话：加项目/重命名/删除 */}
           <Pressable onPress={() => setMenuOpen(true)} hitSlop={10}>
-            <Text style={styles.hamburger}>☰</Text>
+            <Text style={styles.editChat}>{t('mirror.editChat')}</Text>
           </Pressable>
         </View>
       </View>
@@ -669,18 +668,21 @@ export function MirrorChatScreen() {
       <Modal visible={drawerOpen} transparent animationType="slide" onRequestClose={() => setDrawerOpen(false)}>
         <View style={styles.drawerWrap}>
           <SafeAreaView style={styles.drawerPanel} edges={['top', 'bottom']}>
-            <Text style={styles.drawerTitle}>{t('mirror.myChats')}</Text>
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: spacing.lg }}>
-              {projects.map((p) => {
-                const cs = conversations.filter((c) => c.project_id === p.id);
-                if (cs.length === 0) return null;
-                return (
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: spacing.lg }}>
+              {/* 我的项目 */}
+              <Text style={styles.drawerSection}>{t('mirror.myProjects')}</Text>
+              {projects.length === 0 ? (
+                <Text style={styles.drawerEmpty}>{t('mirror.noProjects')}</Text>
+              ) : (
+                projects.map((p) => (
                   <View key={p.id}>
                     <Text style={styles.drawerProject}>📁 {p.name}</Text>
-                    {cs.map((c) => renderConvRow(c))}
+                    {conversations.filter((c) => c.project_id === p.id).map((c) => renderConvRow(c))}
                   </View>
-                );
-              })}
+                ))
+              )}
+              {/* 我的对话 */}
+              <Text style={[styles.drawerSection, { marginTop: spacing.lg }]}>{t('mirror.myChats')}</Text>
               {conversations.filter((c) => !c.project_id).map((c) => renderConvRow(c))}
             </ScrollView>
             {/* 左下角：新开聊天 */}
@@ -849,16 +851,15 @@ const styles = StyleSheet.create({
   menuText: { ...typography.body, fontSize: 16, color: colors.text },
   menuDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.lg },
 
-  headerSide: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minWidth: 76 },
-  headerIconBtn: { flexDirection: 'row', alignItems: 'flex-start' },
-  headerIcon: { fontSize: 20 },
-  headerPlus: { fontSize: 11, fontWeight: '800', color: colors.terracotta, marginLeft: -3, marginTop: -2 },
+  headerSide: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minWidth: 80 },
   hamburger: { fontSize: 22, color: colors.textMuted },
+  editChat: { ...typography.body, fontSize: 14, color: colors.terracotta, fontWeight: '600' },
 
   drawerWrap: { flex: 1, flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.25)' },
-  drawerPanel: { width: '78%', backgroundColor: colors.bg, paddingHorizontal: spacing.md },
-  drawerTitle: { ...typography.h2, marginTop: spacing.md, marginBottom: spacing.sm, paddingHorizontal: spacing.sm },
-  drawerProject: { ...typography.caption, color: colors.textMuted, marginTop: spacing.md, marginBottom: 4, paddingHorizontal: spacing.sm, fontWeight: '700' },
+  drawerPanel: { width: '60%', minWidth: 240, backgroundColor: colors.bg, paddingHorizontal: spacing.md },
+  drawerSection: { ...typography.h3, marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.sm },
+  drawerEmpty: { ...typography.caption, color: colors.textFaint, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  drawerProject: { ...typography.body, fontSize: 14, color: colors.textMuted, marginTop: spacing.sm, marginBottom: 2, paddingHorizontal: spacing.sm, fontWeight: '700' },
   convRow: { paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.sm, borderRadius: radius.md },
   convRowActive: { backgroundColor: colors.bgSoft },
   convTitle: { ...typography.body, fontSize: 15, color: colors.text },

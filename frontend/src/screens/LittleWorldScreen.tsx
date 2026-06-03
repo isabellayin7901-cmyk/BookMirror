@@ -45,6 +45,7 @@ export function LittleWorldScreen() {
     },
     {
       emoji: '🌱',
+      icon: require('../../assets/growth_icon.png'),
       title: t('world.growth'),
       subtitle: t('world.growthSub'),
       tone: colors.butter,

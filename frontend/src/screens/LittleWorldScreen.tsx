@@ -37,6 +37,7 @@ export function LittleWorldScreen() {
     },
     {
       emoji: '🪞',
+      icon: require('../../assets/mirror_icon.png'),
       title: t('world.mirror'),
       subtitle: t('world.mirrorSub'),
       tone: colors.sage,

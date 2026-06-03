@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Linking, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -89,7 +89,10 @@ export function SettingsScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={{ padding: spacing.lg }}>
+      <ScrollView
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={typography.h1}>{t('settings.title')}</Text>
 
         {/* 账号：登录方式 */}
@@ -182,7 +185,7 @@ export function SettingsScreen({ navigation }: Props) {
         <Text style={[typography.caption, { marginTop: spacing.xxl, textAlign: 'center' }]}>
           BookMirror v0.1.0
         </Text>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

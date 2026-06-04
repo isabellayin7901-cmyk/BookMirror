@@ -70,6 +70,16 @@ export function MyAccountScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* 顶部右上角：加好友 */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => navigation.navigate('AddFriend')}
+          hitSlop={12}
+          style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.6 }]}
+        >
+          <Text style={styles.addBtnText}>＋</Text>
+        </Pressable>
+      </View>
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl }}>
         {/* 头部头像（点头像进个人主页） */}
         <View style={styles.header}>
@@ -175,9 +185,26 @@ const statStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
 
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+  },
+  addBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addBtnText: { fontSize: 22, color: colors.terracotta, fontWeight: '700', marginTop: -2 },
   header: {
     alignItems: 'center',
-    paddingTop: spacing.lg,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
   },
   avatarBig: {

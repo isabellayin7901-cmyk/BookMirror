@@ -166,6 +166,7 @@ export function ProfileHomeScreen() {
         </View>
         <View style={{ flex: 1, marginLeft: spacing.md }}>
           <Text style={styles.username}>{username}</Text>
+          {!!pub?.handle && <Text style={styles.handle}>@{pub.handle}</Text>}
           {!!signature && <Text style={styles.signature} numberOfLines={2}>{signature}</Text>}
           {/* 资料行：星座 / MBTI / 职业 */}
           <View style={styles.metaRow}>
@@ -284,6 +285,7 @@ const styles = StyleSheet.create({
   avatar: { width: 78, height: 78, borderRadius: 39, overflow: 'hidden', backgroundColor: colors.snowShade, alignItems: 'center', justifyContent: 'center' },
   avatarImg: { width: '100%', height: '100%' },
   username: { ...typography.h2, fontFamily: 'ZCOOLKuaiLe_400Regular' },
+  handle: { ...typography.caption, color: colors.terracotta, marginTop: 2, letterSpacing: 0.5 },
   signature: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 6 },
   metaTag: { ...typography.caption, color: colors.primary, backgroundColor: colors.surface, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2, overflow: 'hidden', fontSize: 11 },

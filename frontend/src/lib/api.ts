@@ -672,6 +672,7 @@ export interface SocialCounts {
 
 export interface PublicProfile {
   user_id: string;
+  handle: string;
   username: string;
   signature: string;
   avatar_url: string | null;
@@ -691,6 +692,7 @@ export interface PublicProfile {
 
 export interface SocialUserCard {
   user_id: string;
+  handle: string;
   username: string;
   signature: string;
   avatar_url: string | null;
@@ -799,6 +801,48 @@ export async function fetchFavoriteIds(userId: string, viewerId: string): Promis
     if (!res.ok) return [];
     const data = await res.json();
     return data.book_ids || [];
+  } catch {
+    return [];
+  }
+}
+
+/** 取我的 ID（没有则后端自动生成 9 位）。 */
+export async function fetchMyId(userId: string): Promise<string> {
+  try {
+    const res = await fetch(`${baseUrl}/api/social/my-id?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data.handle || '';
+  } catch {
+    return '';
+  }
+}
+
+/** 修改我的 ID。成功返回新 ID；失败抛出带中文/英文提示的错误。 */
+export async function updateMyId(userId: string, handle: string): Promise<string> {
+  const res = await fetch(`${baseUrl}/api/social/my-id`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ user_id: userId, handle }),
+  });
+  if (!res.ok) {
+    let detail = '';
+    try { detail = (await res.json()).detail || ''; } catch { /* ignore */ }
+    throw new Error(detail || `update id failed (${res.status})`);
+  }
+  const data = await res.json();
+  return data.handle || handle;
+}
+
+/** 按 ID 或用户名搜索用户。 */
+export async function searchUsers(q: string, viewerId: string): Promise<SocialUserCard[]> {
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/social/search?q=${encodeURIComponent(q)}&viewer_id=${encodeURIComponent(viewerId)}`,
+      { headers: authHeaders() },
+    );
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
     return [];
   }

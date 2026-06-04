@@ -140,6 +140,7 @@ export type RootStackParamList = {
   Growth: undefined;
   ProfileHome: { userId?: string } | undefined;
   SocialList: { userId: string; type: 'fans' | 'following' | 'friends' | 'visitors' };
+  AddFriend: undefined;
   Privacy: undefined;
   Settings: undefined;
   Profile: undefined;

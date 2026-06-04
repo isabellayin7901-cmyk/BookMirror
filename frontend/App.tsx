@@ -23,6 +23,7 @@ import { AddFriendScreen } from './src/screens/AddFriendScreen';
 import { DMChatScreen } from './src/screens/DMChatScreen';
 import { PrivacyScreen } from './src/screens/PrivacyScreen';
 import { IncomingBanner } from './src/components/IncomingBanner';
+import { navigationRef } from './src/lib/navigationRef';
 import { PersonaScreen } from './src/screens/PersonaScreen';
 import { AstrologyScreen } from './src/screens/AstrologyScreen';
 import { AstrologyResultScreen } from './src/screens/AstrologyResultScreen';
@@ -58,7 +59,7 @@ export default function App() {
     <ErrorBoundary>
     <SafeAreaProvider>
       <LanguageProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StatusBar style="dark" />
         <Stack.Navigator
           initialRouteName={onboarded ? 'Tabs' : 'LanguageSelect'}

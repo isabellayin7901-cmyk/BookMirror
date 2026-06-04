@@ -1,35 +1,25 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Animated, Pressable, View, Text, StyleSheet, Image, AppState, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { Snowman } from '../illustrations/Snowman';
 import { storage } from '../lib/storage';
 import { fetchIncoming, type DMIncoming } from '../lib/api';
-import type { RootStackParamList } from '../types';
+import { navigate, currentRoute } from '../lib/navigationRef';
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
 const POLL_MS = 8000;
 const SHOW_MS = 4200;
 
-/** 全局：好友发来消息时，从顶部弹跳一个横幅（头像 + 用户名 + 内容）。点一下进聊天。 */
+/** 全局：好友发来消息时，从顶部弹跳一个横幅（头像 + 用户名 + 内容）。点一下进聊天。
+ *  挂在导航树之外，所以用 navigationRef 而非 useNavigation 钩子。 */
 export function IncomingBanner() {
-  const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const [banner, setBanner] = useState<DMIncoming | null>(null);
   const translateY = useRef(new Animated.Value(-160)).current;
   const lastSeenId = useRef<number>(-1);
   const uidRef = useRef<string>('');
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // 当前所在路由（用来判断是不是正开着和发信人的聊天，避免重复打扰）
-  const routeInfo = useNavigationState((s) => {
-    if (!s) return null;
-    const r = s.routes[s.index];
-    return { name: r.name as string, params: (r.params as any) || {} };
-  });
 
   const hide = useCallback(() => {
     Animated.timing(translateY, { toValue: -160, duration: 220, useNativeDriver: true }).start(() => setBanner(null));
@@ -58,9 +48,10 @@ export function IncomingBanner() {
     const newest = items[items.length - 1];
     lastSeenId.current = newest.id;
     // 如果正开着和发信人的聊天，就不弹
-    if (routeInfo?.name === 'DMChat' && routeInfo.params?.peerId === newest.sender.user_id) return;
+    const route = currentRoute();
+    if (route?.name === 'DMChat' && route.params?.peerId === newest.sender.user_id) return;
     show(newest);
-  }, [routeInfo, show]);
+  }, [show]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -70,7 +61,6 @@ export function IncomingBanner() {
       timer = setInterval(poll, POLL_MS);
     })();
     return () => { if (timer) clearInterval(timer); if (hideTimer.current) clearTimeout(hideTimer.current); };
-    // poll 依赖 routeInfo，但我们用 ref 读 uid；routeInfo 变化时重建 interval 没问题
   }, [poll]);
 
   if (!banner) return null;
@@ -89,7 +79,7 @@ export function IncomingBanner() {
         style={[styles.card, shadow.soft]}
         onPress={() => {
           hide();
-          navigation.navigate('DMChat', {
+          navigate('DMChat', {
             peerId: banner.sender.user_id,
             peerName: name,
             peerAvatar: banner.sender.avatar_url,

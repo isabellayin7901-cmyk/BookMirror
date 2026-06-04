@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.security import api_guard
-from app.routes import recommend, feedback, mbti, astrology, books, synthesis, book_fit, mirror, auth, reviews, reading, social
+from app.routes import recommend, feedback, mbti, astrology, books, synthesis, book_fit, mirror, auth, reviews, reading, social, messages
 
 app = FastAPI(
     title="BookMirror API",
@@ -34,6 +34,7 @@ app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(reviews.router, prefix="/api", tags=["reviews"])
 app.include_router(reading.router, prefix="/api", tags=["reading"])
 app.include_router(social.router, prefix="/api", tags=["social"])
+app.include_router(messages.router, prefix="/api", tags=["messages"])
 
 
 @app.get("/")

@@ -89,6 +89,15 @@ def _validate_phone(country_code: str, phone: str) -> None:
         raise HTTPException(status_code=400, detail="手机号格式不正确")
 
 
+def _assign_handle_safe(user_id: str) -> None:
+    """登录后自动分配可搜索 ID；失败不影响登录。"""
+    try:
+        from app.routes.social import assign_handle
+        assign_handle(user_id)
+    except Exception:
+        logger.warning("分配用户 ID 失败 user_id=%s", user_id, exc_info=True)
+
+
 def _send_sms(phone_key: str, code: str) -> None:
     """发送短信。mock 模式只记录日志；接入真实服务商时在此实现。"""
     if settings.sms_provider == "mock":
@@ -173,8 +182,10 @@ def verify_code(payload: VerifyCodeIn):
         token = secrets.token_urlsafe(36)
         session.add(AuthToken(token=token, user_id=user.user_id))
         session.commit()
+        uid = user.user_id
 
-        return AuthOut(token=token, user_id=user.user_id, is_new=is_new)
+        _assign_handle_safe(uid)  # 登录后自动分配可搜索 ID
+        return AuthOut(token=token, user_id=uid, is_new=is_new)
     finally:
         session.close()
 
@@ -225,7 +236,9 @@ def google_login(payload: GoogleIn):
         token = secrets.token_urlsafe(36)
         session.add(AuthToken(token=token, user_id=user.user_id))
         session.commit()
-        return AuthOut(token=token, user_id=user.user_id, is_new=is_new)
+        uid = user.user_id
+        _assign_handle_safe(uid)  # 登录后自动分配可搜索 ID
+        return AuthOut(token=token, user_id=uid, is_new=is_new)
     finally:
         session.close()
 

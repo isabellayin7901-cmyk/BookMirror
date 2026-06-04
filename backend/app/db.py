@@ -204,16 +204,32 @@ class UserFavorite(Base):
 
 class UserHandle(Base):
     """用户可搜索的 ID（handle）。一个账号(user_id)绑定一个唯一 ID。
-    系统先自动生成 9 位字母数字，用户可自定义修改。handle_lower 用于
-    大小写无关的唯一性与搜索。"""
+    系统登录后自动生成 9 位字母数字，用户可自定义修改。
+    ID 区分大小写：wren_test 和 WREN_TEST 是两个不同的人。
+    handle 唯一（区分大小写）；handle_lower 仅用于大小写无关的搜索（非唯一）。"""
 
     __tablename__ = "user_handles"
 
     user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     handle: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
-    handle_lower: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    handle_lower: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class DirectMessage(Base):
+    """好友间的一对一私信。pair_key = 两个 user_id 排序后用 | 连接，用于快速拉取会话。"""
+
+    __tablename__ = "direct_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    pair_key: Mapped[str] = mapped_column(String(140), index=True, nullable=False)
+    sender_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    receiver_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True, nullable=False)
+    # 接收方读到这条消息的时间；为空 = 未读。
+    read_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
 
 class User(Base):
@@ -276,6 +292,17 @@ def _ensure_columns() -> None:
         if "details" not in prof_cols:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE mirror_profiles ADD COLUMN details TEXT DEFAULT '{}'"))
+    except Exception:
+        pass
+    # user_handles：早期版本对 handle_lower 建了唯一索引（大小写无关唯一）。
+    # 现在改成区分大小写（wren_test ≠ WREN_TEST），需要把唯一索引降级为普通索引。
+    try:
+        idx = {i["name"]: i for i in inspector.get_indexes("user_handles")}
+        old = idx.get("ix_user_handles_handle_lower")
+        if old is not None and old.get("unique"):
+            with engine.begin() as conn:
+                conn.execute(text("DROP INDEX ix_user_handles_handle_lower"))
+                conn.execute(text("CREATE INDEX ix_user_handles_handle_lower ON user_handles(handle_lower)"))
     except Exception:
         pass
 

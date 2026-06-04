@@ -84,6 +84,15 @@ def _ensure_handle(session, user_id: str) -> str:
     return h
 
 
+def assign_handle(user_id: str) -> str:
+    """供登录流程调用：登录后自动给账号分配 ID（已有则原样返回）。"""
+    session = SessionLocal()
+    try:
+        return _ensure_handle(session, user_id)
+    finally:
+        session.close()
+
+
 def _handle_of(session, user_id: str) -> str:
     """只读取已有 ID（不自动生成），用于列表/主页展示。"""
     row = session.get(UserHandle, user_id)
@@ -482,8 +491,9 @@ def set_my_id(payload: MyIdIn):
         raise HTTPException(status_code=400, detail="ID 只能用 4-20 位字母、数字或下划线")
     session = SessionLocal()
     try:
+        # 区分大小写：wren_test 和 WREN_TEST 是两个不同的 ID。
         taken = session.execute(
-            select(UserHandle).where(UserHandle.handle_lower == h.lower())
+            select(UserHandle).where(UserHandle.handle == h)
         ).scalars().first()
         if taken is not None and taken.user_id != payload.user_id:
             raise HTTPException(status_code=409, detail="这个 ID 已经被别人用了，换一个试试")

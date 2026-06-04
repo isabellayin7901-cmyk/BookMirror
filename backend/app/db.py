@@ -202,6 +202,20 @@ class UserFavorite(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
 
 
+class UserHandle(Base):
+    """用户可搜索的 ID（handle）。一个账号(user_id)绑定一个唯一 ID。
+    系统先自动生成 9 位字母数字，用户可自定义修改。handle_lower 用于
+    大小写无关的唯一性与搜索。"""
+
+    __tablename__ = "user_handles"
+
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    handle: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    handle_lower: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
 class User(Base):
     """A registered account. user_id doubles as the mirror conversation key."""
 

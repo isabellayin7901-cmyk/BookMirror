@@ -92,7 +92,7 @@ const zh: Dict = {
   'profile.username': '用户名',
   'profile.usernamePlaceholder': '给自己起个名字',
   'profile.signature': '个性签名',
-  'profile.signaturePlaceholder': '写句话介绍自己（会显示在主页）',
+  'profile.signaturePlaceholder': '写句话介绍自己',
   'profile.birthday': '出生日期',
   'profile.avatar': '头像',
   // 个人主页
@@ -112,8 +112,9 @@ const zh: Dict = {
   'profile.major': '专业 / 领域',
   'profile.majorPlaceholder': '比如：心理学 / 计算机 / 金融',
   'profile.majorRelevant': '多推荐和我专业相关的书',
-  'profile.bio': '简介',
-  'profile.bioPlaceholder': '一句话介绍自己（可选）',
+  'profile.occupationPick': '选择职业',
+  'profile.majorPick': '选择专业 / 领域',
+  'profile.searchHint': '搜索…',
 
   // tag labels
   'goal.expression': '表达',
@@ -597,7 +598,7 @@ const en: Dict = {
   'profile.username': 'Username',
   'profile.usernamePlaceholder': 'Give yourself a name',
   'profile.signature': 'Signature',
-  'profile.signaturePlaceholder': 'A line about you (shown on your profile)',
+  'profile.signaturePlaceholder': 'A line about you',
   'profile.birthday': 'Birthday',
   'profile.avatar': 'Avatar',
   'profileHome.edit': 'Edit profile',
@@ -616,8 +617,9 @@ const en: Dict = {
   'profile.major': 'Field / Major',
   'profile.majorPlaceholder': 'e.g. Psychology / CS / Finance',
   'profile.majorRelevant': 'Recommend more books in my field',
-  'profile.bio': 'Bio',
-  'profile.bioPlaceholder': 'One line about yourself (optional)',
+  'profile.occupationPick': 'Choose occupation',
+  'profile.majorPick': 'Choose field / major',
+  'profile.searchHint': 'Search…',
 
   'goal.expression': 'Expression',
   'goal.emotion': 'Emotional regulation',

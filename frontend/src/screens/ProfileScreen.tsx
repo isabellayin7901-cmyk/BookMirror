@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Image, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius } from '../theme';
 import { Snowman } from '../illustrations/Snowman';
+import { OCCUPATIONS, MAJORS, termLabel, filterTerms } from '../data/professions';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { signName, elementName } from '../lib/zodiacI18n';
@@ -15,6 +16,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 export function ProfileScreen({ navigation }: Props) {
   const { t, lang } = useI18n();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [picker, setPicker] = useState<'occupation' | 'major' | null>(null);
+  const [pickerSearch, setPickerSearch] = useState('');
 
   useEffect(() => {
     storage.getUserProfile().then(setProfile);
@@ -134,26 +137,23 @@ export function ProfileScreen({ navigation }: Props) {
           <Text style={styles.chevron}>›</Text>
         </Pressable>
 
-        {/* 职业 / 专业 / 简介 */}
+        {/* 职业（可搜索选择） */}
         <Text style={styles.sectionLabel}>{t('profile.occupation')}</Text>
-        <TextInput
-          style={styles.input}
-          value={profile?.occupation ?? ''}
-          onChangeText={(s) => setField({ occupation: s.slice(0, 60) })}
-          onBlur={persist}
-          placeholder={t('profile.occupationPlaceholder')}
-          placeholderTextColor={colors.textFaint}
-        />
+        <Pressable onPress={() => { setPickerSearch(''); setPicker('occupation'); }} style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}>
+          <Text style={[styles.navRowText, !profile?.occupation && { color: colors.textFaint }]}>
+            {profile?.occupation || t('profile.occupationPlaceholder')}
+          </Text>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
 
+        {/* 专业领域（可搜索选择） */}
         <Text style={styles.sectionLabel}>{t('profile.major')}</Text>
-        <TextInput
-          style={styles.input}
-          value={profile?.major ?? ''}
-          onChangeText={(s) => setField({ major: s.slice(0, 60) })}
-          onBlur={persist}
-          placeholder={t('profile.majorPlaceholder')}
-          placeholderTextColor={colors.textFaint}
-        />
+        <Pressable onPress={() => { setPickerSearch(''); setPicker('major'); }} style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}>
+          <Text style={[styles.navRowText, !profile?.major && { color: colors.textFaint }]}>
+            {profile?.major || t('profile.majorPlaceholder')}
+          </Text>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
 
         <Pressable style={styles.toggleRow} onPress={toggleMajorRelevant}>
           <Text style={styles.toggleLabel}>{t('profile.majorRelevant')}</Text>
@@ -161,17 +161,6 @@ export function ProfileScreen({ navigation }: Props) {
             <View style={[styles.knob, profile?.major_relevant && styles.knobOn]} />
           </View>
         </Pressable>
-
-        <Text style={styles.sectionLabel}>{t('profile.bio')}</Text>
-        <TextInput
-          style={[styles.input, styles.bioInput]}
-          value={profile?.bio ?? ''}
-          onChangeText={(s) => setField({ bio: s.slice(0, 300) })}
-          onBlur={persist}
-          multiline
-          placeholder={t('profile.bioPlaceholder')}
-          placeholderTextColor={colors.textFaint}
-        />
 
         {/* 你的星空 */}
         <Text style={styles.sectionLabel}>{t('account.yourStars')}</Text>
@@ -195,6 +184,44 @@ export function ProfileScreen({ navigation }: Props) {
           </Pressable>
         )}
       </ScrollView>
+
+      {/* 职业/专业 可搜索滚动选择器 */}
+      <Modal visible={picker !== null} animationType="slide" onRequestClose={() => setPicker(null)}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>{picker === 'occupation' ? t('profile.occupation') : t('profile.major')}</Text>
+            <Pressable onPress={() => setPicker(null)}><Text style={styles.pickerClose}>{t('auth.close')}</Text></Pressable>
+          </View>
+          <TextInput
+            style={styles.searchInput}
+            value={pickerSearch}
+            onChangeText={setPickerSearch}
+            placeholder={t('profile.searchHint')}
+            placeholderTextColor={colors.textFaint}
+            autoFocus
+          />
+          <FlatList
+            data={filterTerms(picker === 'occupation' ? OCCUPATIONS : MAJORS, pickerSearch)}
+            keyExtractor={(it) => it.zh}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <Pressable
+                style={styles.termRow}
+                onPress={async () => {
+                  if (!profile) { setPicker(null); return; }
+                  const label = termLabel(item, lang);
+                  const next = picker === 'occupation' ? { ...profile, occupation: label } : { ...profile, major: label };
+                  setProfile(next);
+                  await storage.setUserProfile(next);
+                  setPicker(null);
+                }}
+              >
+                <Text style={styles.termText}>{termLabel(item, lang)}</Text>
+              </Pressable>
+            )}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -246,7 +273,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
   },
-  bioInput: { minHeight: 80, textAlignVertical: 'top' },
   avatarWrap: { alignItems: 'center', marginTop: spacing.lg },
   avatarImg: { width: 72, height: 72, borderRadius: 36 },
   avatarHint: { ...typography.caption, color: colors.terracotta, marginTop: spacing.xs },
@@ -256,6 +282,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
   },
   navRowText: { ...typography.body, color: colors.text },
+  pickerHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
+  },
+  pickerTitle: { ...typography.h3, color: colors.text },
+  pickerClose: { ...typography.body, color: colors.terracotta },
+  searchInput: {
+    marginHorizontal: spacing.lg, marginVertical: spacing.md,
+    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    backgroundColor: colors.surface, color: colors.text, fontSize: 15,
+  },
+  termRow: {
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
+  },
+  termText: { ...typography.body, color: colors.text },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',

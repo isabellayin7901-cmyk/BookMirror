@@ -134,6 +134,38 @@ def upsert_review(payload: ReviewIn):
         session.close()
 
 
+class UserReviewItem(BaseModel):
+    book: Optional[Book] = None
+    rating: int
+    emotions: list[str]
+    text: str
+    created_at: Optional[str] = None
+
+
+@router.get("/reviews/by-user", response_model=list[UserReviewItem])
+def reviews_by_user(user_id: str, limit: int = 100):
+    """某用户写过的所有书评（个人主页「ta 的书评」用），带书信息。"""
+    session = SessionLocal()
+    try:
+        rows = session.execute(
+            select(BookReview).where(BookReview.user_id == user_id)
+            .order_by(BookReview.updated_at.desc())
+            .limit(max(1, min(limit, 300)))
+        ).scalars().all()
+        return [
+            UserReviewItem(
+                book=_BOOK_INDEX.get(r.book_id),
+                rating=r.rating,
+                emotions=json.loads(r.emotions or "[]"),
+                text=r.text or "",
+                created_at=_iso(r.created_at),
+            )
+            for r in rows
+        ]
+    finally:
+        session.close()
+
+
 @router.get("/reviews", response_model=list[ReviewOut])
 def list_reviews(book_id: str, limit: int = 50):
     session = SessionLocal()

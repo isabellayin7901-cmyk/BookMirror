@@ -71,10 +71,10 @@ export function MyAccountScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl }}>
-        {/* 头部头像 */}
+        {/* 头部头像（点头像进个人主页） */}
         <View style={styles.header}>
           <Pressable
-            onPress={pickAvatar}
+            onPress={() => navigation.navigate('ProfileHome')}
             style={({ pressed }) => [styles.avatarBig, pressed && { opacity: 0.85 }]}
           >
             {profile?.avatarUri ? (
@@ -83,39 +83,37 @@ export function MyAccountScreen() {
               <Snowman size={88} pose="wave" />
             )}
           </Pressable>
-          <Text style={styles.avatarHint}>{t('account.changeAvatar')}</Text>
-          <Pressable onPress={() => navigation.navigate('Profile')}>
+          <Pressable onPress={() => navigation.navigate('ProfileHome')}>
             <Text style={styles.username}>
               {profile?.username?.trim() || t('account.setUsername')}
             </Text>
           </Pressable>
+          {/* 先星座，后 MBTI */}
+          {profile?.zodiac ? (
+            <View style={styles.zodiacRow}>
+              {profile.gender === 'female' && (
+                <Text style={[styles.genderSymbol, { color: colors.rose }]}>♀</Text>
+              )}
+              {profile.gender === 'male' && (
+                <Text style={[styles.genderSymbol, { color: colors.sky }]}>♂</Text>
+              )}
+              <Text style={styles.zodiacSign}>{signName(profile.zodiac.sun_sign, lang)}</Text>
+              <View style={styles.zodiacDot} />
+              <Text style={styles.zodiacElement}>{elementName(profile.zodiac.element, lang)}{t('astro.elementSuffix')}</Text>
+            </View>
+          ) : (
+            <Pressable onPress={() => navigation.navigate('Astrology')}>
+              <Text style={styles.zodiacPrompt}>{t('account.addBirthday')}</Text>
+            </Pressable>
+          )}
           {profile?.mbti ? (
             <>
               <Text style={styles.mbtiBig}>{profile.mbti}</Text>
               <View style={{ alignItems: 'center' }}>
                 <WavyUnderline width={100} color={colors.terracotta} />
               </View>
-              {profile.zodiac ? (
-                <View style={styles.zodiacRow}>
-                  {profile.gender === 'female' && (
-                    <Text style={[styles.genderSymbol, { color: colors.rose }]}>♀</Text>
-                  )}
-                  {profile.gender === 'male' && (
-                    <Text style={[styles.genderSymbol, { color: colors.sky }]}>♂</Text>
-                  )}
-                  <Text style={styles.zodiacSign}>{signName(profile.zodiac.sun_sign, lang)}</Text>
-                  <View style={styles.zodiacDot} />
-                  <Text style={styles.zodiacElement}>{elementName(profile.zodiac.element, lang)}{t('astro.elementSuffix')}</Text>
-                </View>
-              ) : (
-                <Pressable onPress={() => navigation.navigate('Astrology')}>
-                  <Text style={styles.zodiacPrompt}>{t('account.addBirthday')}</Text>
-                </Pressable>
-              )}
             </>
-          ) : (
-            <Text style={styles.mbtiBig}>?</Text>
-          )}
+          ) : null}
         </View>
 
         {/* 阅读统计 */}

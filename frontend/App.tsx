@@ -17,6 +17,7 @@ import { BookReviewScreen } from './src/screens/BookReviewScreen';
 import { GrowthScreen } from './src/screens/GrowthScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { ProfileHomeScreen } from './src/screens/ProfileHomeScreen';
 import { PersonaScreen } from './src/screens/PersonaScreen';
 import { AstrologyScreen } from './src/screens/AstrologyScreen';
 import { AstrologyResultScreen } from './src/screens/AstrologyResultScreen';
@@ -82,6 +83,7 @@ export default function App() {
           <Stack.Screen name="Growth" component={GrowthScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="ProfileHome" component={ProfileHomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Persona" component={PersonaScreen} />
           <Stack.Screen name="Astrology" component={AstrologyScreen} />
           <Stack.Screen name="AstrologyResult" component={AstrologyResultScreen} />

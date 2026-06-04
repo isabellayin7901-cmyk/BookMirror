@@ -75,6 +75,8 @@ export interface UserProfile {
   gender?: Gender;
   /** 用户名（显示在我的账号 + 今日好书侧边栏「xx 的小书房」）。 */
   username?: string;
+  /** 个性签名（个人主页展示）。 */
+  signature?: string;
   /** 小镜子聊天积累的心理画像（可选，荐书时让主页推荐更贴近真实状态）。 */
   mirror_portrait?: string;
   /** 职业 / 专业 / 简介（可选，用于更贴合的推荐）。 */
@@ -136,6 +138,7 @@ export type RootStackParamList = {
   Feedback: { books: Book[] };
   BookReview: { book: Book };
   Growth: undefined;
+  ProfileHome: undefined;
   Settings: undefined;
   Profile: undefined;
   Persona: { onboarding?: boolean } | undefined;

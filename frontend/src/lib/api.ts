@@ -393,6 +393,24 @@ export async function deleteReview(userId: string, bookId: string): Promise<void
   if (!res.ok) throw new Error(`Delete review failed (${res.status})`);
 }
 
+export interface UserReviewItem {
+  book?: Book | null;
+  rating: number;
+  emotions: string[];
+  text: string;
+  created_at?: string | null;
+}
+/** 某用户写过的所有书评（个人主页用）。 */
+export async function fetchUserReviews(userId: string): Promise<UserReviewItem[]> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reviews/by-user?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 /** 跨书聚合的成长数据（成长曲线 + 解决的问题）。 */
 export async function fetchGrowth(userId: string): Promise<GrowthData> {
   const res = await fetch(`${baseUrl}/api/growth?user_id=${encodeURIComponent(userId)}`, {

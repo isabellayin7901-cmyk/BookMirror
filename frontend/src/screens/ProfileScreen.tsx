@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, spacing, typography, radius } from '../theme';
+import { Snowman } from '../illustrations/Snowman';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { signName, elementName } from '../lib/zodiacI18n';
@@ -26,6 +27,25 @@ export function ProfileScreen({ navigation }: Props) {
     await storage.setUserProfile(next);
   };
 
+  // 换头像（从相册）。
+  const pickAvatar = async () => {
+    let ImagePicker: typeof import('expo-image-picker');
+    try { ImagePicker = require('expo-image-picker'); } catch { Alert.alert(t('account.avatarNeedUpdate')); return; }
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) { Alert.alert(t('account.avatarPermission')); return; }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.7,
+      });
+      if (res.canceled || !res.assets?.[0]?.uri) return;
+      const cur = await storage.getUserProfile();
+      if (!cur) return;
+      const updated: UserProfile = { ...cur, avatarUri: res.assets[0].uri };
+      setProfile(updated);
+      await storage.setUserProfile(updated);
+    } catch { Alert.alert(t('account.avatarNeedUpdate')); }
+  };
+
   // 局部更新一个字段（输入时只改本地 state，失焦时落库）
   const setField = (patch: Partial<UserProfile>) =>
     setProfile((p) => (p ? { ...p, ...patch } : p));
@@ -43,6 +63,16 @@ export function ProfileScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>{t('settings.profile')}</Text>
+
+        {/* 头像 */}
+        <Pressable onPress={pickAvatar} style={styles.avatarWrap}>
+          {profile?.avatarUri ? (
+            <Image source={{ uri: profile.avatarUri }} style={styles.avatarImg} />
+          ) : (
+            <Snowman size={64} pose="wave" />
+          )}
+          <Text style={styles.avatarHint}>{t('account.changeAvatar')}</Text>
+        </Pressable>
 
         {/* 性别 */}
         <Text style={styles.sectionLabel}>{t('settings.gender')}</Text>
@@ -78,6 +108,31 @@ export function ProfileScreen({ navigation }: Props) {
           placeholder={t('profile.usernamePlaceholder')}
           placeholderTextColor={colors.textFaint}
         />
+
+        {/* 个性签名 */}
+        <Text style={styles.sectionLabel}>{t('profile.signature')}</Text>
+        <TextInput
+          style={styles.input}
+          value={profile?.signature ?? ''}
+          onChangeText={(s) => setField({ signature: s.slice(0, 50) })}
+          onBlur={persist}
+          placeholder={t('profile.signaturePlaceholder')}
+          placeholderTextColor={colors.textFaint}
+        />
+
+        {/* 出生日期（去星盘录入/修改） */}
+        <Text style={styles.sectionLabel}>{t('profile.birthday')}</Text>
+        <Pressable
+          onPress={() => navigation.navigate(profile?.zodiac ? 'AstrologyResult' : 'Astrology')}
+          style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}
+        >
+          <Text style={styles.navRowText}>
+            {profile?.birthday
+              ? `${profile.birthday.year}-${profile.birthday.month}-${profile.birthday.day}`
+              : t('account.addBirthday')}
+          </Text>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
 
         {/* 职业 / 专业 / 简介 */}
         <Text style={styles.sectionLabel}>{t('profile.occupation')}</Text>
@@ -192,6 +247,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   bioInput: { minHeight: 80, textAlignVertical: 'top' },
+  avatarWrap: { alignItems: 'center', marginTop: spacing.lg },
+  avatarImg: { width: 72, height: 72, borderRadius: 36 },
+  avatarHint: { ...typography.caption, color: colors.terracotta, marginTop: spacing.xs },
+  navRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: spacing.sm, paddingVertical: spacing.md, paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
+  },
+  navRowText: { ...typography.body, color: colors.text },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',

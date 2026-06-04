@@ -12,6 +12,7 @@ import { Snowman } from '../illustrations/Snowman';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { fetchDMHistory, sendDM, type DMMessage } from '../lib/api';
+import { formatDivider, shouldShowDivider } from '../lib/chatTime';
 import type { RootStackParamList } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -21,7 +22,7 @@ const POLL_MS = 3500;
 export function DMChatScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Rt>();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { peerId, peerName, peerAvatar } = route.params;
 
   const [uid, setUid] = useState('');
@@ -101,8 +102,12 @@ export function DMChatScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         <ScrollView ref={scrollRef} contentContainerStyle={styles.list}>
-          {messages.map((m) => (
-            <View key={m.id} style={[styles.row, m.from_me ? styles.rowMine : styles.rowTheirs]}>
+          {messages.map((m, i) => (
+            <React.Fragment key={m.id}>
+            {shouldShowDivider(messages[i - 1]?.created_at, m.created_at) && (
+              <Text style={styles.timeDivider}>{formatDivider(m.created_at, lang)}</Text>
+            )}
+            <View style={[styles.row, m.from_me ? styles.rowMine : styles.rowTheirs]}>
               {!m.from_me && (
                 <View style={styles.smallAvatar}>
                   {peerAvatar ? <Image source={{ uri: peerAvatar }} style={styles.smallAvatarImg} /> : <Snowman size={22} pose="wave" />}
@@ -118,6 +123,7 @@ export function DMChatScreen() {
                 )}
               </View>
             </View>
+            </React.Fragment>
           ))}
         </ScrollView>
 
@@ -153,6 +159,7 @@ const styles = StyleSheet.create({
   peerName: { ...typography.h3, maxWidth: 180 },
 
   list: { padding: spacing.lg, paddingBottom: spacing.md },
+  timeDivider: { ...typography.caption, color: colors.textFaint, fontSize: 11, textAlign: 'center', marginVertical: spacing.sm },
   row: { flexDirection: 'row', marginBottom: spacing.md, alignItems: 'flex-end' },
   rowMine: { justifyContent: 'flex-end' },
   rowTheirs: { justifyContent: 'flex-start' },

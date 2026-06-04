@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.security import api_guard
-from app.routes import recommend, feedback, mbti, astrology, books, synthesis, book_fit, mirror, auth, reviews, reading, social, messages
+from app.routes import recommend, feedback, mbti, astrology, books, synthesis, book_fit, mirror, auth, reviews, reading, social, messages, uploads, push
+from app.routes.uploads import UPLOAD_DIR
 
 app = FastAPI(
     title="BookMirror API",
@@ -35,6 +37,11 @@ app.include_router(reviews.router, prefix="/api", tags=["reviews"])
 app.include_router(reading.router, prefix="/api", tags=["reading"])
 app.include_router(social.router, prefix="/api", tags=["social"])
 app.include_router(messages.router, prefix="/api", tags=["messages"])
+app.include_router(uploads.router, prefix="/api", tags=["uploads"])
+app.include_router(push.router, prefix="/api", tags=["push"])
+
+# 上传的图片对外静态访问（/uploads/xxx.jpg）。
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.get("/")

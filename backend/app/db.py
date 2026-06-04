@@ -226,10 +226,24 @@ class DirectMessage(Base):
     pair_key: Mapped[str] = mapped_column(String(140), index=True, nullable=False)
     sender_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
     receiver_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # 图片消息的相对地址（/uploads/xxx.jpg）；纯文字消息为空。
+    image_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True, nullable=False)
     # 接收方读到这条消息的时间；为空 = 未读。
     read_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+
+class PushToken(Base):
+    """设备推送 token（Expo push token）。一个账号可有多台设备。
+    用 token 作主键，登录时上报、登出时删除。"""
+
+    __tablename__ = "push_tokens"
+
+    token: Mapped[str] = mapped_column(String(255), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    platform: Mapped[str] = mapped_column(String(16), default="")  # ios / android
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
 class User(Base):
@@ -292,6 +306,14 @@ def _ensure_columns() -> None:
         if "details" not in prof_cols:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE mirror_profiles ADD COLUMN details TEXT DEFAULT '{}'"))
+    except Exception:
+        pass
+    # direct_messages：补 image_url 列（图片消息）。
+    try:
+        dm_cols = {c["name"] for c in inspector.get_columns("direct_messages")}
+        if "image_url" not in dm_cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE direct_messages ADD COLUMN image_url VARCHAR(255)"))
     except Exception:
         pass
     # user_handles：早期版本对 handle_lower 建了唯一索引（大小写无关唯一）。

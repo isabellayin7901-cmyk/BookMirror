@@ -10,12 +10,13 @@
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func, and_, or_
 
 from app.db import SessionLocal, DirectMessage, Follow, init_db, _now
 from app.routes.social import _public_card
+from app.routes.push import notify_new_dm
 
 router = APIRouter()
 
@@ -49,13 +50,15 @@ def _are_mutual(session, a: str, b: str) -> bool:
 class SendIn(BaseModel):
     sender_id: str = Field(..., min_length=1, max_length=64)
     receiver_id: str = Field(..., min_length=1, max_length=64)
-    content: str = Field(..., min_length=1, max_length=4000)
+    content: str = Field(default="", max_length=4000)
+    image_url: Optional[str] = Field(default=None, max_length=255)
 
 
 class MessageOut(BaseModel):
     id: int
     from_me: bool
     content: str
+    image_url: Optional[str] = None
     created_at: Optional[str] = None
     read: bool = False
 
@@ -63,6 +66,7 @@ class MessageOut(BaseModel):
 class ConversationItem(BaseModel):
     peer: dict[str, Any]
     last_content: str = ""
+    last_image: bool = False
     last_from_me: bool = False
     last_at: Optional[str] = None
     unread: int = 0
@@ -72,6 +76,7 @@ class IncomingItem(BaseModel):
     id: int
     sender: dict[str, Any]
     content: str
+    image_url: Optional[str] = None
     created_at: Optional[str] = None
 
 
@@ -83,11 +88,12 @@ class ReadIn(BaseModel):
 # ---------- 端点 ----------
 
 @router.post("/dm/send", response_model=MessageOut)
-def send_message(payload: SendIn):
+def send_message(payload: SendIn, background: BackgroundTasks):
     if payload.sender_id == payload.receiver_id:
         raise HTTPException(status_code=400, detail="不能给自己发消息")
-    content = payload.content.strip()
-    if not content:
+    content = (payload.content or "").strip()
+    image_url = (payload.image_url or "").strip() or None
+    if not content and not image_url:
         raise HTTPException(status_code=400, detail="消息不能为空")
     session = SessionLocal()
     try:
@@ -98,13 +104,17 @@ def send_message(payload: SendIn):
             sender_id=payload.sender_id,
             receiver_id=payload.receiver_id,
             content=content,
+            image_url=image_url,
         )
         session.add(msg)
         session.commit()
-        return MessageOut(
-            id=msg.id, from_me=True, content=msg.content,
+        out = MessageOut(
+            id=msg.id, from_me=True, content=msg.content, image_url=msg.image_url,
             created_at=_iso(msg.created_at), read=False,
         )
+        # 后台给收信人发推送（不阻塞发送响应）
+        background.add_task(notify_new_dm, payload.receiver_id, payload.sender_id, content, bool(image_url))
+        return out
     finally:
         session.close()
 
@@ -136,6 +146,7 @@ def history(user_id: str, peer_id: str, after_id: int = 0, limit: int = 200):
                 id=m.id,
                 from_me=(m.sender_id == user_id),
                 content=m.content,
+                image_url=m.image_url,
                 created_at=_iso(m.created_at),
                 read=(m.read_at is not None),
             )
@@ -175,6 +186,7 @@ def conversations(user_id: str):
             items.append(ConversationItem(
                 peer=_public_card(session, fid),
                 last_content=last.content if last else "",
+                last_image=bool(last.image_url) if last else False,
                 last_from_me=(last.sender_id == user_id) if last else False,
                 last_at=_iso(last.created_at) if last else None,
                 unread=int(unread),
@@ -203,6 +215,7 @@ def incoming(user_id: str, after_id: int = 0, limit: int = 20):
                 id=m.id,
                 sender=_public_card(session, m.sender_id),
                 content=m.content,
+                image_url=m.image_url,
                 created_at=_iso(m.created_at),
             )
             for m in rows

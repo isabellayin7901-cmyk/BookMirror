@@ -834,6 +834,93 @@ export async function updateMyId(userId: string, handle: string): Promise<string
   return data.handle || handle;
 }
 
+// ---------- 好友私信（DM） ----------
+
+export interface DMMessage {
+  id: number;
+  from_me: boolean;
+  content: string;
+  created_at: string | null;
+  read: boolean;
+}
+
+export interface DMConversation {
+  peer: SocialUserCard;
+  last_content: string;
+  last_from_me: boolean;
+  last_at: string | null;
+  unread: number;
+}
+
+export interface DMIncoming {
+  id: number;
+  sender: SocialUserCard;
+  content: string;
+  created_at: string | null;
+}
+
+export async function sendDM(senderId: string, receiverId: string, content: string): Promise<DMMessage> {
+  const res = await fetch(`${baseUrl}/api/dm/send`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ sender_id: senderId, receiver_id: receiverId, content }),
+  });
+  if (!res.ok) {
+    let detail = '';
+    try { detail = (await res.json()).detail || ''; } catch { /* ignore */ }
+    throw new Error(detail || `send failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function fetchDMHistory(userId: string, peerId: string, afterId = 0): Promise<DMMessage[]> {
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/dm/history?user_id=${encodeURIComponent(userId)}&peer_id=${encodeURIComponent(peerId)}&after_id=${afterId}`,
+      { headers: authHeaders() },
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchConversations(userId: string): Promise<DMConversation[]> {
+  try {
+    const res = await fetch(`${baseUrl}/api/dm/conversations?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchIncoming(userId: string, afterId: number): Promise<DMIncoming[]> {
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/dm/incoming?user_id=${encodeURIComponent(userId)}&after_id=${afterId}`,
+      { headers: authHeaders() },
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function markDMRead(userId: string, peerId: string): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/dm/read`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, peer_id: peerId }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
 /** 按 ID 或用户名搜索用户。 */
 export async function searchUsers(q: string, viewerId: string): Promise<SocialUserCard[]> {
   try {

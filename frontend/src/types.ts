@@ -141,6 +141,7 @@ export type RootStackParamList = {
   ProfileHome: { userId?: string } | undefined;
   SocialList: { userId: string; type: 'fans' | 'following' | 'friends' | 'visitors' };
   AddFriend: undefined;
+  DMChat: { peerId: string; peerName?: string; peerAvatar?: string | null };
   Privacy: undefined;
   Settings: undefined;
   Profile: undefined;

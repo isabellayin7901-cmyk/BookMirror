@@ -20,7 +20,9 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ProfileHomeScreen } from './src/screens/ProfileHomeScreen';
 import { SocialListScreen } from './src/screens/SocialListScreen';
 import { AddFriendScreen } from './src/screens/AddFriendScreen';
+import { DMChatScreen } from './src/screens/DMChatScreen';
 import { PrivacyScreen } from './src/screens/PrivacyScreen';
+import { IncomingBanner } from './src/components/IncomingBanner';
 import { PersonaScreen } from './src/screens/PersonaScreen';
 import { AstrologyScreen } from './src/screens/AstrologyScreen';
 import { AstrologyResultScreen } from './src/screens/AstrologyResultScreen';
@@ -93,6 +95,7 @@ export default function App() {
           />
           <Stack.Screen name="SocialList" component={SocialListScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="AddFriend" component={AddFriendScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+          <Stack.Screen name="DMChat" component={DMChatScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="Persona" component={PersonaScreen} />
           <Stack.Screen name="Astrology" component={AstrologyScreen} />
@@ -100,6 +103,8 @@ export default function App() {
           <Stack.Screen name="Gender" component={GenderScreen} options={{ headerShown: false }} />
           <Stack.Screen name="MirrorChat" component={MirrorChatScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
+        {/* 好友消息弹跳横幅（全局，叠在导航之上） */}
+        <IncomingBanner />
       </NavigationContainer>
       </LanguageProvider>
     </SafeAreaProvider>

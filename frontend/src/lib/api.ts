@@ -660,3 +660,146 @@ export async function googleLogin(idToken: string): Promise<AuthResult> {
   }
   return res.json();
 }
+
+// ---------- 社交系统：关注 / 粉丝 / 朋友 / 访客 / 公开主页 ----------
+
+export interface SocialCounts {
+  fans: number;
+  following: number;
+  friends: number;
+  visitors: number;
+}
+
+export interface PublicProfile {
+  user_id: string;
+  username: string;
+  signature: string;
+  avatar_url: string | null;
+  mbti: string | null;
+  zodiac_sun: string | null;
+  zodiac_element: string | null;
+  gender: string | null;
+  occupation: string | null;
+  major: string | null;
+  counts: SocialCounts;
+  is_following: boolean;
+  is_mutual: boolean;
+  is_self: boolean;
+  show_reviews: boolean;
+  show_favorites: boolean;
+}
+
+export interface SocialUserCard {
+  user_id: string;
+  username: string;
+  signature: string;
+  avatar_url: string | null;
+  mbti: string | null;
+}
+
+export interface PrivacySettings {
+  hideSignature: boolean;
+  hideInfo: boolean;
+  hideReviews: boolean;
+  hideFavorites: boolean;
+  hideVisitors: boolean;
+}
+
+/** 看某人的公开主页（viewerId 用于记录访客 + 计算关注关系）。 */
+export async function fetchPublicProfile(userId: string, viewerId: string): Promise<PublicProfile | null> {
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/social/profile?user_id=${encodeURIComponent(userId)}&viewer_id=${encodeURIComponent(viewerId)}`,
+      { headers: authHeaders() },
+    );
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function followUser(followerId: string, followeeId: string): Promise<{ following: boolean; mutual: boolean }> {
+  const res = await fetch(`${baseUrl}/api/social/follow`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ follower_id: followerId, followee_id: followeeId }),
+  });
+  if (!res.ok) throw new Error(`follow failed (${res.status})`);
+  return res.json();
+}
+
+export async function unfollowUser(followerId: string, followeeId: string): Promise<{ following: boolean; mutual: boolean }> {
+  const res = await fetch(`${baseUrl}/api/social/unfollow`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ follower_id: followerId, followee_id: followeeId }),
+  });
+  if (!res.ok) throw new Error(`unfollow failed (${res.status})`);
+  return res.json();
+}
+
+/** 关系列表（type: fans→followers / following / friends / visitors）。 */
+export async function fetchSocialList(
+  userId: string,
+  type: 'fans' | 'following' | 'friends' | 'visitors',
+): Promise<SocialUserCard[]> {
+  const path = type === 'fans' ? 'followers' : type;
+  try {
+    const res = await fetch(`${baseUrl}/api/social/${path}?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchPrivacy(userId: string): Promise<PrivacySettings> {
+  try {
+    const res = await fetch(`${baseUrl}/api/social/privacy?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error();
+    return await res.json();
+  } catch {
+    return { hideSignature: false, hideInfo: false, hideReviews: false, hideFavorites: false, hideVisitors: false };
+  }
+}
+
+export async function savePrivacy(userId: string, p: PrivacySettings): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/social/privacy`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, ...p }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 把本地收藏的 book_id 同步到服务器，供别人查看「ta 的收藏」。 */
+export async function syncFavorites(userId: string, bookIds: string[]): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/social/favorites/sync`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, book_ids: bookIds }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 取某人公开收藏的 book_id 列表。 */
+export async function fetchFavoriteIds(userId: string, viewerId: string): Promise<string[]> {
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/social/favorites?user_id=${encodeURIComponent(userId)}&viewer_id=${encodeURIComponent(viewerId)}`,
+      { headers: authHeaders() },
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.book_ids || [];
+  } catch {
+    return [];
+  }
+}

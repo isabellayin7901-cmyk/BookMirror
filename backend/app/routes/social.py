@@ -218,8 +218,9 @@ def public_profile(user_id: str, viewer_id: str = ""):
     session = SessionLocal()
     try:
         is_self = bool(viewer_id) and viewer_id == user_id
-        # 记录访客（别人来看才记，自己看自己不记）
-        if viewer_id and not is_self:
+        # 记录访客（别人来看才记，自己看自己不记；访客开了「不留足迹」则不记）
+        viewer_hides_footprint = bool(viewer_id) and _privacy(_account_data(session, viewer_id))["hideVisitors"]
+        if viewer_id and not is_self and not viewer_hides_footprint:
             visit = session.execute(
                 select(ProfileVisit).where(
                     ProfileVisit.visitor_id == viewer_id,

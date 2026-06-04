@@ -138,7 +138,9 @@ export type RootStackParamList = {
   Feedback: { books: Book[] };
   BookReview: { book: Book };
   Growth: undefined;
-  ProfileHome: undefined;
+  ProfileHome: { userId?: string } | undefined;
+  SocialList: { userId: string; type: 'fans' | 'following' | 'friends' | 'visitors' };
+  Privacy: undefined;
   Settings: undefined;
   Profile: undefined;
   Persona: { onboarding?: boolean } | undefined;

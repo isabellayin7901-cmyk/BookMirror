@@ -18,6 +18,8 @@ import { GrowthScreen } from './src/screens/GrowthScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ProfileHomeScreen } from './src/screens/ProfileHomeScreen';
+import { SocialListScreen } from './src/screens/SocialListScreen';
+import { PrivacyScreen } from './src/screens/PrivacyScreen';
 import { PersonaScreen } from './src/screens/PersonaScreen';
 import { AstrologyScreen } from './src/screens/AstrologyScreen';
 import { AstrologyResultScreen } from './src/screens/AstrologyResultScreen';
@@ -84,6 +86,8 @@ export default function App() {
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="ProfileHome" component={ProfileHomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SocialList" component={SocialListScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Persona" component={PersonaScreen} />
           <Stack.Screen name="Astrology" component={AstrologyScreen} />
           <Stack.Screen name="AstrologyResult" component={AstrologyResultScreen} />

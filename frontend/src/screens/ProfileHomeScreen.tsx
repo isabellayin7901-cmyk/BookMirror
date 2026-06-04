@@ -4,45 +4,88 @@ import {
   Dimensions, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { colors, spacing, typography, radius, shadow } from '../theme';
+import { colors, spacing, typography, radius } from '../theme';
 import { Snowman } from '../illustrations/Snowman';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { bookTitle, bookAuthor } from '../lib/bookDisplay';
-import { fetchUserReviews, type UserReviewItem } from '../lib/api';
+import { signName, elementName } from '../lib/zodiacI18n';
+import {
+  fetchUserReviews, type UserReviewItem,
+  fetchPublicProfile, followUser, unfollowUser, syncFavorites,
+  fetchFavoriteIds, fetchBooksByIds, type PublicProfile,
+} from '../lib/api';
 import { BookDetailModal } from '../components/BookDetailModal';
 import type { Book, RootStackParamList, UserProfile } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Rt = RouteProp<RootStackParamList, 'ProfileHome'>;
 const SCREEN_W = Dimensions.get('window').width;
 
 export function ProfileHomeScreen() {
   const navigation = useNavigation<Nav>();
+  const route = useRoute<Rt>();
   const { t, lang } = useI18n();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  const [selfId, setSelfId] = useState('');
+  const [localProfile, setLocalProfile] = useState<UserProfile | null>(null);
+  const [pub, setPub] = useState<PublicProfile | null>(null);
   const [reviews, setReviews] = useState<UserReviewItem[]>([]);
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [tab, setTab] = useState(0); // 0=书评 1=收藏
   const [detailBook, setDetailBook] = useState<Book | null>(null);
+  const [busy, setBusy] = useState(false);
   const pagerRef = useRef<ScrollView>(null);
 
+  const paramId = route.params?.userId;
+
   const load = useCallback(async () => {
-    const [p, favs, id] = await Promise.all([
-      storage.getUserProfile(), storage.getFavorites(), storage.getUserId(),
+    const me = await storage.getUserId();
+    setSelfId(me);
+    const targetId = paramId || me;
+    const viewing = targetId !== me;
+
+    const [p, profile] = await Promise.all([
+      fetchPublicProfile(targetId, me),
+      viewing ? Promise.resolve(null) : storage.getUserProfile(),
     ]);
-    setProfile(p);
-    setFavorites(favs);
-    setReviews(await fetchUserReviews(id));
-  }, []);
+    setPub(p);
+    setLocalProfile(profile);
+
+    // 书评
+    if (!p || p.show_reviews) {
+      setReviews(await fetchUserReviews(targetId));
+    } else {
+      setReviews([]);
+    }
+
+    // 收藏
+    if (viewing) {
+      if (!p || p.show_favorites) {
+        const ids = await fetchFavoriteIds(targetId, me);
+        setFavorites(ids.length ? await fetchBooksByIds(ids) : []);
+      } else {
+        setFavorites([]);
+      }
+    } else {
+      const favs = await storage.getFavorites();
+      setFavorites(favs);
+      // 顺手把自己的收藏同步到服务器，供别人查看
+      syncFavorites(me, favs.map((b) => b.id));
+    }
+  }, [paramId]);
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', load);
     load();
     return unsub;
   }, [navigation, load]);
+
+  const targetId = paramId || selfId;
+  const viewing = !!selfId && targetId !== selfId;
 
   const goTab = (i: number) => {
     setTab(i);
@@ -53,12 +96,51 @@ export function ProfileHomeScreen() {
     if (i !== tab) setTab(i);
   };
 
-  const stats: { key: string; n: number }[] = [
-    { key: 'fans', n: 0 },
-    { key: 'following', n: 0 },
-    { key: 'friends', n: 0 },
-    { key: 'visitors', n: 0 },
+  const onToggleFollow = async () => {
+    if (!pub || busy) return;
+    setBusy(true);
+    try {
+      const r = pub.is_following
+        ? await unfollowUser(selfId, targetId)
+        : await followUser(selfId, targetId);
+      setPub({
+        ...pub,
+        is_following: r.following,
+        is_mutual: r.mutual,
+        counts: { ...pub.counts, fans: pub.counts.fans + (r.following ? 1 : -1) },
+      });
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const counts = pub?.counts || { fans: 0, following: 0, friends: 0, visitors: 0 };
+  const stats: { key: 'fans' | 'following' | 'friends' | 'visitors'; n: number }[] = [
+    { key: 'fans', n: counts.fans },
+    { key: 'following', n: counts.following },
+    { key: 'friends', n: counts.friends },
+    { key: 'visitors', n: counts.visitors },
   ];
+
+  // 头像：自己用本地（带 avatarUri），别人用服务器 avatar_url
+  const avatarUri = viewing ? pub?.avatar_url || null : localProfile?.avatarUri || null;
+  const username = viewing
+    ? (pub?.username || t('profileHome.noName'))
+    : (localProfile?.username?.trim() || t('profileHome.noName'));
+  const signature = viewing
+    ? (pub?.signature || '')
+    : (localProfile?.signature?.trim() || '');
+
+  const showReviews = !pub || pub.show_reviews;
+  const showFavorites = !pub || pub.show_favorites;
+
+  const followLabel = pub?.is_mutual
+    ? t('social.friendsTag')
+    : pub?.is_following
+      ? t('social.following')
+      : t('social.follow');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -66,39 +148,62 @@ export function ProfileHomeScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
           <Text style={styles.back}>‹</Text>
         </Pressable>
-        <Pressable onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.editLink}>{t('profileHome.edit')}</Text>
-        </Pressable>
+        {!viewing && (
+          <Pressable onPress={() => navigation.navigate('Privacy')} hitSlop={12}>
+            <Text style={styles.gear}>⚙︎</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* 头像 + 用户名 + 签名 */}
       <View style={styles.top}>
         <View style={styles.avatar}>
-          {profile?.avatarUri ? (
-            <Image source={{ uri: profile.avatarUri }} style={styles.avatarImg} />
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
           ) : (
             <Snowman size={72} pose="wave" />
           )}
         </View>
         <View style={{ flex: 1, marginLeft: spacing.md }}>
-          <Text style={styles.username}>{profile?.username?.trim() || t('profileHome.noName')}</Text>
-          <Text style={styles.signature} numberOfLines={2}>
-            {profile?.signature?.trim() || t('profileHome.noSignature')}
-          </Text>
+          <Text style={styles.username}>{username}</Text>
+          {!!signature && <Text style={styles.signature} numberOfLines={2}>{signature}</Text>}
+          {/* 资料行：星座 / MBTI / 职业 */}
+          <View style={styles.metaRow}>
+            {pub?.zodiac_sun && (
+              <Text style={styles.metaTag}>
+                {signName(pub.zodiac_sun, lang)}
+                {pub.zodiac_element ? ` · ${elementName(pub.zodiac_element, lang)}` : ''}
+              </Text>
+            )}
+            {pub?.mbti && <Text style={styles.metaTag}>{pub.mbti}</Text>}
+            {pub?.occupation && <Text style={styles.metaTag}>{pub.occupation}</Text>}
+          </View>
         </View>
-        {/* 关注按钮（看别人主页时用；自己主页先占位为编辑） */}
-        <Pressable onPress={() => navigation.navigate('Profile')} style={styles.followBtn}>
-          <Text style={styles.followText}>{t('profileHome.edit')}</Text>
-        </Pressable>
+        {viewing ? (
+          <Pressable
+            onPress={onToggleFollow}
+            style={[styles.followBtn, pub?.is_following && styles.followingBtn]}
+          >
+            <Text style={[styles.followText, pub?.is_following && styles.followingText]}>{followLabel}</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => navigation.navigate('Profile')} style={[styles.followBtn, styles.followingBtn]}>
+            <Text style={[styles.followText, styles.followingText]}>{t('profileHome.edit')}</Text>
+          </Pressable>
+        )}
       </View>
 
-      {/* 四栏：粉丝/关注/朋友/访客 */}
+      {/* 四栏：粉丝/关注/朋友/访客（可点进列表） */}
       <View style={styles.statsRow}>
         {stats.map((s) => (
-          <View key={s.key} style={styles.statCol}>
+          <Pressable
+            key={s.key}
+            style={styles.statCol}
+            onPress={() => navigation.navigate('SocialList', { userId: targetId, type: s.key })}
+          >
             <Text style={styles.statNum}>{s.n}</Text>
             <Text style={styles.statLabel}>{t(`profileHome.${s.key}`)}</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
 
@@ -124,7 +229,9 @@ export function ProfileHomeScreen() {
       >
         {/* 书评页 */}
         <ScrollView style={{ width: SCREEN_W }} contentContainerStyle={styles.pageContent}>
-          {reviews.length === 0 ? (
+          {!showReviews ? (
+            <Text style={styles.empty}>{t('social.reviewsHidden')}</Text>
+          ) : reviews.length === 0 ? (
             <Text style={styles.empty}>{t('profileHome.noReviews')}</Text>
           ) : (
             reviews.map((r, i) => (
@@ -140,7 +247,9 @@ export function ProfileHomeScreen() {
 
         {/* 收藏页 */}
         <ScrollView style={{ width: SCREEN_W }} contentContainerStyle={styles.pageContent}>
-          {favorites.length === 0 ? (
+          {!showFavorites ? (
+            <Text style={styles.empty}>{t('social.favoritesHidden')}</Text>
+          ) : favorites.length === 0 ? (
             <Text style={styles.empty}>{t('profileHome.noFavorites')}</Text>
           ) : (
             favorites.map((b) => (
@@ -169,15 +278,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   back: { fontSize: 30, color: colors.textMuted },
-  editLink: { ...typography.body, color: colors.terracotta },
+  gear: { fontSize: 22, color: colors.textMuted },
 
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   avatar: { width: 78, height: 78, borderRadius: 39, overflow: 'hidden', backgroundColor: colors.snowShade, alignItems: 'center', justifyContent: 'center' },
   avatarImg: { width: '100%', height: '100%' },
   username: { ...typography.h2, fontFamily: 'ZCOOLKuaiLe_400Regular' },
   signature: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
-  followBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.terracotta },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 6 },
+  metaTag: { ...typography.caption, color: colors.primary, backgroundColor: colors.surface, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2, overflow: 'hidden', fontSize: 11 },
+  followBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.terracotta, minWidth: 64, alignItems: 'center' },
+  followingBtn: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   followText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  followingText: { color: colors.textMuted },
 
   statsRow: { flexDirection: 'row', marginTop: spacing.lg, paddingHorizontal: spacing.lg },
   statCol: { flex: 1, alignItems: 'center' },

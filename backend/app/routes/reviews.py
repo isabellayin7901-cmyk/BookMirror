@@ -180,7 +180,8 @@ def list_reviews(book_id: str, limit: int = 50):
         for r in rows:
             o = _to_out(r)
             if o.anonymous:
-                o.mbti = None  # 匿名则不暴露任何身份线索
+                o.mbti = None      # 匿名则不暴露任何身份线索
+                o.user_id = ""      # 也不暴露 user_id，避免被链接到个人主页
             out.append(o)
         return out
     finally:

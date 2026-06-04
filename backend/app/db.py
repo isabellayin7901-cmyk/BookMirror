@@ -164,6 +164,44 @@ class MirrorProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
+class Follow(Base):
+    """关注关系：follower 关注 followee。互相关注 = 朋友。"""
+
+    __tablename__ = "follows"
+    __table_args__ = (UniqueConstraint("follower_id", "followee_id", name="uq_follow"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    follower_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    followee_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+
+
+class ProfileVisit(Base):
+    """访客记录：visitor 看了 owner 的主页。一对(visitor,owner)只留最新一次。"""
+
+    __tablename__ = "profile_visits"
+    __table_args__ = (UniqueConstraint("visitor_id", "owner_id", name="uq_visit"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    visitor_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    owner_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class UserFavorite(Base):
+    """用户收藏的书（book_id）。前端收藏本地存全量 Book，这里只同步 id，
+    供别人查看「ta 的收藏」。一对(user,book)唯一。"""
+
+    __tablename__ = "user_favorites"
+    __table_args__ = (UniqueConstraint("user_id", "book_id", name="uq_user_favorite"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    book_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+
+
 class User(Base):
     """A registered account. user_id doubles as the mirror conversation key."""
 

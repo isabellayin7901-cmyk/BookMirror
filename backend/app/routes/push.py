@@ -165,6 +165,28 @@ def send_push_to_user(user_id: str, title: str, body: str, data: dict | None = N
             logger.warning("FCM 发送异常 user_id=%s", user_id, exc_info=True)
 
 
+@router.get("/push/test")
+def push_test(handle: str):
+    """按 @ID 给自己发一条测试推送，验证链路（调试用）。"""
+    session = SessionLocal()
+    try:
+        row = session.execute(
+            select(UserHandle).where(UserHandle.handle == handle)
+        ).scalars().first()
+        if row is None:
+            return {"ok": False, "reason": "handle not found"}
+        n_tokens = session.execute(
+            select(PushToken).where(PushToken.user_id == row.user_id)
+        ).scalars().all()
+        uid = row.user_id
+        ntok = len(n_tokens)
+    finally:
+        session.close()
+    configured = _get_credentials() is not None
+    send_push_to_user(uid, "雪宝", "推送通了 🎉", data={"type": "test"})
+    return {"ok": True, "tokens": ntok, "fcm_configured": configured}
+
+
 def notify_new_dm(receiver_id: str, sender_id: str, content: str, has_image: bool) -> None:
     """好友私信到达时触发的推送（在后台任务里调用）。"""
     session = SessionLocal()

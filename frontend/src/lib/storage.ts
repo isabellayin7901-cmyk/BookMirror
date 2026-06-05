@@ -42,6 +42,7 @@ const KEYS = {
   bookFit: '@bookmirror/book_fit',
   userId: '@bookmirror/user_id',
   authToken: '@bookmirror/auth_token',
+  savedSentences: '@bookmirror/saved_sentences',
 } as const;
 
 /** 匿名稳定设备/用户标识，用于后端持久化小镜子对话。首次生成后不变。 */
@@ -203,6 +204,16 @@ export const storage = {
     }
     await setJSON(KEYS.checkinLog, log);
     return log.find((d) => d.date === today)!;
+  },
+
+  // ---------- 收藏的句子（小镜子聊天里收藏的话） ----------
+  getSavedSentences: () => getJSON<string[]>(KEYS.savedSentences, []),
+  saveSentence: async (text: string): Promise<void> => {
+    const t = text.trim();
+    if (!t) return;
+    const list = await getJSON<string[]>(KEYS.savedSentences, []);
+    if (list.includes(t)) return;
+    await setJSON(KEYS.savedSentences, [t, ...list].slice(0, 500));
   },
 
   // ---------- 收藏（存整本书，任意来源的书都能收藏） ----------

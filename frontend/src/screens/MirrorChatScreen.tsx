@@ -26,6 +26,7 @@ import { colors, spacing, typography, radius, shadow } from '../theme';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { BookDetailModal } from '../components/BookDetailModal';
+import { Snowman } from '../illustrations/Snowman';
 import { bookTitle, bookAuthor } from '../lib/bookDisplay';
 import type { Book } from '../types';
 import {
@@ -36,10 +37,14 @@ import {
   updateConversation,
   deleteConversation,
   createProject,
+  deleteMirrorMessage,
+  fetchConversations,
+  sendDM,
   type MirrorMessage,
   type MirrorChatContext,
   type Conversation,
   type MirrorProject,
+  type DMConversation,
 } from '../lib/api';
 import type { RootStackParamList, UserProfile } from '../types';
 
@@ -124,6 +129,15 @@ export function MirrorChatScreen() {
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectText, setNewProjectText] = useState('');
   const newProjectAssignRef = useRef<string | null>(null);  // 新建项目后是否把某对话放进去
+  // 消息长按菜单 / 多选 / 转发
+  const [msgMenu, setMsgMenu] = useState<MirrorMessage | null>(null);
+  const [msgMenuKey, setMsgMenuKey] = useState(0);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [forwardOpen, setForwardOpen] = useState(false);
+  const [forwardPayload, setForwardPayload] = useState('');
+  const [friends, setFriends] = useState<DMConversation[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
 
   const scrollToEnd = useCallback(() => {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
@@ -260,26 +274,75 @@ export function MirrorChatScreen() {
     dispatch({ text, apiText });
   };
 
-  // 长按消息：复制 / 引用追问
-  const onBubbleLongPress = (content: string) => {
-    if (!content) return;
-    const preview = content.length > 40 ? content.slice(0, 40) + '…' : content;
-    Alert.alert(preview, undefined, [
-      {
-        text: t('mirror.copy'),
-        onPress: async () => {
-          try {
-            const Clip = require('expo-clipboard');
-            await Clip.setStringAsync(content);
-          } catch {
-            Alert.alert(t('mirror.needUpdate'));
-          }
-        },
-      },
-      { text: t('mirror.quote'), onPress: () => setQuoted(content) },
-      { text: t('mirror.cancel'), style: 'cancel' },
-    ]);
+  // 长按消息：打开治愈风行式菜单（复制/引用/删除/转发/收藏/多选）
+  const onBubbleLongPress = (m: MirrorMessage, key: number) => {
+    if (!m.content || selectMode) return;
+    setMsgMenu(m);
+    setMsgMenuKey(key);
   };
+
+  const flashToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 1600);
+  };
+
+  const copyText = async (content: string) => {
+    try { await require('expo-clipboard').setStringAsync(content); flashToast(t('msgMenu.copied')); }
+    catch { Alert.alert(t('mirror.needUpdate')); }
+  };
+
+  // 删除消息（本地移除 + 有服务器 id 的同步删除）
+  const removeMessages = async (targets: MirrorMessage[]) => {
+    if (!userId) return;
+    const ids = targets.map((x) => x.id).filter((x): x is number => typeof x === 'number');
+    setMessages((prev) => prev.filter((m) => {
+      if (typeof m.id === 'number') return !ids.includes(m.id);
+      return !targets.some((tt) => tt.id == null && tt.content === m.content && tt.role === m.role);
+    }));
+    for (const id of ids) await deleteMirrorMessage(userId, id);
+  };
+
+  // 收藏句子
+  const saveSentences = async (texts: string[]) => {
+    for (const tx of texts) await storage.saveSentence(tx);
+    flashToast(t('msgMenu.saved'));
+  };
+
+  // 打开转发选好友
+  const openForward = async (text: string) => {
+    if (!userId) return;
+    setForwardPayload(text);
+    setFriends(await fetchConversations(userId));
+    setForwardOpen(true);
+  };
+  const doForward = async (peerId: string) => {
+    if (!userId || !forwardPayload) return;
+    setForwardOpen(false);
+    try { await sendDM(userId, peerId, forwardPayload); flashToast(t('msgMenu.forwarded')); }
+    catch { flashToast(t('msgMenu.forwardFailed')); }
+  };
+
+  // 多选
+  const enterSelect = () => {
+    setSelectMode(true);
+    setSelected(new Set([msgMenuKey]));
+    setMsgMenu(null);
+  };
+  const toggleSelect = (key: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+  const exitSelect = () => { setSelectMode(false); setSelected(new Set()); };
+
+  // 菜单各操作（作用于长按的那条 msgMenu）
+  const menuCopy = () => { if (msgMenu) copyText(msgMenu.content); setMsgMenu(null); };
+  const menuQuote = () => { if (msgMenu) setQuoted(msgMenu.content); setMsgMenu(null); };
+  const menuDelete = () => { if (msgMenu) removeMessages([msgMenu]); setMsgMenu(null); };
+  const menuForward = () => { const m = msgMenu; setMsgMenu(null); if (m) openForward(m.content); };
+  const menuSave = () => { if (msgMenu) saveSentences([msgMenu.content]); setMsgMenu(null); };
 
   // 加号：从相册或拍照选图发给雪宝（看图）。
   const pickImage = async (fromCamera: boolean) => {
@@ -478,6 +541,7 @@ export function MirrorChatScreen() {
     if (parts.length === 0) return [m];
     // 书卡挂在这条消息拆出的最后一个气泡下面
     return parts.map((content, idx) => ({
+      id: m.id,
       role: 'assistant' as const,
       content,
       created_at: m.created_at,
@@ -498,6 +562,7 @@ export function MirrorChatScreen() {
     }
     return { m, timeLabel, key: i };
   });
+  const selectedMsgs = items.filter((it) => selected.has(it.key)).map((it) => it.m);
 
   const renderConvRow = (c: Conversation) => (
     <View key={c.id} style={[styles.convRow, c.id === convId && styles.convRowActive]}>
@@ -565,11 +630,18 @@ export function MirrorChatScreen() {
                   style={[
                     styles.bubbleRow,
                     m.role === 'user' ? styles.rowRight : styles.rowLeft,
+                    selectMode && { alignItems: 'center' },
                   ]}
                 >
+                  {selectMode && (
+                    <View style={[styles.selectDot, selected.has(key) && styles.selectDotOn]}>
+                      {selected.has(key) && <Text style={styles.selectTick}>✓</Text>}
+                    </View>
+                  )}
                   <PopIn fromLeft={m.role !== 'user'}>
                     <Pressable
-                      onLongPress={() => onBubbleLongPress(m.content)}
+                      onPress={selectMode ? () => toggleSelect(key) : undefined}
+                      onLongPress={() => onBubbleLongPress(m, key)}
                       delayLongPress={300}
                       style={[
                         styles.bubble,
@@ -633,45 +705,65 @@ export function MirrorChatScreen() {
           </ScrollView>
         )}
 
-        {quoted && (
-          <View style={styles.quoteBar}>
-            <View style={styles.quoteLine} />
-            <Text style={styles.quoteText} numberOfLines={2}>{quoted}</Text>
-            <Pressable onPress={() => setQuoted(null)} hitSlop={8}>
-              <Text style={styles.quoteClose}>✕</Text>
-            </Pressable>
+        {selectMode ? (
+          <View style={styles.selectBar}>
+            <Pressable onPress={exitSelect} hitSlop={8}><Text style={styles.selectCancel}>{t('msgMenu.cancel')}</Text></Pressable>
+            <Text style={styles.selectCount}>{t('msgMenu.selectedCount').replace('{n}', String(selected.size))}</Text>
+            <View style={styles.selectActions}>
+              <Pressable disabled={!selected.size} onPress={() => { copyText(selectedMsgs.map((x) => x.content).join('\n')); exitSelect(); }}>
+                <Text style={[styles.selectAct, !selected.size && { opacity: 0.3 }]}>{t('mirror.copy')}</Text>
+              </Pressable>
+              <Pressable disabled={!selected.size} onPress={() => { const txt = selectedMsgs.map((x) => x.content).join('\n'); exitSelect(); openForward(txt); }}>
+                <Text style={[styles.selectAct, !selected.size && { opacity: 0.3 }]}>{t('msgMenu.forward')}</Text>
+              </Pressable>
+              <Pressable disabled={!selected.size} onPress={() => { removeMessages(selectedMsgs); exitSelect(); }}>
+                <Text style={[styles.selectAct, styles.selectActDanger, !selected.size && { opacity: 0.3 }]}>{t('msgMenu.delete')}</Text>
+              </Pressable>
+            </View>
           </View>
+        ) : (
+          <>
+            {quoted && (
+              <View style={styles.quoteBar}>
+                <View style={styles.quoteLine} />
+                <Text style={styles.quoteText} numberOfLines={2}>{quoted}</Text>
+                <Pressable onPress={() => setQuoted(null)} hitSlop={8}>
+                  <Text style={styles.quoteClose}>✕</Text>
+                </Pressable>
+              </View>
+            )}
+            <View style={styles.inputBar}>
+              {/* 玫瑰麦克风（本地语音识别） */}
+              <Pressable onPress={onMic} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
+                <Image source={require('../../assets/btn_mic.png')} style={[styles.iconImg, listening && styles.iconListening]} />
+              </Pressable>
+              <TextInput
+                style={styles.input}
+                value={input}
+                onChangeText={setInput}
+                placeholder={t('mirror.inputPlaceholder')}
+                placeholderTextColor={colors.textFaint}
+                multiline
+                onSubmitEditing={send}
+              />
+              {/* 加号（文件/相册/拍照） */}
+              <Pressable onPress={() => setPlusOpen(true)} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
+                <Image source={require('../../assets/btn_plus.png')} style={styles.iconImg} />
+              </Pressable>
+              <Pressable
+                onPress={send}
+                disabled={!input.trim() || sending}
+                style={({ pressed }) => [
+                  styles.sendBtn,
+                  (!input.trim() || sending) && { opacity: 0.4 },
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                <Text style={styles.sendIcon}>↑</Text>
+              </Pressable>
+            </View>
+          </>
         )}
-        <View style={styles.inputBar}>
-          {/* 玫瑰麦克风（本地语音识别） */}
-          <Pressable onPress={onMic} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
-            <Image source={require('../../assets/btn_mic.png')} style={[styles.iconImg, listening && styles.iconListening]} />
-          </Pressable>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder={t('mirror.inputPlaceholder')}
-            placeholderTextColor={colors.textFaint}
-            multiline
-            onSubmitEditing={send}
-          />
-          {/* 加号（文件/相册/拍照） */}
-          <Pressable onPress={() => setPlusOpen(true)} hitSlop={6} style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}>
-            <Image source={require('../../assets/btn_plus.png')} style={styles.iconImg} />
-          </Pressable>
-          <Pressable
-            onPress={send}
-            disabled={!input.trim() || sending}
-            style={({ pressed }) => [
-              styles.sendBtn,
-              (!input.trim() || sending) && { opacity: 0.4 },
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Text style={styles.sendIcon}>↑</Text>
-          </Pressable>
-        </View>
       </KeyboardAvoidingView>
 
       {/* 加号：治愈系上传菜单（文件 / 相册 / 拍照） */}
@@ -799,6 +891,68 @@ export function MirrorChatScreen() {
         </Pressable>
       </Modal>
 
+      {/* 消息长按：治愈风一行行菜单 */}
+      <Modal visible={msgMenu !== null} transparent animationType="fade" onRequestClose={() => setMsgMenu(null)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setMsgMenu(null)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            {!!msgMenu?.content && <Text style={styles.sheetPreview} numberOfLines={2}>{msgMenu.content}</Text>}
+            {([
+              { label: t('msgMenu.copy'), icon: '❏', onPress: menuCopy },
+              { label: t('msgMenu.quote'), icon: '❝', onPress: menuQuote },
+              { label: t('msgMenu.delete'), icon: '🗑', onPress: menuDelete, danger: true },
+              { label: t('msgMenu.forward'), icon: '➤', onPress: menuForward },
+              { label: t('msgMenu.save'), icon: '🌿', onPress: menuSave },
+              { label: t('msgMenu.multiSelect'), icon: '☑', onPress: enterSelect },
+            ] as const).map((row, i, arr) => (
+              <Pressable
+                key={row.label}
+                onPress={row.onPress}
+                style={({ pressed }) => [styles.sheetRow, i < arr.length - 1 && styles.sheetRowBorder, pressed && { backgroundColor: colors.bgSoft }]}
+              >
+                <Text style={styles.sheetIcon}>{row.icon}</Text>
+                <Text style={[styles.sheetLabel, (row as any).danger && { color: '#D9684F' }]}>{row.label}</Text>
+              </Pressable>
+            ))}
+          </Pressable>
+          <Pressable style={styles.sheetCancel} onPress={() => setMsgMenu(null)}>
+            <Text style={styles.sheetCancelText}>{t('msgMenu.cancel')}</Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* 转发：选一个好友 */}
+      <Modal visible={forwardOpen} transparent animationType="fade" onRequestClose={() => setForwardOpen(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setForwardOpen(false)}>
+          <Pressable style={[styles.sheet, { maxHeight: '70%' }]} onPress={() => {}}>
+            <Text style={styles.sheetTitle}>{t('msgMenu.forwardTo')}</Text>
+            {friends.length === 0 ? (
+              <Text style={styles.forwardEmpty}>{t('msgMenu.noFriends')}</Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 360 }}>
+                {friends.map((c) => (
+                  <Pressable key={c.peer.user_id} style={styles.forwardRow} onPress={() => doForward(c.peer.user_id)}>
+                    <View style={styles.forwardAvatar}>
+                      {c.peer.avatar_url ? (
+                        <Image source={{ uri: c.peer.avatar_url }} style={styles.forwardAvatarImg} />
+                      ) : (
+                        <Snowman size={28} pose="wave" />
+                      )}
+                    </View>
+                    <Text style={styles.forwardName} numberOfLines={1}>{c.remark || c.peer.username || '@' + c.peer.handle}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {toast && (
+        <View pointerEvents="none" style={styles.toast}>
+          <Text style={styles.toastText}>{toast}</Text>
+        </View>
+      )}
+
       <BookDetailModal
         visible={detailBook !== null}
         book={detailBook}
@@ -889,6 +1043,40 @@ const styles = StyleSheet.create({
   menuIcon: { width: 30, height: 30, borderRadius: 15 },
   menuText: { ...typography.body, fontSize: 16, color: colors.text },
   menuDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.lg },
+
+  // 消息长按：治愈风一行行菜单
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.28)', justifyContent: 'flex-end', padding: spacing.md, paddingBottom: spacing.xl },
+  sheet: { backgroundColor: colors.surface, borderRadius: radius.lg, overflow: 'hidden', ...shadow.soft },
+  sheetPreview: { ...typography.caption, color: colors.textMuted, paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm, textAlign: 'center' },
+  sheetTitle: { ...typography.body, fontWeight: '700', color: colors.text, textAlign: 'center', paddingTop: spacing.md, paddingBottom: spacing.sm },
+  sheetRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md + 2, paddingHorizontal: spacing.xl },
+  sheetRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
+  sheetIcon: { fontSize: 17, width: 24, textAlign: 'center', color: colors.terracotta },
+  sheetLabel: { ...typography.body, fontSize: 16, color: colors.text },
+  sheetCancel: { backgroundColor: colors.surface, borderRadius: radius.lg, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm, ...shadow.soft },
+  sheetCancelText: { ...typography.body, fontSize: 16, color: colors.textMuted, fontWeight: '600' },
+
+  // 转发选好友
+  forwardEmpty: { ...typography.body, color: colors.textFaint, textAlign: 'center', paddingVertical: spacing.xl },
+  forwardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.border },
+  forwardAvatar: { width: 40, height: 40, borderRadius: 20, overflow: 'hidden', backgroundColor: colors.snowShade, alignItems: 'center', justifyContent: 'center' },
+  forwardAvatarImg: { width: '100%', height: '100%' },
+  forwardName: { ...typography.body, fontWeight: '600', flex: 1 },
+
+  // 多选选中点 + 底部操作条
+  selectDot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.border, marginHorizontal: spacing.sm, alignItems: 'center', justifyContent: 'center' },
+  selectDotOn: { backgroundColor: colors.terracotta, borderColor: colors.terracotta },
+  selectTick: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  selectBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.md },
+  selectCancel: { ...typography.body, color: colors.textMuted },
+  selectCount: { ...typography.caption, color: colors.textMuted, flex: 1, textAlign: 'center' },
+  selectActions: { flexDirection: 'row', gap: spacing.lg },
+  selectAct: { ...typography.body, color: colors.terracotta, fontWeight: '600' },
+  selectActDanger: { color: '#D9684F' },
+
+  // toast
+  toast: { position: 'absolute', bottom: 110, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.72)', borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  toastText: { ...typography.caption, color: '#fff' },
 
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minWidth: 80 },
   hamburger: { fontSize: 22, color: colors.textMuted },

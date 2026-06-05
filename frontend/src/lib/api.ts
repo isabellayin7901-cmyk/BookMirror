@@ -187,11 +187,25 @@ export async function fetchBookFit(payload: {
 // ----------------------------- 小镜子 Little Mirror -----------------------------
 
 export interface MirrorMessage {
+  id?: number | null;         // 服务器消息行 id（单条删除用），本地新消息为空
   role: 'user' | 'assistant';
   content: string;
   created_at?: string | null; // ISO 时间，前端画时间线分割用
   book?: Book | null;         // 小镜子在这条消息里推荐的真实书（可点书卡）
   imageUri?: string | null;   // 本地图片 URI（用户发的图片，仅本地显示）
+}
+
+/** 删除单条小镜子消息。 */
+export async function deleteMirrorMessage(userId: string, messageId: number): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/mirror/message/delete`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, message_id: messageId }),
+    });
+  } catch {
+    /* best-effort */
+  }
 }
 
 export interface MirrorChatContext {

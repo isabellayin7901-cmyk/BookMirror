@@ -45,6 +45,7 @@ class ChatResponse(BaseModel):
 
 
 class MessageOut(BaseModel):
+    id: Optional[int] = None          # 消息行 id，前端单条删除用
     role: str
     content: str
     created_at: Optional[str] = None  # ISO 时间，前端用来画时间线分割
@@ -270,6 +271,7 @@ def mirror_history(user_id: str, conversation_id: Optional[str] = None, limit: i
         ).scalars().all()
         return HistoryResponse(messages=[
             MessageOut(
+                id=r.id,
                 role=r.role,
                 content=r.content,
                 # created_at 存的是 naive UTC，补上 UTC 时区再序列化，
@@ -299,6 +301,28 @@ def mirror_profile(user_id: str):
             keywords=json.loads(prof.keywords or "[]"),
             message_count=prof.message_count or 0,
         )
+    finally:
+        session.close()
+
+
+class DeleteMessageIn(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=64)
+    message_id: int
+
+
+@router.post("/mirror/message/delete")
+def mirror_delete_message(payload: DeleteMessageIn):
+    """删除单条小镜子消息（只能删自己的）。"""
+    session = SessionLocal()
+    try:
+        session.execute(
+            delete(MirrorMessage).where(
+                MirrorMessage.id == payload.message_id,
+                MirrorMessage.user_id == payload.user_id,
+            )
+        )
+        session.commit()
+        return {"ok": True}
     finally:
         session.close()
 

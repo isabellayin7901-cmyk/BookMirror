@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "760439831584",
+    "project_id": "bookmirror-163ed",
+    "storage_bucket": "bookmirror-163ed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760439831584:android:7550691d211ed9e040d045",
+        "android_client_info": {
+          "package_name": "com.bookmirror.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpvfR319QuvS_tScsiw5tnVVpVaY7AVZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

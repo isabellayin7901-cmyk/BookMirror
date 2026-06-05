@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable, TextInput, ScrollView,
-  KeyboardAvoidingView, Platform, Image, AppState,
+  KeyboardAvoidingView, Platform, Image, AppState, Alert, ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -11,7 +11,7 @@ import { colors, spacing, typography, radius } from '../theme';
 import { Snowman } from '../illustrations/Snowman';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
-import { fetchDMHistory, sendDM, type DMMessage } from '../lib/api';
+import { fetchDMHistory, sendDM, uploadImage, mediaUrl, type DMMessage } from '../lib/api';
 import { formatDivider, shouldShowDivider } from '../lib/chatTime';
 import type { RootStackParamList } from '../types';
 
@@ -78,6 +78,58 @@ export function DMChatScreen() {
     }
   };
 
+  const sendImage = async (fromCamera: boolean) => {
+    let ImagePicker: typeof import('expo-image-picker');
+    try {
+      ImagePicker = require('expo-image-picker');
+    } catch {
+      Alert.alert(t('dm.imageNeedUpdate'));
+      return;
+    }
+    try {
+      const perm = fromCamera
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) { Alert.alert(t('dm.imagePermission')); return; }
+      const res = fromCamera
+        ? await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.6, base64: true });
+      if (res.canceled || !res.assets?.[0]?.base64) return;
+      const asset = res.assets[0];
+      const mime = asset.mimeType || 'image/jpeg';
+      setSending(true);
+      const optimistic: DMMessage = { id: -Date.now(), from_me: true, content: '', image_url: asset.uri, created_at: new Date().toISOString(), read: false };
+      setMessages((m) => [...m, optimistic]);
+      try {
+        const url = await uploadImage(asset.base64!, mime);
+        await sendDM(uid, peerId, '', url);
+        await refresh(uid);
+      } catch (e: any) {
+        setMessages((m) => m.filter((x) => x.id !== optimistic.id));
+        Alert.alert(t('dm.imageFailed'), e?.message || '');
+      } finally {
+        setSending(false);
+      }
+    } catch {
+      Alert.alert(t('dm.imageFailed'));
+    }
+  };
+
+  const onPlus = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: [t('dm.album'), t('dm.camera'), t('dm.cancel')], cancelButtonIndex: 2 },
+        (i) => { if (i === 0) sendImage(false); else if (i === 1) sendImage(true); },
+      );
+    } else {
+      Alert.alert(t('dm.sendImage'), undefined, [
+        { text: t('dm.album'), onPress: () => sendImage(false) },
+        { text: t('dm.camera'), onPress: () => sendImage(true) },
+        { text: t('dm.cancel'), style: 'cancel' },
+      ]);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerBar}>
@@ -114,9 +166,18 @@ export function DMChatScreen() {
                 </View>
               )}
               <View style={styles.bubbleWrap}>
-                <View style={[styles.bubble, m.from_me ? styles.bubbleMine : styles.bubbleTheirs]}>
-                  <Text style={[styles.msgText, m.from_me && styles.msgTextMine]}>{m.content}</Text>
-                </View>
+                {m.image_url ? (
+                  <Image
+                    source={{ uri: m.id < 0 ? m.image_url : (mediaUrl(m.image_url) || undefined) }}
+                    style={styles.imageMsg}
+                    resizeMode="cover"
+                  />
+                ) : null}
+                {!!m.content && (
+                  <View style={[styles.bubble, m.from_me ? styles.bubbleMine : styles.bubbleTheirs, m.image_url ? { marginTop: 4 } : null]}>
+                    <Text style={[styles.msgText, m.from_me && styles.msgTextMine]}>{m.content}</Text>
+                  </View>
+                )}
                 {/* 我发的消息：左下角显示对方已读/未读 */}
                 {m.from_me && m.id > 0 && (
                   <Text style={styles.readStatus}>{m.read ? t('dm.read') : t('dm.unread')}</Text>
@@ -128,6 +189,9 @@ export function DMChatScreen() {
         </ScrollView>
 
         <View style={styles.inputBar}>
+          <Pressable onPress={onPlus} disabled={sending} style={styles.plusBtn} hitSlop={6}>
+            <Text style={styles.plusText}>＋</Text>
+          </Pressable>
           <TextInput
             style={styles.input}
             value={input}
@@ -171,9 +235,12 @@ const styles = StyleSheet.create({
   bubbleTheirs: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 4 },
   msgText: { ...typography.body, color: colors.text, lineHeight: 21 },
   msgTextMine: { color: '#fff' },
+  imageMsg: { width: 180, height: 180, borderRadius: radius.lg, backgroundColor: colors.snowShade },
   readStatus: { ...typography.caption, color: colors.textFaint, fontSize: 11, marginTop: 3, marginLeft: 4, alignSelf: 'flex-start' },
 
   inputBar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.sm },
+  plusBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  plusText: { fontSize: 22, color: colors.terracotta, fontWeight: '700', marginTop: -2 },
   input: { flex: 1, ...typography.body, color: colors.text, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.sm, maxHeight: 120 },
   sendBtn: { backgroundColor: colors.terracotta, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, marginBottom: 2 },
   sendText: { color: '#fff', fontWeight: '700' },

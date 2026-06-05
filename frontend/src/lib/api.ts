@@ -840,6 +840,7 @@ export interface DMMessage {
   id: number;
   from_me: boolean;
   content: string;
+  image_url?: string | null;
   created_at: string | null;
   read: boolean;
 }
@@ -847,6 +848,7 @@ export interface DMMessage {
 export interface DMConversation {
   peer: SocialUserCard;
   last_content: string;
+  last_image?: boolean;
   last_from_me: boolean;
   last_at: string | null;
   unread: number;
@@ -856,14 +858,36 @@ export interface DMIncoming {
   id: number;
   sender: SocialUserCard;
   content: string;
+  image_url?: string | null;
   created_at: string | null;
 }
 
-export async function sendDM(senderId: string, receiverId: string, content: string): Promise<DMMessage> {
+/** 把后端相对地址（/uploads/xxx）补全成完整 URL，给 <Image> 用。 */
+export function mediaUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return path.startsWith('http') ? path : `${baseUrl}${path}`;
+}
+
+/** 上传图片（base64）→ 返回相对地址 /uploads/xxx。 */
+export async function uploadImage(base64: string, mediaType = 'image/jpeg'): Promise<string> {
+  const res = await fetch(`${baseUrl}/api/upload`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ data: base64, media_type: mediaType }),
+  });
+  if (!res.ok) {
+    let detail = '';
+    try { detail = (await res.json()).detail || ''; } catch { /* ignore */ }
+    throw new Error(detail || `upload failed (${res.status})`);
+  }
+  return (await res.json()).url;
+}
+
+export async function sendDM(senderId: string, receiverId: string, content: string, imageUrl?: string): Promise<DMMessage> {
   const res = await fetch(`${baseUrl}/api/dm/send`, {
     method: 'POST',
     headers: authHeaders(true),
-    body: JSON.stringify({ sender_id: senderId, receiver_id: receiverId, content }),
+    body: JSON.stringify({ sender_id: senderId, receiver_id: receiverId, content, image_url: imageUrl || null }),
   });
   if (!res.ok) {
     let detail = '';
@@ -915,6 +939,31 @@ export async function markDMRead(userId: string, peerId: string): Promise<void> 
       method: 'POST',
       headers: authHeaders(true),
       body: JSON.stringify({ user_id: userId, peer_id: peerId }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 上报本机推送 token，绑定到账号。 */
+export async function registerPushToken(userId: string, token: string, platform: string): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/push/register`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, token, platform }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+export async function unregisterPushToken(token: string): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/push/unregister`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ token }),
     });
   } catch {
     /* best-effort */

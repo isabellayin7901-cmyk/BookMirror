@@ -184,7 +184,9 @@ function FriendsTab({ active, navigation, lang }: { active: boolean; navigation:
             <View style={{ flex: 1, marginLeft: spacing.md }}>
               <Text style={styles.convName} numberOfLines={1}>{c.peer.username || '@' + c.peer.handle}</Text>
               <Text style={styles.convLast} numberOfLines={1}>
-                {c.last_content ? (c.last_from_me ? t('world.youPrefix') : '') + c.last_content : t('world.sayHi')}
+                {c.last_content || c.last_image
+                  ? (c.last_from_me ? t('world.youPrefix') : '') + (c.last_content || t('dm.imageTag'))
+                  : t('world.sayHi')}
               </Text>
             </View>
             {c.unread > 0 && (

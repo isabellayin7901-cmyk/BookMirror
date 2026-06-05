@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { Snowman } from '../illustrations/Snowman';
 import { storage } from '../lib/storage';
+import { useI18n } from '../lib/LanguageContext';
 import { fetchIncoming, type DMIncoming } from '../lib/api';
 import { navigate, currentRoute } from '../lib/navigationRef';
 
@@ -14,6 +15,7 @@ const SHOW_MS = 4200;
 /** 全局：好友发来消息时，从顶部弹跳一个横幅（头像 + 用户名 + 内容）。点一下进聊天。
  *  挂在导航树之外，所以用 navigationRef 而非 useNavigation 钩子。 */
 export function IncomingBanner() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [banner, setBanner] = useState<DMIncoming | null>(null);
   const translateY = useRef(new Animated.Value(-160)).current;
@@ -66,6 +68,7 @@ export function IncomingBanner() {
   if (!banner) return null;
 
   const name = banner.sender.username || '@' + banner.sender.handle;
+  const preview = banner.content || (banner.image_url ? t('dm.imageTag') : '');
 
   return (
     <Animated.View
@@ -95,7 +98,7 @@ export function IncomingBanner() {
         </View>
         <View style={{ flex: 1, marginLeft: spacing.md }}>
           <Text style={styles.name} numberOfLines={1}>{name}</Text>
-          <Text style={styles.content} numberOfLines={2}>{banner.content}</Text>
+          <Text style={styles.content} numberOfLines={2}>{preview}</Text>
         </View>
       </Pressable>
     </Animated.View>

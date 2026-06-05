@@ -95,6 +95,12 @@
           "microphonePermission": "允许 BookMirror 使用麦克风，用于语音和雪宝聊天。",
           "speechRecognitionPermission": "允许 BookMirror 使用语音识别，把你说的话转成文字。"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#C97B63"
+        }
       ]
     ],
     "runtimeVersion": {

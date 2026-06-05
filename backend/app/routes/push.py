@@ -1,13 +1,17 @@
-"""推送通知：设备上报 Expo push token，好友来消息时通过 Expo Push 服务下发。
+"""推送通知：设备上报原生 FCM token，好友来消息时后端直连 FCM HTTP v1 下发。
 
 说明：
-- 走 Expo 的推送服务（https://exp.host/--/api/v2/push/send），服务端不需要 APNs/FCM 密钥。
-- 但要真正送达：Android 需要在 EAS 配好 FCM 凭证；iOS 需要 APNs（需付费开发者账号）。
-- 这里只负责存 token + 触发下发；送达取决于客户端构建是否配好上述凭证。
+- 直连 FCM（不经 Expo 中转）：用服务账号密钥换 OAuth token，POST 到
+  https://fcm.googleapis.com/v1/projects/{project_id}/messages:send 。
+- 服务账号 JSON 从环境变量 FCM_SERVICE_ACCOUNT_JSON 读（整段 JSON 字符串），
+  绝不进 git。没配这个变量时，推送静默跳过（不影响其它功能）。
+- iOS 需要 APNs（付费开发者账号），暂不支持；当前仅安卓。
 """
 
 import json
 import logging
+import os
+import threading
 
 import httpx
 from fastapi import APIRouter
@@ -22,7 +26,45 @@ router = APIRouter()
 
 init_db()
 
-_EXPO_URL = "https://exp.host/--/api/v2/push/send"
+_FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
+_cred_lock = threading.Lock()
+_cred = None
+_project_id = None
+
+
+def _get_credentials():
+    """懒加载服务账号凭证（缓存，自动刷新 token）。没配置则返回 None。"""
+    global _cred, _project_id
+    if _cred is not None:
+        return _cred
+    raw = os.getenv("FCM_SERVICE_ACCOUNT_JSON", "").strip()
+    if not raw:
+        return None
+    with _cred_lock:
+        if _cred is not None:
+            return _cred
+        try:
+            from google.oauth2 import service_account
+            info = json.loads(raw)
+            _project_id = info.get("project_id")
+            _cred = service_account.Credentials.from_service_account_info(info, scopes=[_FCM_SCOPE])
+        except Exception:
+            logger.warning("FCM 服务账号解析失败", exc_info=True)
+            _cred = None
+    return _cred
+
+
+def _fcm_access_token() -> str | None:
+    cred = _get_credentials()
+    if cred is None:
+        return None
+    try:
+        import google.auth.transport.requests
+        cred.refresh(google.auth.transport.requests.Request())
+        return cred.token
+    except Exception:
+        logger.warning("FCM token 刷新失败", exc_info=True)
+        return None
 
 
 class RegisterIn(BaseModel):
@@ -76,8 +118,20 @@ def _display_name(session, user_id: str) -> str:
     return f"@{h.handle}" if h else "好友"
 
 
+def _delete_token(token: str) -> None:
+    session = SessionLocal()
+    try:
+        session.execute(delete(PushToken).where(PushToken.token == token))
+        session.commit()
+    finally:
+        session.close()
+
+
 def send_push_to_user(user_id: str, title: str, body: str, data: dict | None = None) -> None:
-    """给某用户的所有设备发推送（best-effort）。"""
+    """给某用户的所有设备发推送，直连 FCM HTTP v1（best-effort）。"""
+    access = _fcm_access_token()
+    if access is None or not _project_id:
+        return  # 没配 FCM 服务账号，静默跳过
     session = SessionLocal()
     try:
         tokens = [r for (r,) in session.execute(
@@ -87,14 +141,28 @@ def send_push_to_user(user_id: str, title: str, body: str, data: dict | None = N
         session.close()
     if not tokens:
         return
-    messages = [
-        {"to": tk, "title": title, "body": body, "data": data or {}, "sound": "default"}
-        for tk in tokens
-    ]
-    try:
-        httpx.post(_EXPO_URL, json=messages, timeout=8.0, headers={"Content-Type": "application/json"})
-    except Exception:
-        logger.warning("发送推送失败 user_id=%s", user_id, exc_info=True)
+
+    url = f"https://fcm.googleapis.com/v1/projects/{_project_id}/messages:send"
+    headers = {"Authorization": f"Bearer {access}", "Content-Type": "application/json"}
+    str_data = {k: str(v) for k, v in (data or {}).items()}
+    for tk in tokens:
+        message = {
+            "message": {
+                "token": tk,
+                "notification": {"title": title, "body": body},
+                "data": str_data,
+                "android": {"priority": "high", "notification": {"channel_id": "default", "sound": "default"}},
+            }
+        }
+        try:
+            resp = httpx.post(url, json=message, headers=headers, timeout=8.0)
+            if resp.status_code == 404 or (resp.status_code == 400 and "registration-token-not-registered" in resp.text.lower()):
+                # token 失效了，清掉
+                _delete_token(tk)
+            elif resp.status_code >= 400:
+                logger.warning("FCM 发送失败 %s: %s", resp.status_code, resp.text[:200])
+        except Exception:
+            logger.warning("FCM 发送异常 user_id=%s", user_id, exc_info=True)
 
 
 def notify_new_dm(receiver_id: str, sender_id: str, content: str, has_image: bool) -> None:

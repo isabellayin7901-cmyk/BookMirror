@@ -1,6 +1,5 @@
-// 推送通知：注册 Expo push token + 处理点击跳转。
+// 推送通知：注册原生 FCM token（后端直连 FCM 下发）+ 处理点击跳转。
 // 用 lazy require，老构建（OTA 拿不到原生模块）不会崩溃，只是静默跳过。
-import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { storage } from './storage';
@@ -54,11 +53,9 @@ export async function setupPush(): Promise<void> {
     }
     if (!granted) return;
 
-    const projectId =
-      (Constants.expoConfig as any)?.extra?.eas?.projectId ||
-      (Constants as any)?.easConfig?.projectId;
-    const tokenResp = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
-    const token = tokenResp.data;
+    // 原生设备 token（安卓=FCM registration token），后端直连 FCM 用
+    const tokenResp = await Notifications.getDevicePushTokenAsync();
+    const token = tokenResp.data as string;
     const uid = await storage.getUserId();
     if (uid && token) await registerPushToken(uid, token, Platform.OS);
   } catch {

@@ -19,7 +19,7 @@
 import json
 import re
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -27,8 +27,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, delete, func
 
 from app.db import (
-    SessionLocal, Follow, ProfileVisit, UserFavorite, UserHandle, AccountProfile, init_db, _now,
+    SessionLocal, Follow, ProfileVisit, UserFavorite, UserHandle, UserRemark,
+    AccountProfile, init_db, _now,
 )
+
+# 改 ID 频率限制
+ID_CHANGE_WINDOW_DAYS = 20
+ID_CHANGE_MAX = 3
 
 router = APIRouter()
 
@@ -191,6 +196,7 @@ class PublicProfileOut(BaseModel):
     is_self: bool = False
     show_reviews: bool = True
     show_favorites: bool = True
+    remark: str = ""  # 查看者给这个人起的备注
 
 
 class PrivacyIn(BaseModel):
@@ -323,9 +329,19 @@ def public_profile(user_id: str, viewer_id: str = ""):
             is_self=is_self,
             show_reviews=is_self or not priv["hideReviews"],
             show_favorites=is_self or not priv["hideFavorites"],
+            remark=_remark_of(session, viewer_id, user_id) if (viewer_id and not is_self) else "",
         )
     finally:
         session.close()
+
+
+def _remark_of(session, owner_id: str, target_id: str) -> str:
+    row = session.execute(
+        select(UserRemark).where(
+            UserRemark.owner_id == owner_id, UserRemark.target_id == target_id
+        )
+    ).scalars().first()
+    return row.remark if row else ""
 
 
 # ---------- 关系列表 ----------
@@ -471,6 +487,26 @@ class MyIdIn(BaseModel):
 
 class MyIdOut(BaseModel):
     handle: str
+    changes_left: int = ID_CHANGE_MAX
+
+
+def _prune_changes(raw: str) -> list[str]:
+    try:
+        arr = json.loads(raw or "[]")
+    except Exception:
+        arr = []
+    cutoff = datetime.utcnow() - timedelta(days=ID_CHANGE_WINDOW_DAYS)
+    kept: list[str] = []
+    for ts in arr:
+        try:
+            dt = datetime.fromisoformat(ts)
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+            if dt >= cutoff:
+                kept.append(dt.isoformat())
+        except Exception:
+            pass
+    return kept
 
 
 @router.get("/social/my-id", response_model=MyIdOut)
@@ -478,20 +514,22 @@ def my_id(user_id: str):
     """取我的 ID；没有就自动生成一个 9 位字母数字。"""
     session = SessionLocal()
     try:
-        return MyIdOut(handle=_ensure_handle(session, user_id))
+        handle = _ensure_handle(session, user_id)
+        row = session.get(UserHandle, user_id)
+        left = ID_CHANGE_MAX - len(_prune_changes(row.changes if row else "[]"))
+        return MyIdOut(handle=handle, changes_left=max(0, left))
     finally:
         session.close()
 
 
 @router.post("/social/my-id", response_model=MyIdOut)
 def set_my_id(payload: MyIdIn):
-    """自定义我的 ID。校验格式 + 全局唯一（大小写无关）。"""
+    """自定义我的 ID。校验格式 + 全局唯一（区分大小写）+ 20 天内最多改 3 次。"""
     h = payload.handle.strip()
     if not _HANDLE_RE.match(h):
         raise HTTPException(status_code=400, detail="ID 只能用 4-20 位字母、数字或下划线")
     session = SessionLocal()
     try:
-        # 区分大小写：wren_test 和 WREN_TEST 是两个不同的 ID。
         taken = session.execute(
             select(UserHandle).where(UserHandle.handle == h)
         ).scalars().first()
@@ -500,13 +538,28 @@ def set_my_id(payload: MyIdIn):
 
         row = session.get(UserHandle, payload.user_id)
         if row is None:
-            row = UserHandle(user_id=payload.user_id, handle=h, handle_lower=h.lower())
+            # 还没分配过：当作首次设定，不计入改动次数。
+            row = UserHandle(user_id=payload.user_id, handle=h, handle_lower=h.lower(), changes="[]")
             session.add(row)
-        else:
-            row.handle = h
-            row.handle_lower = h.lower()
+            session.commit()
+            return MyIdOut(handle=h, changes_left=ID_CHANGE_MAX)
+
+        if row.handle == h:
+            left = ID_CHANGE_MAX - len(_prune_changes(row.changes))
+            return MyIdOut(handle=h, changes_left=max(0, left))
+
+        kept = _prune_changes(row.changes)
+        if len(kept) >= ID_CHANGE_MAX:
+            raise HTTPException(
+                status_code=429,
+                detail=f"{ID_CHANGE_WINDOW_DAYS} 天内最多改 {ID_CHANGE_MAX} 次 ID，过几天再来",
+            )
+        kept.append(datetime.utcnow().isoformat())
+        row.handle = h
+        row.handle_lower = h.lower()
+        row.changes = json.dumps(kept)
         session.commit()
-        return MyIdOut(handle=h)
+        return MyIdOut(handle=h, changes_left=max(0, ID_CHANGE_MAX - len(kept)))
     finally:
         session.close()
 
@@ -557,5 +610,50 @@ def search_users(q: str, viewer_id: str = "", limit: int = 30):
             if not (viewer_id and uid == viewer_id)
         ]
         return cards
+    finally:
+        session.close()
+
+
+# ---------- 好友备注 ----------
+
+class RemarkIn(BaseModel):
+    owner_id: str = Field(..., min_length=1, max_length=64)
+    target_id: str = Field(..., min_length=1, max_length=64)
+    remark: str = Field(default="", max_length=60)
+
+
+@router.post("/social/remark")
+def set_remark(payload: RemarkIn):
+    remark = payload.remark.strip()
+    session = SessionLocal()
+    try:
+        row = session.execute(
+            select(UserRemark).where(
+                UserRemark.owner_id == payload.owner_id,
+                UserRemark.target_id == payload.target_id,
+            )
+        ).scalars().first()
+        if not remark:
+            # 备注清空 = 删除
+            if row is not None:
+                session.delete(row)
+                session.commit()
+            return {"ok": True, "remark": ""}
+        if row is None:
+            row = UserRemark(owner_id=payload.owner_id, target_id=payload.target_id, remark=remark)
+            session.add(row)
+        else:
+            row.remark = remark
+        session.commit()
+        return {"ok": True, "remark": remark}
+    finally:
+        session.close()
+
+
+@router.get("/social/remark")
+def get_remark(owner_id: str, target_id: str):
+    session = SessionLocal()
+    try:
+        return {"remark": _remark_of(session, owner_id, target_id)}
     finally:
         session.close()

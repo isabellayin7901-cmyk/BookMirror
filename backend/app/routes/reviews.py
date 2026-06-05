@@ -139,6 +139,7 @@ class UserReviewItem(BaseModel):
     rating: int
     emotions: list[str]
     text: str
+    recommend_similar: bool = False
     created_at: Optional[str] = None
 
 
@@ -158,6 +159,7 @@ def reviews_by_user(user_id: str, limit: int = 100):
                 rating=r.rating,
                 emotions=json.loads(r.emotions or "[]"),
                 text=r.text or "",
+                recommend_similar=bool(r.recommend_similar),
                 created_at=_iso(r.created_at),
             )
             for r in rows

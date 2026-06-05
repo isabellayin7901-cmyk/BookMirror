@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, func, and_, or_
 
 from app.db import SessionLocal, DirectMessage, Follow, init_db, _now
-from app.routes.social import _public_card
+from app.routes.social import _public_card, _remark_of
 from app.routes.push import notify_new_dm
 
 router = APIRouter()
@@ -65,6 +65,7 @@ class MessageOut(BaseModel):
 
 class ConversationItem(BaseModel):
     peer: dict[str, Any]
+    remark: str = ""
     last_content: str = ""
     last_image: bool = False
     last_from_me: bool = False
@@ -185,6 +186,7 @@ def conversations(user_id: str):
             ).scalar() or 0
             items.append(ConversationItem(
                 peer=_public_card(session, fid),
+                remark=_remark_of(session, user_id, fid),
                 last_content=last.content if last else "",
                 last_image=bool(last.image_url) if last else False,
                 last_from_me=(last.sender_id == user_id) if last else False,

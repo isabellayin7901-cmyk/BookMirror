@@ -213,7 +213,22 @@ class UserHandle(Base):
     user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     handle: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
     handle_lower: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
+    # 改 ID 的时间戳列表（JSON）。限制：20 天内最多改 3 次。
+    changes: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class UserRemark(Base):
+    """好友备注：owner 给 target 起的私人备注名。一对(owner,target)唯一。"""
+
+    __tablename__ = "user_remarks"
+    __table_args__ = (UniqueConstraint("owner_id", "target_id", name="uq_remark"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    target_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    remark: Mapped[str] = mapped_column(String(60), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
@@ -314,6 +329,14 @@ def _ensure_columns() -> None:
         if "image_url" not in dm_cols:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE direct_messages ADD COLUMN image_url VARCHAR(255)"))
+    except Exception:
+        pass
+    # user_handles：补 changes 列（改 ID 频率限制用）。
+    try:
+        uh_cols = {c["name"] for c in inspector.get_columns("user_handles")}
+        if "changes" not in uh_cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE user_handles ADD COLUMN changes TEXT DEFAULT '[]'"))
     except Exception:
         pass
     # user_handles：早期版本对 handle_lower 建了唯一索引（大小写无关唯一）。

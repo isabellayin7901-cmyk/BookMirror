@@ -21,6 +21,7 @@ export function AddFriendScreen() {
   const { t } = useI18n();
   const [uid, setUid] = useState('');
   const [myHandle, setMyHandle] = useState('');
+  const [changesLeft, setChangesLeft] = useState(3);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
@@ -34,7 +35,9 @@ export function AddFriendScreen() {
     (async () => {
       const id = await storage.getUserId();
       setUid(id);
-      setMyHandle(await fetchMyId(id));
+      const r = await fetchMyId(id);
+      setMyHandle(r.handle);
+      setChangesLeft(r.changesLeft);
     })();
   }, []);
 
@@ -58,7 +61,11 @@ export function AddFriendScreen() {
     Alert.alert(t('addFriend.copied'));
   }, [myHandle, t]);
 
-  const startEdit = () => { setDraft(myHandle); setEditing(true); };
+  const startEdit = () => {
+    if (changesLeft <= 0) { Alert.alert(t('addFriend.idLimitReached')); return; }
+    setDraft(myHandle);
+    setEditing(true);
+  };
 
   const saveId = async () => {
     const h = draft.trim();
@@ -66,7 +73,8 @@ export function AddFriendScreen() {
     setSaving(true);
     try {
       const saved = await updateMyId(uid, h);
-      setMyHandle(saved);
+      setMyHandle(saved.handle);
+      setChangesLeft(saved.changesLeft);
       setEditing(false);
     } catch (e: any) {
       Alert.alert(t('addFriend.idError'), e?.message || '');
@@ -117,7 +125,7 @@ export function AddFriendScreen() {
             </View>
           </View>
         )}
-        <Text style={styles.myIdHint}>{t('addFriend.idHint')}</Text>
+        <Text style={styles.myIdHint}>{t('addFriend.idHint')}{t('addFriend.idChangesLeft').replace('{n}', String(changesLeft))}</Text>
       </View>
 
       {/* 搜索框 */}

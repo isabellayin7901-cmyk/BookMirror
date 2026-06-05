@@ -398,6 +398,7 @@ export interface UserReviewItem {
   rating: number;
   emotions: string[];
   text: string;
+  recommend_similar?: boolean;
   created_at?: string | null;
 }
 /** 某用户写过的所有书评（个人主页用）。 */
@@ -673,6 +674,7 @@ export interface SocialCounts {
 export interface PublicProfile {
   user_id: string;
   handle: string;
+  remark?: string;
   username: string;
   signature: string;
   avatar_url: string | null;
@@ -806,20 +808,33 @@ export async function fetchFavoriteIds(userId: string, viewerId: string): Promis
   }
 }
 
-/** 取我的 ID（没有则后端自动生成 9 位）。 */
-export async function fetchMyId(userId: string): Promise<string> {
+/** 取我的 ID（没有则后端自动生成 9 位）+ 剩余可改次数。 */
+export async function fetchMyId(userId: string): Promise<{ handle: string; changesLeft: number }> {
   try {
     const res = await fetch(`${baseUrl}/api/social/my-id?user_id=${encodeURIComponent(userId)}`, { headers: authHeaders() });
-    if (!res.ok) return '';
+    if (!res.ok) return { handle: '', changesLeft: 3 };
     const data = await res.json();
-    return data.handle || '';
+    return { handle: data.handle || '', changesLeft: data.changes_left ?? 3 };
   } catch {
-    return '';
+    return { handle: '', changesLeft: 3 };
   }
 }
 
-/** 修改我的 ID。成功返回新 ID；失败抛出带中文/英文提示的错误。 */
-export async function updateMyId(userId: string, handle: string): Promise<string> {
+/** 给好友设置/清空备注。 */
+export async function setRemark(ownerId: string, targetId: string, remark: string): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/social/remark`, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ owner_id: ownerId, target_id: targetId, remark }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 修改我的 ID。成功返回新 ID + 剩余可改次数；失败抛出带提示的错误。 */
+export async function updateMyId(userId: string, handle: string): Promise<{ handle: string; changesLeft: number }> {
   const res = await fetch(`${baseUrl}/api/social/my-id`, {
     method: 'POST',
     headers: authHeaders(true),
@@ -831,7 +846,7 @@ export async function updateMyId(userId: string, handle: string): Promise<string
     throw new Error(detail || `update id failed (${res.status})`);
   }
   const data = await res.json();
-  return data.handle || handle;
+  return { handle: data.handle || handle, changesLeft: data.changes_left ?? 0 };
 }
 
 // ---------- 好友私信（DM） ----------
@@ -847,6 +862,7 @@ export interface DMMessage {
 
 export interface DMConversation {
   peer: SocialUserCard;
+  remark?: string;
   last_content: string;
   last_image?: boolean;
   last_from_me: boolean;

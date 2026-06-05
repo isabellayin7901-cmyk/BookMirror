@@ -170,7 +170,7 @@ function FriendsTab({ active, navigation, lang }: { active: boolean; navigation:
             style={styles.convRow}
             onPress={() => navigation.navigate('DMChat', {
               peerId: c.peer.user_id,
-              peerName: c.peer.username || '@' + c.peer.handle,
+              peerName: c.remark || c.peer.username || '@' + c.peer.handle,
               peerAvatar: c.peer.avatar_url,
             })}
           >
@@ -182,7 +182,7 @@ function FriendsTab({ active, navigation, lang }: { active: boolean; navigation:
               )}
             </View>
             <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <Text style={styles.convName} numberOfLines={1}>{c.peer.username || '@' + c.peer.handle}</Text>
+              <Text style={styles.convName} numberOfLines={1}>{c.remark || c.peer.username || '@' + c.peer.handle}</Text>
               <Text style={styles.convLast} numberOfLines={1}>
                 {c.last_content || c.last_image
                   ? (c.last_from_me ? t('world.youPrefix') : '') + (c.last_content || t('dm.imageTag'))

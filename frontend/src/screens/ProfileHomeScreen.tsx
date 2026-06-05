@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Image,
+  View, Text, StyleSheet, ScrollView, Pressable, Image, Modal, TextInput, Alert,
   Dimensions, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +16,7 @@ import { signName, elementName } from '../lib/zodiacI18n';
 import {
   fetchUserReviews, type UserReviewItem,
   fetchPublicProfile, followUser, unfollowUser, syncFavorites,
-  fetchFavoriteIds, fetchBooksByIds, type PublicProfile,
+  fetchFavoriteIds, fetchBooksByIds, setRemark, type PublicProfile,
 } from '../lib/api';
 import { BookDetailModal } from '../components/BookDetailModal';
 import type { Book, RootStackParamList, UserProfile } from '../types';
@@ -35,9 +35,11 @@ export function ProfileHomeScreen() {
   const [pub, setPub] = useState<PublicProfile | null>(null);
   const [reviews, setReviews] = useState<UserReviewItem[]>([]);
   const [favorites, setFavorites] = useState<Book[]>([]);
-  const [tab, setTab] = useState(0); // 0=书评 1=收藏
+  const [tab, setTab] = useState(0); // 0=书评 1=收藏 2=推荐
   const [detailBook, setDetailBook] = useState<Book | null>(null);
   const [busy, setBusy] = useState(false);
+  const [remarkOpen, setRemarkOpen] = useState(false);
+  const [remarkDraft, setRemarkDraft] = useState('');
   const pagerRef = useRef<ScrollView>(null);
 
   const paramId = route.params?.userId;
@@ -117,24 +119,49 @@ export function ProfileHomeScreen() {
   };
 
   const counts = pub?.counts || { fans: 0, following: 0, friends: 0, visitors: 0 };
-  const stats: { key: 'fans' | 'following' | 'friends' | 'visitors'; n: number }[] = [
-    { key: 'fans', n: counts.fans },
-    { key: 'following', n: counts.following },
-    { key: 'friends', n: counts.friends },
-    { key: 'visitors', n: counts.visitors },
-  ];
+  // 自己：粉丝/关注/朋友/访客；看别人：ta的粉丝/关注/群聊（不显示朋友、访客）
+  type StatKey = 'fans' | 'following' | 'friends' | 'visitors' | 'groups';
+  const stats: { key: StatKey; n: number; nav: boolean }[] = viewing
+    ? [
+        { key: 'fans', n: counts.fans, nav: true },
+        { key: 'following', n: counts.following, nav: true },
+        { key: 'groups', n: 0, nav: false },
+      ]
+    : [
+        { key: 'fans', n: counts.fans, nav: true },
+        { key: 'following', n: counts.following, nav: true },
+        { key: 'friends', n: counts.friends, nav: true },
+        { key: 'visitors', n: counts.visitors, nav: true },
+      ];
+
+  const statLabel = (k: StatKey) => {
+    if (k === 'groups') return t('social.taGroups');
+    if (viewing) return t(`social.ta_${k}` as any);
+    return t(`profileHome.${k}` as any);
+  };
 
   // 头像：自己用本地（带 avatarUri），别人用服务器 avatar_url
   const avatarUri = viewing ? pub?.avatar_url || null : localProfile?.avatarUri || null;
-  const username = viewing
+  const realName = viewing
     ? (pub?.username || t('profileHome.noName'))
     : (localProfile?.username?.trim() || t('profileHome.noName'));
+  const remark = viewing ? (pub?.remark || '') : '';
+  const username = remark || realName;
   const signature = viewing
     ? (pub?.signature || '')
     : (localProfile?.signature?.trim() || '');
 
   const showReviews = !pub || pub.show_reviews;
   const showFavorites = !pub || pub.show_favorites;
+  const recommended = reviews.filter((r) => r.recommend_similar);
+
+  const openRemark = () => { setRemarkDraft(pub?.remark || ''); setRemarkOpen(true); };
+  const saveRemark = async () => {
+    const r = remarkDraft.trim();
+    setRemarkOpen(false);
+    await setRemark(selfId, targetId, r);
+    setPub((p) => (p ? { ...p, remark: r } : p));
+  };
 
   const followLabel = pub?.is_mutual
     ? t('social.friendsTag')
@@ -148,7 +175,11 @@ export function ProfileHomeScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
           <Text style={styles.back}>‹</Text>
         </Pressable>
-        {!viewing && (
+        {viewing ? (
+          <Pressable onPress={openRemark} hitSlop={12}>
+            <Text style={styles.gear}>＋</Text>
+          </Pressable>
+        ) : (
           <Pressable onPress={() => navigation.navigate('Privacy')} hitSlop={12}>
             <Text style={styles.gear}>⚙︎</Text>
           </Pressable>
@@ -166,6 +197,7 @@ export function ProfileHomeScreen() {
         </View>
         <View style={{ flex: 1, marginLeft: spacing.md }}>
           <Text style={styles.username}>{username}</Text>
+          {!!remark && <Text style={styles.realName}>{realName}</Text>}
           {!!pub?.handle && <Text style={styles.handle}>@{pub.handle}</Text>}
           {!!signature && <Text style={styles.signature} numberOfLines={2}>{signature}</Text>}
           {/* 资料行：星座 / MBTI / 职业 */}
@@ -194,30 +226,31 @@ export function ProfileHomeScreen() {
         )}
       </View>
 
-      {/* 四栏：粉丝/关注/朋友/访客（可点进列表） */}
+      {/* 计数栏（自己 4 栏；看别人 3 栏，含群聊） */}
       <View style={styles.statsRow}>
         {stats.map((s) => (
           <Pressable
             key={s.key}
             style={styles.statCol}
-            onPress={() => navigation.navigate('SocialList', { userId: targetId, type: s.key })}
+            onPress={() => {
+              if (s.key === 'groups') { Alert.alert(t('social.groupsComingSoon')); return; }
+              navigation.navigate('SocialList', { userId: targetId, type: s.key as 'fans' | 'following' | 'friends' | 'visitors' });
+            }}
           >
             <Text style={styles.statNum}>{s.n}</Text>
-            <Text style={styles.statLabel}>{t(`profileHome.${s.key}`)}</Text>
+            <Text style={styles.statLabel}>{statLabel(s.key)}</Text>
           </Pressable>
         ))}
       </View>
 
-      {/* 两个 tab：书评 / 收藏 */}
+      {/* 三个 tab：书评 / 收藏 / 推荐 */}
       <View style={styles.tabBar}>
-        <Pressable style={styles.tabBtn} onPress={() => goTab(0)}>
-          <Text style={[styles.tabText, tab === 0 && styles.tabTextOn]}>{t('profileHome.tabReviews')}</Text>
-          {tab === 0 && <View style={styles.tabUnderline} />}
-        </Pressable>
-        <Pressable style={styles.tabBtn} onPress={() => goTab(1)}>
-          <Text style={[styles.tabText, tab === 1 && styles.tabTextOn]}>{t('profileHome.tabFavorites')}</Text>
-          {tab === 1 && <View style={styles.tabUnderline} />}
-        </Pressable>
+        {[t('profileHome.tabReviews'), t('profileHome.tabFavorites'), t('profileHome.tabRecommend')].map((label, i) => (
+          <Pressable key={i} style={styles.tabBtn} onPress={() => goTab(i)}>
+            <Text style={[styles.tabText, tab === i && styles.tabTextOn]}>{label}</Text>
+            {tab === i && <View style={styles.tabUnderline} />}
+          </Pressable>
+        ))}
       </View>
 
       <ScrollView
@@ -268,7 +301,52 @@ export function ProfileHomeScreen() {
             ))
           )}
         </ScrollView>
+
+        {/* 推荐页：用户勾选「推荐给相似的人」的书 */}
+        <ScrollView style={{ width: SCREEN_W }} contentContainerStyle={styles.pageContent}>
+          {!showReviews ? (
+            <Text style={styles.empty}>{t('social.reviewsHidden')}</Text>
+          ) : recommended.length === 0 ? (
+            <Text style={styles.empty}>{t('profileHome.noRecommend')}</Text>
+          ) : (
+            recommended.map((r, i) => (
+              <Pressable key={i} style={styles.favRow} onPress={() => r.book && setDetailBook(r.book)}>
+                {r.book?.cover_url ? (
+                  <Image source={{ uri: r.book.cover_url }} style={styles.favCover} />
+                ) : (
+                  <View style={[styles.favCover, styles.favCoverFallback]}><Text>📖</Text></View>
+                )}
+                <View style={{ flex: 1, marginLeft: spacing.md }}>
+                  <Text style={styles.favTitle} numberOfLines={1}>{r.book ? bookTitle(r.book, lang) : ''}</Text>
+                  {!!r.text && <Text style={styles.favAuthor} numberOfLines={2}>{r.text}</Text>}
+                </View>
+              </Pressable>
+            ))
+          )}
+        </ScrollView>
       </ScrollView>
+
+      {/* 设置好友备注 */}
+      <Modal visible={remarkOpen} transparent animationType="fade" onRequestClose={() => setRemarkOpen(false)}>
+        <Pressable style={styles.modalBg} onPress={() => setRemarkOpen(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>{t('social.setRemark')}</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={remarkDraft}
+              onChangeText={setRemarkDraft}
+              placeholder={t('social.remarkPlaceholder')}
+              placeholderTextColor={colors.textFaint}
+              maxLength={20}
+              autoFocus
+            />
+            <View style={styles.modalBtns}>
+              <Pressable onPress={() => setRemarkOpen(false)}><Text style={styles.modalCancel}>{t('dm.cancel')}</Text></Pressable>
+              <Pressable onPress={saveRemark}><Text style={styles.modalSave}>{t('addFriend.save')}</Text></Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <BookDetailModal visible={detailBook !== null} book={detailBook} onClose={() => setDetailBook(null)} />
     </SafeAreaView>
@@ -285,6 +363,7 @@ const styles = StyleSheet.create({
   avatar: { width: 78, height: 78, borderRadius: 39, overflow: 'hidden', backgroundColor: colors.snowShade, alignItems: 'center', justifyContent: 'center' },
   avatarImg: { width: '100%', height: '100%' },
   username: { ...typography.h2, fontFamily: 'ZCOOLKuaiLe_400Regular' },
+  realName: { ...typography.caption, color: colors.textFaint, marginTop: 1 },
   handle: { ...typography.caption, color: colors.terracotta, marginTop: 2, letterSpacing: 0.5 },
   signature: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: 6 },
@@ -318,4 +397,12 @@ const styles = StyleSheet.create({
   favCoverFallback: { alignItems: 'center', justifyContent: 'center' },
   favTitle: { ...typography.body, fontWeight: '600' },
   favAuthor: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: spacing.xl },
+  modalCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
+  modalTitle: { ...typography.h3, marginBottom: spacing.md },
+  modalInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, ...typography.body, color: colors.text },
+  modalBtns: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xl, marginTop: spacing.lg },
+  modalCancel: { ...typography.body, color: colors.textMuted },
+  modalSave: { ...typography.body, color: colors.terracotta, fontWeight: '700' },
 });

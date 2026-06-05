@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable, TextInput, ScrollView,
-  KeyboardAvoidingView, Platform, Image, AppState, Alert, ActionSheetIOS,
+  KeyboardAvoidingView, Platform, Image, AppState, Alert, ActionSheetIOS, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -19,6 +19,21 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Rt = RouteProp<RootStackParamList, 'DMChat'>;
 const POLL_MS = 3500;
 
+// 气泡温柔弹出（照搬小镜子）：从小到大 + 轻微侧移
+function PopIn({ fromLeft, children }: { fromLeft: boolean; children: React.ReactNode }) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(v, { toValue: 1, useNativeDriver: true, friction: 7, tension: 70 }).start();
+  }, [v]);
+  const scale = v.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] });
+  const translateX = v.interpolate({ inputRange: [0, 1], outputRange: [fromLeft ? -16 : 16, 0] });
+  return (
+    <Animated.View style={{ maxWidth: '76%', opacity: v, transform: [{ scale }, { translateX }] }}>
+      {children}
+    </Animated.View>
+  );
+}
+
 export function DMChatScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Rt>();
@@ -28,13 +43,21 @@ export function DMChatScreen() {
   const [uid, setUid] = useState('');
   const [messages, setMessages] = useState<DMMessage[]>([]);
   const [input, setInput] = useState('');
+  const [quoted, setQuoted] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // 轮询刷新：用服务器数据替换，但保留还没确认的乐观气泡（避免发出去瞬间闪一下）
   const refresh = useCallback(async (id: string) => {
     const h = await fetchDMHistory(id, peerId, 0);
-    setMessages(h);
+    setMessages((prev) => {
+      const pending = prev.filter((m) => m.id < 0);
+      const stillPending = pending.filter(
+        (p) => !h.some((s) => s.from_me && s.content === p.content && (!!s.image_url === !!p.image_url)),
+      );
+      return [...h, ...stillPending];
+    });
   }, [peerId]);
 
   useEffect(() => {
@@ -59,23 +82,41 @@ export function DMChatScreen() {
   }, [messages.length]);
 
   const onSend = async () => {
-    const text = input.trim();
-    if (!text || sending || !uid) return;
+    const raw = input.trim();
+    if (!raw || sending || !uid) return;
+    const q = quoted;
+    const text = q ? `「${q}」\n${raw}` : raw;
     setInput('');
+    setQuoted(null);
     setSending(true);
-    // 乐观插入
     const optimistic: DMMessage = { id: -Date.now(), from_me: true, content: text, created_at: new Date().toISOString(), read: false };
     setMessages((m) => [...m, optimistic]);
     try {
       await sendDM(uid, peerId, text);
       await refresh(uid);
     } catch (e: any) {
-      // 失败：去掉乐观气泡，回填输入
       setMessages((m) => m.filter((x) => x.id !== optimistic.id));
-      setInput(text);
+      setInput(raw);
+      if (q) setQuoted(q);
     } finally {
       setSending(false);
     }
+  };
+
+  // 长按消息：复制 / 引用（照搬小镜子）
+  const onBubbleLongPress = (content: string) => {
+    if (!content) return;
+    const preview = content.length > 40 ? content.slice(0, 40) + '…' : content;
+    Alert.alert(preview, undefined, [
+      {
+        text: t('mirror.copy'),
+        onPress: async () => {
+          try { await require('expo-clipboard').setStringAsync(content); } catch { /* ignore */ }
+        },
+      },
+      { text: t('mirror.quote'), onPress: () => setQuoted(content) },
+      { text: t('dm.cancel'), style: 'cancel' },
+    ]);
   };
 
   const sendImage = async (fromCamera: boolean) => {
@@ -165,29 +206,40 @@ export function DMChatScreen() {
                   {peerAvatar ? <Image source={{ uri: peerAvatar }} style={styles.smallAvatarImg} /> : <Snowman size={22} pose="wave" />}
                 </View>
               )}
-              <View style={styles.bubbleWrap}>
-                {m.image_url ? (
-                  <Image
-                    source={{ uri: m.id < 0 ? m.image_url : (mediaUrl(m.image_url) || undefined) }}
-                    style={styles.imageMsg}
-                    resizeMode="cover"
-                  />
-                ) : null}
-                {!!m.content && (
-                  <View style={[styles.bubble, m.from_me ? styles.bubbleMine : styles.bubbleTheirs, m.image_url ? { marginTop: 4 } : null]}>
-                    <Text style={[styles.msgText, m.from_me && styles.msgTextMine]}>{m.content}</Text>
-                  </View>
-                )}
-                {/* 我发的消息：左下角显示对方已读/未读 */}
-                {m.from_me && m.id > 0 && (
-                  <Text style={styles.readStatus}>{m.read ? t('dm.read') : t('dm.unread')}</Text>
-                )}
-              </View>
+              <PopIn fromLeft={!m.from_me}>
+                <Pressable onLongPress={() => onBubbleLongPress(m.content)} delayLongPress={300}>
+                  {m.image_url ? (
+                    <Image
+                      source={{ uri: m.id < 0 ? m.image_url : (mediaUrl(m.image_url) || undefined) }}
+                      style={styles.imageMsg}
+                      resizeMode="cover"
+                    />
+                  ) : null}
+                  {!!m.content && (
+                    <View style={[styles.bubble, m.from_me ? styles.bubbleMine : styles.bubbleTheirs, m.image_url ? { marginTop: 4 } : null]}>
+                      <Text style={[styles.msgText, m.from_me && styles.msgTextMine]}>{m.content}</Text>
+                    </View>
+                  )}
+                  {/* 我发的消息：左下角显示对方已读/未读 */}
+                  {m.from_me && m.id > 0 && (
+                    <Text style={styles.readStatus}>{m.read ? t('dm.read') : t('dm.unread')}</Text>
+                  )}
+                </Pressable>
+              </PopIn>
             </View>
             </React.Fragment>
           ))}
         </ScrollView>
 
+        {quoted && (
+          <View style={styles.quoteBar}>
+            <View style={styles.quoteLine} />
+            <Text style={styles.quoteText} numberOfLines={2}>{quoted}</Text>
+            <Pressable onPress={() => setQuoted(null)} hitSlop={8}>
+              <Text style={styles.quoteClose}>✕</Text>
+            </Pressable>
+          </View>
+        )}
         <View style={styles.inputBar}>
           <Pressable onPress={onPlus} disabled={sending} style={styles.plusBtn} hitSlop={6}>
             <Text style={styles.plusText}>＋</Text>
@@ -238,6 +290,10 @@ const styles = StyleSheet.create({
   imageMsg: { width: 180, height: 180, borderRadius: radius.lg, backgroundColor: colors.snowShade },
   readStatus: { ...typography.caption, color: colors.textFaint, fontSize: 11, marginTop: 3, marginLeft: 4, alignSelf: 'flex-start' },
 
+  quoteBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginHorizontal: spacing.md, marginBottom: 4, backgroundColor: colors.surface, borderRadius: radius.md },
+  quoteLine: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: colors.terracotta },
+  quoteText: { flex: 1, ...typography.caption, color: colors.textMuted },
+  quoteClose: { fontSize: 14, color: colors.textMuted, paddingHorizontal: 4 },
   inputBar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.sm },
   plusBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   plusText: { fontSize: 22, color: colors.terracotta, fontWeight: '700', marginTop: -2 },

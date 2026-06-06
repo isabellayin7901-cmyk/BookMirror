@@ -17,11 +17,11 @@ import sys
 import fitz  # PyMuPDF（本地装：pip install PyMuPDF）
 import httpx
 
-# 章节标题：中文“第X章/卷/回 …”、英文 Chapter N、以及 序/前言/引子/楔子/后记/尾声/番外
+# 章节标题：抓段首的“第X章/卷/回/节”或英文 Chapter N。标题常和正文粘在一起
+# （如“第一章被大火烧了…”），所以只把标题那个词剥出来当章名，剩下的归入正文。
 _HEADING = re.compile(
-    r"^\s*(第\s*[0-9一二三四五六七八九十百千零两]+\s*[章卷回节部篇]"
-    r"|chapter\s+[0-9ivxlcdm]+"
-    r"|序章?|前言|引子|楔子|后记|尾声|番外|附录)\b.{0,40}$",
+    r"^\s*(第\s*[0-9一二三四五六七八九十百千零两]+\s*[章卷回节]"
+    r"|chapter\s+[0-9ivxlcdm]+)",
     re.IGNORECASE,
 )
 
@@ -57,31 +57,43 @@ def _paragraphs(page_text: str) -> list[str]:
 
 
 def extract(pdf_path: str, chapter_size: int) -> list[dict]:
+    """从文字版 PDF 抽段落 → 切章节。"""
     doc = fitz.open(pdf_path)
     all_paras: list[str] = []
     for page in doc:
         all_paras.extend(_paragraphs(page.get_text("text")))
     doc.close()
+    return chapterize(all_paras, chapter_size)
 
+
+def chapterize(all_paras: list[str], chapter_size: int) -> list[dict]:
+    """把一串段落切成章节（认“第X章”标题，去重复页眉，太少则按段数兜底切）。"""
     # 去掉过短的页眉页脚噪声（纯页码等）
     all_paras = [p for p in all_paras if not re.fullmatch(r"[\d\s·.－-]+", p)]
 
     chapters: list[dict] = []
     cur = {"index": 0, "title": "正文", "paras": []}
-    found_heading = False
     for p in all_paras:
-        if _HEADING.match(p) and len(p) <= 40:
-            found_heading = True
-            if cur["paras"]:
+        m = _HEADING.match(p)
+        if m and len(m.group(0).strip()) <= 12:
+            title = m.group(0).strip()
+            body = p[m.end():].strip()
+            # 手机版 PDF 常把章标题当页眉每页重复 → 标题没变就不另起一章，丢掉这行重复页眉
+            if title == cur["title"]:
+                if body:
+                    cur["paras"].append(body)
+                continue
+            if cur["paras"] or cur["title"] != "正文":
                 chapters.append(cur)
-            cur = {"index": len(chapters), "title": p.strip(), "paras": []}
+            cur = {"index": len(chapters), "title": title, "paras": ([body] if body else [])}
         else:
             cur["paras"].append(p)
-    if cur["paras"]:
+    if cur["paras"] or cur["title"] != "正文":
         chapters.append(cur)
 
-    # 没认出任何标题 → 按 chapter_size 段兜底切
-    if not found_heading and chapter_size > 0:
+    # 真章节太少（标题不是“第X章”格式）→ 按 chapter_size 段兜底切
+    real_titles = {c["title"] for c in chapters if c["title"] != "正文"}
+    if len(real_titles) < 3 and chapter_size > 0:
         flat = [p for c in chapters for p in c["paras"]]
         chapters = []
         for i in range(0, len(flat), chapter_size):

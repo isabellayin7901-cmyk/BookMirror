@@ -189,6 +189,62 @@ class ProfileVisit(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
+class ReaderContent(Base):
+    """一本书抽取后的正文：章节 + 段落（JSON）。PDF 抽完即弃，只留这份文本。
+    data 结构：{"chapters":[{"index":0,"title":"...","paras":["段0","段1",...]}]}"""
+
+    __tablename__ = "reader_content"
+
+    book_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), default="")
+    data: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class ReaderProgress(Base):
+    """阅读记忆：读到第几章第几段（锚点，跟字号无关）+ 百分比。一人一书一条。"""
+
+    __tablename__ = "reader_progress"
+    __table_args__ = (UniqueConstraint("user_id", "book_id", name="uq_reader_progress"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    book_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    chapter_index: Mapped[int] = mapped_column(Integer, default=0)
+    paragraph: Mapped[int] = mapped_column(Integer, default=0)
+    percent: Mapped[int] = mapped_column(Integer, default=0)  # 0-100，给进度条/列表展示
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+
+
+class ParagraphComment(Base):
+    """段落评论 / 笔记。挂在 (book, chapter, paragraph) 这个稳定地址上。
+    kind: comment=公开评论（可点赞，别人能看）/ note=私人笔记。"""
+
+    __tablename__ = "paragraph_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    book_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    chapter_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    paragraph: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), default="comment")
+    text: Mapped[str] = mapped_column(Text, default="")
+    likes: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True, nullable=False)
+
+
+class CommentLike(Base):
+    """谁给哪条段评点了赞。一对(comment,user)唯一。"""
+
+    __tablename__ = "comment_likes"
+    __table_args__ = (UniqueConstraint("comment_id", "user_id", name="uq_comment_like"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    comment_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, nullable=False)
+
+
 class UserFavorite(Base):
     """用户收藏的书（book_id）。前端收藏本地存全量 Book，这里只同步 id，
     供别人查看「ta 的收藏」。一对(user,book)唯一。"""

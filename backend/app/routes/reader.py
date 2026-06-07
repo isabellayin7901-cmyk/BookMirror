@@ -357,6 +357,15 @@ def _best_snippet(paras: list[str], grams: set[str]) -> tuple[int, str]:
 
 @router.post("/reader/find")
 def reader_find(payload: FindIn):
+    try:
+        return _reader_find(payload)
+    except Exception as e:
+        import logging, traceback
+        logging.getLogger("bookmirror.reader").error("find failed: %s", traceback.format_exc())
+        return {"answer": "", "candidates": [], "_err": f"{type(e).__name__}: {e}"}
+
+
+def _reader_find(payload: FindIn):
     grams = _grams(payload.query)
     if not grams:
         return {"answer": "", "candidates": []}

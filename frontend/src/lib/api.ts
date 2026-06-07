@@ -863,6 +863,105 @@ export async function updateMyId(userId: string, handle: string): Promise<{ hand
   return { handle: data.handle || handle, changesLeft: data.changes_left ?? 0 };
 }
 
+// ---------- 阅读器 ----------
+
+export interface ReaderBookMeta { book_id: string; title: string; chapters: number; }
+export interface TocChapter { index: number; title: string; paras: number; }
+export interface ReaderToc { book_id: string; title: string; chapters: TocChapter[]; }
+export interface ReaderPara { i: number; text: string; comments: number; }
+export interface ReaderChapter { book_id: string; index: number; title: string; total: number; paras: ReaderPara[]; }
+export interface ReaderProgress { chapter_index: number; paragraph: number; percent: number; started: boolean; }
+export interface ParagraphComment {
+  id: number;
+  user: SocialUserCard;
+  is_mine: boolean;
+  kind: 'comment' | 'note';
+  text: string;
+  likes: number;
+  liked: boolean;
+  created_at: string | null;
+}
+
+export async function fetchReaderBooks(): Promise<ReaderBookMeta[]> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/books`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+export async function fetchReaderToc(bookId: string): Promise<ReaderToc | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/toc?book_id=${encodeURIComponent(bookId)}`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+export async function fetchReaderChapter(bookId: string, index: number): Promise<ReaderChapter | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/chapter?book_id=${encodeURIComponent(bookId)}&index=${index}`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+export async function fetchReaderProgress(userId: string, bookId: string): Promise<ReaderProgress> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/progress?user_id=${encodeURIComponent(userId)}&book_id=${encodeURIComponent(bookId)}`, { headers: authHeaders() });
+    if (!res.ok) return { chapter_index: 0, paragraph: 0, percent: 0, started: false };
+    return await res.json();
+  } catch { return { chapter_index: 0, paragraph: 0, percent: 0, started: false }; }
+}
+
+export async function saveReaderProgress(userId: string, bookId: string, chapterIndex: number, paragraph: number, percent: number): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/reader/progress`, {
+      method: 'POST', headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, book_id: bookId, chapter_index: chapterIndex, paragraph, percent }),
+    });
+  } catch { /* best-effort */ }
+}
+
+export async function fetchParagraphComments(bookId: string, chapterIndex: number, paragraph: number, viewerId: string): Promise<ParagraphComment[]> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/comments?book_id=${encodeURIComponent(bookId)}&chapter_index=${chapterIndex}&paragraph=${paragraph}&viewer_id=${encodeURIComponent(viewerId)}`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+export async function addParagraphComment(input: { userId: string; bookId: string; chapterIndex: number; paragraph: number; kind: 'comment' | 'note'; text: string }): Promise<ParagraphComment | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/comment`, {
+      method: 'POST', headers: authHeaders(true),
+      body: JSON.stringify({ user_id: input.userId, book_id: input.bookId, chapter_index: input.chapterIndex, paragraph: input.paragraph, kind: input.kind, text: input.text }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+export async function likeParagraphComment(userId: string, commentId: number): Promise<{ liked: boolean; likes: number } | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/comment/like`, {
+      method: 'POST', headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, comment_id: commentId }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+export async function deleteParagraphComment(userId: string, commentId: number): Promise<void> {
+  try {
+    await fetch(`${baseUrl}/api/reader/comment/delete`, {
+      method: 'POST', headers: authHeaders(true),
+      body: JSON.stringify({ user_id: userId, comment_id: commentId }),
+    });
+  } catch { /* best-effort */ }
+}
+
 // ---------- 好友私信（DM） ----------
 
 export interface DMMessage {

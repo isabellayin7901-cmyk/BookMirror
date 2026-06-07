@@ -43,7 +43,20 @@ const KEYS = {
   userId: '@bookmirror/user_id',
   authToken: '@bookmirror/auth_token',
   savedSentences: '@bookmirror/saved_sentences',
+  readerSettings: '@bookmirror/reader_settings',
 } as const;
+
+export interface ReaderSettings {
+  fontSize: number;     // px
+  lineHeight: number;   // 倍数
+  theme: 'paper' | 'green' | 'dark' | 'white';
+  margin: number;       // px
+  fontFamily: 'system' | 'serif';
+}
+
+export const DEFAULT_READER_SETTINGS: ReaderSettings = {
+  fontSize: 19, lineHeight: 1.85, theme: 'paper', margin: 22, fontFamily: 'system',
+};
 
 /** 匿名稳定设备/用户标识，用于后端持久化小镜子对话。首次生成后不变。 */
 function genUserId(): string {
@@ -205,6 +218,10 @@ export const storage = {
     await setJSON(KEYS.checkinLog, log);
     return log.find((d) => d.date === today)!;
   },
+
+  // ---------- 阅读器设置 ----------
+  getReaderSettings: () => getJSON<ReaderSettings>(KEYS.readerSettings, DEFAULT_READER_SETTINGS),
+  setReaderSettings: (s: ReaderSettings) => setJSON(KEYS.readerSettings, s),
 
   // ---------- 收藏的句子（小镜子聊天里收藏的话） ----------
   getSavedSentences: () => getJSON<string[]>(KEYS.savedSentences, []),

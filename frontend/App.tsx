@@ -21,6 +21,8 @@ import { ProfileHomeScreen } from './src/screens/ProfileHomeScreen';
 import { SocialListScreen } from './src/screens/SocialListScreen';
 import { AddFriendScreen } from './src/screens/AddFriendScreen';
 import { DMChatScreen } from './src/screens/DMChatScreen';
+import { ReaderHomeScreen } from './src/screens/ReaderHomeScreen';
+import { ReaderScreen } from './src/screens/ReaderScreen';
 import { PrivacyScreen } from './src/screens/PrivacyScreen';
 import { IncomingBanner } from './src/components/IncomingBanner';
 import { navigationRef } from './src/lib/navigationRef';
@@ -99,6 +101,8 @@ export default function App() {
           <Stack.Screen name="SocialList" component={SocialListScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="AddFriend" component={AddFriendScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="DMChat" component={DMChatScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+          <Stack.Screen name="ReaderHome" component={ReaderHomeScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+          <Stack.Screen name="Reader" component={ReaderScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="Persona" component={PersonaScreen} />
           <Stack.Screen name="Astrology" component={AstrologyScreen} />

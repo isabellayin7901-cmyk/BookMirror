@@ -84,7 +84,6 @@ function WorldTab({ navigation }: { navigation: Nav }) {
     { emoji: '🌗', icon: require('../../assets/persona_icon.png'), title: t('world.persona'), subtitle: t('world.personaSub'), tone: colors.lavender, onPress: () => navigation.navigate('Persona') },
     { emoji: '🪞', icon: require('../../assets/mirror_icon.png'), title: t('world.mirror'), subtitle: t('world.mirrorSub'), tone: colors.sage, onPress: () => navigation.navigate('MirrorChat') },
     { emoji: '🌱', icon: require('../../assets/growth_icon.png'), title: t('world.growth'), subtitle: t('world.growthSub'), tone: colors.butter, onPress: () => navigation.navigate('Growth') },
-    { emoji: '📖', title: t('world.reader'), subtitle: t('world.readerSub'), tone: colors.terracotta, onPress: () => navigation.navigate('ReaderHome') },
   ];
 
   return (

@@ -930,6 +930,31 @@ export async function fetchReaderBooks(): Promise<ReaderBookMeta[]> {
   } catch { return []; }
 }
 
+// 内测书库可读性匹配：缓存可读书目，按标题判断某本书能不能在线读。
+let _readableCache: Promise<ReaderBookMeta[]> | null = null;
+export function getReadableBooks(force = false): Promise<ReaderBookMeta[]> {
+  if (force || !_readableCache) _readableCache = fetchReaderBooks();
+  return _readableCache;
+}
+
+function _normTitle(s: string): string {
+  return (s || '')
+    .replace(/[《》（）()【】\[\]\s·]/g, '')
+    .replace(/(全集|全书|套装|合集|实体书版|中英文?对照|英汉对照|全本|精校版|修订版|纪念版)/g, '')
+    .toLowerCase();
+}
+
+/** 给一个书名，返回内测书库里可读的对应书（没有则 null）。 */
+export async function matchReadableBook(title: string): Promise<ReaderBookMeta | null> {
+  const list = await getReadableBooks();
+  const q = _normTitle(title);
+  if (!q) return null;
+  // 完全相等优先，其次互相包含
+  let best = list.find((b) => _normTitle(b.title) === q);
+  if (!best) best = list.find((b) => { const n = _normTitle(b.title); return n.includes(q) || q.includes(n); });
+  return best || null;
+}
+
 export async function fetchReaderToc(bookId: string): Promise<ReaderToc | null> {
   try {
     const res = await fetch(`${baseUrl}/api/reader/toc?book_id=${encodeURIComponent(bookId)}`, { headers: authHeaders() });

@@ -338,6 +338,16 @@ export function TodayBooksScreen() {
           )}
         </View>
 
+        {/* 内测书库入口 */}
+        <Pressable style={styles.libraryEntry} onPress={() => navigation.navigate('ReaderHome')}>
+          <Text style={styles.libraryIcon}>📖</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.libraryTitle}>{t('today.library')}</Text>
+            <Text style={styles.librarySub}>{t('today.librarySub')}</Text>
+          </View>
+          <Text style={styles.libraryArrow}>›</Text>
+        </Pressable>
+
         {/* 今日推荐书单 —— Miki 精选 */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
@@ -811,6 +821,11 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: '#fff', fontWeight: '700' },
 
+  libraryEntry: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
+  libraryIcon: { fontSize: 26 },
+  libraryTitle: { ...typography.h3 },
+  librarySub: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  libraryArrow: { fontSize: 24, color: colors.textMuted },
   section: { paddingHorizontal: spacing.lg, marginTop: spacing.xl },
 
   // ===== 全库搜索 =====

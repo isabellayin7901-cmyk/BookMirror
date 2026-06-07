@@ -30,7 +30,7 @@ import { bookTitle, bookAuthor, bookSummary, bookChapters } from '../lib/bookDis
 import {
   fetchBookReviews, deleteReview, type Review,
   getReadingStatus, setReadingStatus, type ReadingKind,
-  fetchMirrorScores,
+  fetchMirrorScores, matchReadableBook,
 } from '../lib/api';
 import type { Book, BookRecommendation, RootStackParamList } from '../types';
 
@@ -57,6 +57,8 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
   onCloseRef.current = onClose;
   const [isFav, setIsFav] = useState(false);
   const heartScale = useRef(new Animated.Value(1)).current;
+  // 内测书库：这本书能不能在线读
+  const [readable, setReadable] = useState<{ book_id: string; title: string } | null>(null);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -89,8 +91,10 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
   useEffect(() => {
     if (book && visible) {
       storage.isFavorite(book.id).then(setIsFav);
+      setReadable(null);
+      matchReadableBook(bookTitle(book, lang)).then(setReadable);
     }
-  }, [book, visible]);
+  }, [book, visible, lang]);
 
   const toggleFav = async () => {
     if (!book) return;
@@ -192,6 +196,25 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
                   </View>
                 </View>
               </View>
+
+              {/* 在线阅读：内测书库里有正文的书可读，否则按钮淡显 */}
+              <Pressable
+                disabled={!readable}
+                onPress={() => {
+                  if (!readable) return;
+                  onClose();
+                  navigation.navigate('Reader', { bookId: readable.book_id, title: readable.title });
+                }}
+                style={({ pressed }) => [
+                  styles.readOnlineBtn,
+                  !readable && styles.readOnlineBtnOff,
+                  pressed && readable && { opacity: 0.9 },
+                ]}
+              >
+                <Text style={[styles.readOnlineText, !readable && styles.readOnlineTextOff]}>
+                  {readable ? `📖  ${t('book.readOnline')}` : t('book.readUnavailable')}
+                </Text>
+              </Pressable>
 
               {/* 阅读状态：想读 / 在读 / 读完 */}
               <ReadingStatusBar book={book} onStatus={(s) => setCanReview(s === 'finished')} />
@@ -598,6 +621,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     letterSpacing: 0.5,
   },
+  readOnlineBtn: { marginTop: spacing.lg, backgroundColor: colors.terracotta, borderRadius: radius.pill, paddingVertical: spacing.md, alignItems: 'center' },
+  readOnlineBtnOff: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  readOnlineText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  readOnlineTextOff: { color: colors.textFaint, fontWeight: '600' },
   platformGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -64,15 +64,15 @@ def _download(gid: int) -> str:
         for attempt in range(4):
             try:
                 r = httpx.get(u, timeout=60, follow_redirects=True, headers={"User-Agent": _UA})
-                if r.status_code == 200 and len(r.text) > 2000:
-                    r.encoding = "utf-8"
-                    return r.text
-                if r.status_code in (403, 429, 503):
-                    time.sleep(4 * (attempt + 1))  # 被限流，退避重试
-                    continue
-                break  # 404 等：换下一个 url
             except Exception:
                 time.sleep(3)
+                continue
+            if r.status_code == 200 and len(r.content) > 2000:
+                return r.content.decode("utf-8", "ignore")
+            if r.status_code in (403, 429, 503):
+                time.sleep(4 * (attempt + 1))
+                continue
+            break
     return ""
 
 

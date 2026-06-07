@@ -59,10 +59,11 @@ export function AuthScreen({ navigation, route }: Props) {
       await storage.setAuthToken(res.token);
       await storage.setUserId(res.user_id);
       try {
-        const { uploadAccountProfile, hydrateAccountProfile } = await import('../lib/api');
+        const { uploadAccountProfile, hydrateAccountProfile, reconcileFavorites } = await import('../lib/api');
         const local = await storage.getUserProfile();
         if (local) await uploadAccountProfile(local);
         else await hydrateAccountProfile();
+        await reconcileFavorites();
       } catch { /* best-effort */ }
       navigation.replace('Quiz', { onboarding });
     } catch (e: any) {

@@ -46,7 +46,7 @@ export default function App() {
   useEffect(() => {
     storage.getOnboarded().then((v) => setOnboarded(v));
     // 启动时从账号拉取档案合并（新设备登录后能恢复 性别/星座/MBTI/用户名）。
-    import('./src/lib/api').then((m) => m.hydrateAccountProfile()).catch(() => {});
+    import('./src/lib/api').then((m) => { m.hydrateAccountProfile(); m.reconcileFavorites(); }).catch(() => {});
     // 注册推送 token（老构建无原生模块会静默跳过）。
     import('./src/lib/push').then((m) => m.setupPush()).catch(() => {});
   }, []);

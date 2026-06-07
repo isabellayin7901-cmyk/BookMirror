@@ -245,14 +245,24 @@ export const storage = {
   toggleFavorite: async (book: Book): Promise<boolean> => {
     const list = await getJSON<Book[]>(KEYS.favorites, []);
     const idx = list.findIndex((b) => b.id === book.id);
+    let result: boolean;
     if (idx >= 0) {
       list.splice(idx, 1);
-      await setJSON(KEYS.favorites, list);
-      return false;
+      result = false;
+    } else {
+      list.unshift(book);
+      result = true;
     }
-    list.unshift(book);
     await setJSON(KEYS.favorites, list);
-    return true;
+    // 同步到账号（绑定 user_id，重新登录/换设备能恢复）。懒加载避免循环依赖。
+    try {
+      const id = await AsyncStorage.getItem(KEYS.userId);
+      if (id) {
+        const m = await import('./api');
+        m.syncFavorites(id, list.map((b) => b.id));
+      }
+    } catch { /* best-effort */ }
+    return result;
   },
 
   clearAll: async () => {

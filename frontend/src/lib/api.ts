@@ -822,6 +822,32 @@ export async function fetchFavoriteIds(userId: string, viewerId: string): Promis
   }
 }
 
+/** 收藏对账：把本地收藏和账号收藏合并（并集），双向补齐。
+ *  登录后、App 启动时调用 → 重新登录/换设备能恢复收藏，且不丢本地已收藏的。 */
+export async function reconcileFavorites(): Promise<void> {
+  try {
+    const { storage } = await import('./storage');
+    const uid = await storage.getUserId();
+    if (!uid) return;
+    const local = await storage.getFavorites();
+    const localIds = local.map((b) => b.id);
+    const serverIds = await fetchFavoriteIds(uid, uid);
+    const union = Array.from(new Set([...localIds, ...serverIds]));
+    // 账号侧存并集（把本地新收藏也推上去）
+    if (union.length) syncFavorites(uid, union);
+    // 本地缺的（账号有、本地没有）→ 拉完整书数据补进本地
+    const missing = serverIds.filter((id) => !localIds.includes(id));
+    if (missing.length) {
+      const books = await fetchBooksByIds(missing);
+      const have = new Set(localIds);
+      const add = books.filter((b) => !have.has(b.id));
+      if (add.length) await storage.setFavorites([...local, ...add]);
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
 /** 取我的 ID（没有则后端自动生成 9 位）+ 剩余可改次数。 */
 export async function fetchMyId(userId: string): Promise<{ handle: string; changesLeft: number }> {
   try {
@@ -880,6 +906,20 @@ export interface ParagraphComment {
   likes: number;
   liked: boolean;
   created_at: string | null;
+}
+
+export interface FindCandidate { book_id: string; title: string; source: 'reader' | 'catalog'; }
+export interface FindResult { answer: string; candidates: FindCandidate[]; }
+
+export async function findBookByMemory(query: string, language: string): Promise<FindResult> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/find`, {
+      method: 'POST', headers: authHeaders(true),
+      body: JSON.stringify({ query, language }),
+    });
+    if (!res.ok) return { answer: '', candidates: [] };
+    return await res.json();
+  } catch { return { answer: '', candidates: [] }; }
 }
 
 export async function fetchReaderBooks(): Promise<ReaderBookMeta[]> {

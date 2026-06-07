@@ -24,10 +24,16 @@ from app.db import (
     SessionLocal, ReaderContent, ReaderProgress, ParagraphComment, CommentLike, init_db,
 )
 from app.routes.social import _public_card
+from app.services.book_filter import load_books
+from app.services.claude import get_client
+from app.config import settings
 
 router = APIRouter()
 
 init_db()
+
+# 外部书目（500 本，带简介），找书时一起检索
+_CATALOG = load_books()
 
 
 def _iso(dt: Optional[datetime]) -> Optional[str]:
@@ -322,6 +328,111 @@ def like_comment(payload: LikeIn):
         return {"ok": True, "liked": liked, "likes": c.likes}
     finally:
         session.close()
+
+
+# ---------- AI 凭印象找书 ----------
+
+class FindIn(BaseModel):
+    query: str = Field(..., min_length=2, max_length=600)
+    language: str = "zh"
+
+
+def _grams(q: str) -> set[str]:
+    q = re.sub(r"\s+", "", q)
+    g: set[str] = set()
+    for n in (2, 3):
+        for i in range(len(q) - n + 1):
+            g.add(q[i:i + n])
+    return g
+
+
+def _best_snippet(paras: list[str], grams: set[str]) -> tuple[int, str]:
+    best_score, best = 0, ""
+    for p in paras:
+        s = sum(1 for g in grams if g in p)
+        if s > best_score:
+            best_score, best = s, p
+    return best_score, best[:160]
+
+
+@router.post("/reader/find")
+def reader_find(payload: FindIn):
+    grams = _grams(payload.query)
+    if not grams:
+        return {"answer": "", "candidates": []}
+
+    # 1) 检索阅读库全文
+    reader_cands: list[dict] = []
+    session = SessionLocal()
+    try:
+        rows = session.execute(select(ReaderContent)).scalars().all()
+        for r in rows:
+            try:
+                chapters = json.loads(r.data or "{}").get("chapters", [])
+            except Exception:
+                continue
+            paras = [p for c in chapters for p in c.get("paras", [])]
+            text = "".join(paras)
+            score = sum(1 for g in grams if g in text)
+            if score >= max(2, len(grams) // 8):
+                snip_score, snip = _best_snippet(paras, grams)
+                reader_cands.append({"book_id": r.book_id, "title": r.title, "score": score + snip_score, "snippet": snip})
+    finally:
+        session.close()
+    reader_cands.sort(key=lambda x: x["score"], reverse=True)
+    reader_cands = reader_cands[:3]
+
+    # 2) 检索外部书目（标题/作者/简介）
+    cat_cands: list[dict] = []
+    for b in _CATALOG:
+        text = f"{b.title}{b.author}{b.summary}{''.join(b.key_chapters)}"
+        score = sum(1 for g in grams if g in text)
+        if score >= max(2, len(grams) // 6):
+            cat_cands.append({"book_id": b.id, "title": b.title, "author": b.author, "score": score, "summary": b.summary[:120]})
+    cat_cands.sort(key=lambda x: x["score"], reverse=True)
+    cat_cands = cat_cands[:3]
+
+    # 3) 让 Claude 在候选里判断
+    zh = payload.language != "en"
+    lines = []
+    for c in reader_cands:
+        lines.append(f"[书架] 《{c['title']}》 片段：{c['snippet']}")
+    for c in cat_cands:
+        lines.append(f"[书目] 《{c['title']}》（{c['author']}）简介：{c['summary']}")
+    candidates_text = "\n".join(lines) if lines else ("（书库里没检索到明显匹配）" if zh else "(no strong match found in the library)")
+
+    if zh:
+        prompt = (
+            f"用户凭残缺的记忆找一本书，记得的片段是：\n「{payload.query}」\n\n"
+            f"下面是从书库检索到的候选：\n{candidates_text}\n\n"
+            "判断最可能是哪一本，自然口语地说出书名和你判断的理由（提到用户记忆里和书对得上的点）。"
+            "如果候选都对不上，就凭你自己的阅读知识猜一本最可能的，并说明这本可能不在书库里。两三句话，别啰嗦，别用列表。"
+        )
+    else:
+        prompt = (
+            f"A user is trying to recall a book from a fuzzy memory:\n\"{payload.query}\"\n\n"
+            f"Candidates retrieved from the library:\n{candidates_text}\n\n"
+            "Say which book it most likely is, naming it and briefly why it matches their memory. "
+            "If none fit, guess from your own reading knowledge and note it may not be in the library. Two or three sentences, no lists."
+        )
+
+    answer = ""
+    try:
+        client = get_client()
+        resp = client.messages.create(
+            model=settings.claude_model,
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        answer = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text").strip()
+    except Exception:
+        answer = "现在脑子有点转不过来，等会儿再帮你找～" if zh else "Having trouble thinking right now, try again in a bit~"
+
+    candidates = (
+        [{"book_id": c["book_id"], "title": c["title"], "source": "reader"} for c in reader_cands]
+        + [{"book_id": c["book_id"], "title": c["title"], "source": "catalog"} for c in cat_cands]
+    )
+    return {"answer": answer, "candidates": candidates}
 
 
 @router.post("/reader/comment/delete")

@@ -42,16 +42,21 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [fontsLoaded] = useFonts({ ZCOOLKuaiLe_400Regular });
+  // 兜底：字体/初始化万一卡住，最多等 4 秒就照常进入，绝不白屏卡死在启动图。
+  const [bootTimeout, setBootTimeout] = useState(false);
 
   useEffect(() => {
-    storage.getOnboarded().then((v) => setOnboarded(v));
+    const t = setTimeout(() => setBootTimeout(true), 4000);
+    storage.getOnboarded().then((v) => setOnboarded(v)).catch(() => setOnboarded(false));
     // 启动时从账号拉取档案合并（新设备登录后能恢复 性别/星座/MBTI/用户名）。
     import('./src/lib/api').then((m) => { m.hydrateAccountProfile(); m.reconcileFavorites(); }).catch(() => {});
     // 注册推送 token（老构建无原生模块会静默跳过）。
     import('./src/lib/push').then((m) => m.setupPush()).catch(() => {});
+    return () => clearTimeout(t);
   }, []);
 
-  if (onboarded === null || !fontsLoaded) {
+  const ready = onboarded !== null && (fontsLoaded || bootTimeout);
+  if (!ready) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator color={colors.terracotta} />

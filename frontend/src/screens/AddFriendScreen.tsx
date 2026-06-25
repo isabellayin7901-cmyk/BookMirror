@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, Pressable, TextInput, FlatList, Image, Alert, ActivityIndicator,
 } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -57,8 +56,8 @@ export function AddFriendScreen() {
 
   const copyId = useCallback(async () => {
     if (!myHandle) return;
-    await Clipboard.setStringAsync(myHandle);
-    Alert.alert(t('addFriend.copied'));
+    try { await require('expo-clipboard').setStringAsync(myHandle); Alert.alert(t('addFriend.copied')); }
+    catch { Alert.alert(t('addFriend.copied')); }
   }, [myHandle, t]);
 
   const startEdit = () => {

@@ -1,116 +1,56 @@
 # BookMirror
 
 > 用一面镜子，照出你该读的下一本书。
-> An AI-powered personality-based reading recommendation app.
+> 中文读书 App：人格画像推书 + AI 陪伴 + 内测书库在线阅读 + 段落评论。
 
-BookMirror 是一个基于 Claude 的个性化读书推荐 APP。它结合用户的 MBTI 性格倾向、当前成长目标、阅读偏好与短板，从精挑细选的书库中推荐 5 本最该读的书，并给出阅读顺序与每本书的重点。
+BookMirror 是 React Native/Expo + FastAPI 的读书 App。结合 MBTI × 星座 × AI 画像给你推书；用 AI（雪宝 / Miki）陪你聊、帮你把书读进去；在「内测书库」里真正读完公版/授权的书，并在段落里留下你的批注。
 
----
+## 文档（先看这些）
+- **`docs/PRD.md`** — 产品定位、MVP 范围、功能黑名单、验收标准
+- **`docs/DESIGN.md`** — 视觉/交互规范、雪宝语气卡
+- **`docs/ARCHITECTURE.md`** — 技术栈、目录、数据表、开发约束、禁止破坏项、发布方式
+- **`TODO.md`** — 当前进度，一次做一项
+- 早期文档：`docs/mvp-flow.md` `docs/prompts.md` `docs/book-schema.md` `docs/app-store.md`
 
-## 项目结构
+## 能做什么
+推荐书单 · 雪宝(小镜子)AI 阅读与心理陪伴 · 星格(MBTI×星座) · 读后评价与成长 · 社交(ID/关注/私信/主页) · 内测书库在线阅读(WebView 翻页+段落评论) · AI 凭印象找书。
 
-```
-BookMirror/
-├── docs/                    # 设计文档
-│   ├── mvp-flow.md          # MVP 页面流程
-│   ├── prompts.md           # Claude prompt 设计
-│   ├── book-schema.md       # 书籍标签体系
-│   └── app-store.md         # 上架 App Store 清单
-├── backend/                 # FastAPI 后端
-│   ├── main.py              # 入口
-│   ├── requirements.txt
-│   ├── .env.example
-│   └── app/
-│       ├── config.py        # 环境变量
-│       ├── models.py        # Pydantic 模型
-│       ├── routes/          # API 路由
-│       │   ├── recommend.py
-│       │   └── feedback.py
-│       ├── services/
-│       │   ├── claude.py    # Claude API 封装
-│       │   └── book_filter.py  # 候选书筛选
-│       └── data/
-│           ├── seed_books.json # 种子书库（待填充）
-│           └── tags.py         # 标签字典
-├── frontend/                # React Native + Expo
-│   ├── package.json
-│   ├── app.json
-│   ├── App.tsx
-│   └── src/
-│       ├── screens/         # 4 个页面
-│       ├── components/
-│       ├── data/
-│       │   └── mbtiQuestions.ts  # 12 题精简测试（待填充）
-│       ├── lib/             # storage / api / i18n
-│       ├── theme.ts
-│       └── types.ts
-└── scripts/
-    └── tag_books.py         # 调 Claude 给书批量打标签
-```
+## 技术栈
+- 前端：React Native + Expo SDK 54 + TypeScript，EAS 发布（build 出 APK / update 出 OTA）
+- 后端：FastAPI + SQLAlchemy，部署 Render（SQLite 持久盘，单实例）
+- AI：Anthropic Claude
+- 推送：直连 FCM HTTP v1（仅安卓）
 
----
-
-## 当前状态
-
-- [x] 项目骨架
-- [x] 后端 FastAPI + Claude 集成
-- [x] 前端 4 页面 UI
-- [x] 标签字典 + 书籍 schema
-- [ ] **MBTI 12 题题库**（用户后续提供）
-- [ ] **100 本中文书 + 50 本英文书**（用户后续提供，或用 `scripts/tag_books.py` 批量生成）
-- [ ] 订阅 / IAP（第二版）
-- [ ] 上架 App Store（按 `docs/app-store.md` 清单）
-
----
-
-## 快速启动
-
+## 本地启动
 ### 后端
-
 ```bash
 cd backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # 填入 ANTHROPIC_API_KEY
+cp .env.example .env   # 填 ANTHROPIC_API_KEY
 uvicorn main:app --reload --port 8000
 ```
 
 ### 前端
-
 ```bash
 cd frontend
 npm install
 npx expo start
 ```
 
-iOS 模拟器按 `i`，安卓按 `a`，手机扫码用 Expo Go。
+## 发布
+- 纯 JS：`cd frontend && npx eas-cli update --branch preview`（OTA，重启生效）
+- 动原生模块/原生配置：`npx eas-cli build -p android --profile preview`（出 APK）
+- 后端：push main → Render 自动部署
 
-### 给书批量打标签
+## 往书库加书（本地脚本 → POST `/api/reader/ingest`）
+- EPUB：`python backend/scripts/epub_ingest.py 书.epub --book-id x --api ... --token ...`
+- 文字版 PDF：`ingest_pdf.py`；扫描版 PDF：`ocr_pdf.py`（RapidOCR）
+- Gutenberg 公版：`ingest_gutenberg.py`
+- 只用合法书源：公版 / 用户有权使用的文件。不抓盗版站、不接盗版 API。
 
-```bash
-cd scripts
-python tag_books.py --input raw_books.txt --output ../backend/app/data/seed_books.json
-```
-
----
-
-## 技术栈
-
-- **前端**：React Native + Expo + TypeScript
-- **后端**：FastAPI + Python 3.11
-- **AI**：Claude Haiku 4.5（默认）/ Sonnet 4.6（复杂画像）
-- **本地存储**：AsyncStorage（第一版不做账号）
-- **未来**：Supabase（账号 + 云端数据）、Stripe / 苹果 IAP（订阅）
-
----
-
-## 数据归属
-
-- 第一版：用户答题结果存本地 AsyncStorage + 后端日志（仅推荐用，不卖不分析）
-- 隐私政策见 `docs/app-store.md`
-
----
+## 密钥（绝不进 git）
+`ANTHROPIC_API_KEY`、`FCM_SERVICE_ACCOUNT_JSON`、`google-services.json` 的服务账号密钥。`.env` 已 gitignore。本地跑调 Claude 的脚本用 `env -u ANTHROPIC_API_KEY`。
 
 ## License
-
-私有项目。书籍封面来自 Google Books / Open Library 公开 API。
+私有项目，内测阶段，无版权内容不可商用。书库仅用公版书与用户有权使用的文件。

@@ -14,8 +14,9 @@
    它会读 `backend/render.yaml` 自动建服务。
 3. 在服务的 **Environment** 里填两个值（render.yaml 里标了 `sync:false`，必须手填）：
    - `ANTHROPIC_API_KEY` = 你的真实 key
-   - `APP_TOKEN` = `Xj8XJ6kBPuWufufJRg20gawlcRcR9bF0QNCj3xim7Jw`
-     （已和前端 `app.json` 对齐；想换就两边一起换）
+   - `APP_TOKEN` = 与前端 `frontend/.env` 里的 APP_TOKEN 相同的长随机串，
+     生成方式：`python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
+     （令牌不要写进任何会提交到 git 的文件；想换就两边一起换）
 4. 部署完成后会得到一个 **https 域名**，例如 `https://bookmirror-api.onrender.com`。
    打开 `<域名>/health` 看到 `{"status":"ok"}` 即成功。
 
@@ -31,7 +32,8 @@
 ```json
 "apiBaseUrl": "https://bookmirror-api.onrender.com"
 ```
-（`appToken` 已经填好，不用动。）
+（`appToken` 不在 app.json 里：本地开发写在 `frontend/.env`，EAS 云构建用
+`eas env:create --name APP_TOKEN --value <令牌>` 配置，见 `frontend/app.config.js`。）
 
 然后真机连**外网**（关掉同局域网依赖）跑一遍完整流程：测 MBTI → 星盘 → 综合画像 → 推荐 → 点书跳转。
 

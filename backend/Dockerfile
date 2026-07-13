@@ -1,15 +1,13 @@
-FROM python:3.14-slim
+## 3.11 而非更新版本：pyswisseph 官方预编译 wheel 最高只支持 cp311。
+# 在 3.14-slim 上现场编译会产出缺 libstdc++ 符号(_ZSt7nothrow)的 .so，
+# 构建能过、启动即崩（ImportError），所以固定用 3.11 直接装 wheel。
+FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
-
-# pyswisseph 是 C 扩展，py3.14 无预编译 wheel，需编译工具现场构建
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential \
-    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt

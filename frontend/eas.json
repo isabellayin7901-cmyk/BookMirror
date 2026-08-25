@@ -17,7 +17,8 @@
       "ios": {
         "simulator": false
       },
-      "channel": "preview"
+      "channel": "preview",
+      "environment": "preview"
     },
     "preview-sim": {
       "distribution": "internal",
@@ -28,7 +29,8 @@
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "environment": "production"
     }
   },
   "submit": {

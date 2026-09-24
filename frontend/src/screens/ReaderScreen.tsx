@@ -361,6 +361,8 @@ export function ReaderScreen() {
         scrollEnabled={false}
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: theme.bg }}
+        // 外层 fill 是居中布局，WebView 没有固有宽度，不撑开会在 iOS 上变成 0 宽（空白）
+        containerStyle={{ alignSelf: 'stretch' }}
         // 长按划选文字后的菜单（iOS / Android 原生选区菜单）
         menuItems={[
           { key: 'quote', label: t('reader.menuQuote') },

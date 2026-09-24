@@ -137,6 +137,10 @@ export function ReaderScreen() {
 
   const shellReady = useRef(false);
   const pendingInit = useRef<{ index: number; paragraph: number } | null>(null);
+  // 初始化要等「WebView 壳就绪」和「数据加载完」两件事，先后顺序不固定。
+  // 用 ref 读最新的设置、只初始化一次，避免拿到旧闭包里的 settings=null 而卡在「正在翻开」。
+  const settingsRef = useRef<ReaderSettings | null>(null);
+  const initStarted = useRef(false);
   const chapterRef = useRef<ReaderChapter | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -148,14 +152,15 @@ export function ReaderScreen() {
       const id = await storage.getUserId();
       setUid(id);
       const st = await storage.getReaderSettings();
+      settingsRef.current = st;
       setSettings(st);
       // 版本：这本书上次选的 > 设置里的「阅读内容语言」> 原文
-      const [remembered, appSettings, prog] = await Promise.all([
-        storage.getReaderEdition(bookId),
+      const remembered = await storage.getReaderEdition(bookId);
+      const [appSettings, prog, first] = await Promise.all([
         storage.getSettings(),
         fetchReaderProgress(id, bookId),
+        loadReaderBook(bookId, remembered),
       ]);
-      const first = await loadReaderBook(bookId, remembered);
       const ed = pickEdition(first?.info.editions ?? [], remembered, appSettings.contentLanguage ?? 'original');
       const loaded = ed && ed.id !== remembered ? await loadReaderBook(bookId, ed.id) : first;
       editionRef.current = ed?.id ?? null;
@@ -164,7 +169,7 @@ export function ReaderScreen() {
       setInfo(loaded?.info ?? null);
       setToc(loaded?.toc ?? null);
       pendingInit.current = { index: prog.chapter_index || 0, paragraph: prog.paragraph || 0 };
-      if (shellReady.current) runInit();
+      tryInitRef.current();
     })();
   }, [bookId]);
 
@@ -191,37 +196,41 @@ export function ReaderScreen() {
     if (toParagraph && toParagraph > 0) {
       setTimeout(() => webRef.current?.injectJavaScript(`window.reader.toParagraph(${toParagraph});true;`), 120);
     }
-    // 示例书正文在本地，段评角标按本章公开讨论里「同一版本」的条目另算
+    // 示例书正文在本地，段评角标按本章公开讨论里「同一版本」的条目另算（后台进行，不阻塞开书）
     if (isDemoRef.current) {
-      const list = await fetchChapterDiscussion(bookId, ch.index, '');
       const ed = editionRef.current;
-      if (list && chapterRef.current === ch) {
+      fetchChapterDiscussion(bookId, ch.index, '').then((list) => {
+        if (!list || chapterRef.current !== ch) return;
         const counts: Record<number, number> = {};
         list.filter((c) => c.edition === ed && (c.paragraph ?? -1) >= 0).forEach((c) => { counts[c.paragraph!] = (counts[c.paragraph!] || 0) + 1; });
-        if (Object.keys(counts).length) {
-          const updated = { ...ch, paras: ch.paras.map((p) => ({ ...p, comments: counts[p.i] || 0 })) };
-          chapterRef.current = updated;
-          setChapter(updated);
-          webRef.current?.injectJavaScript(`window.reader.setBody(${JSON.stringify(chapterBody(updated))}, ${JSON.stringify(toPage === 'last' ? 'last' : 'keep')});true;`);
-        }
-      }
+        if (!Object.keys(counts).length) return;
+        const updated = { ...ch, paras: ch.paras.map((p) => ({ ...p, comments: counts[p.i] || 0 })) };
+        chapterRef.current = updated;
+        setChapter(updated);
+        webRef.current?.injectJavaScript(`window.reader.setBody(${JSON.stringify(chapterBody(updated))}, 'keep');true;`);
+      });
     }
   }, [bookId, injectChapter]);
 
-  const runInit = useCallback(async () => {
-    if (!settings) return;
-    webRef.current?.injectJavaScript(varsScript(settings));
-    const init = pendingInit.current || { index: 0, paragraph: 0 };
+  /** 壳就绪 + 数据就绪 + 设置就绪 三者齐了才初始化，且只做一次（与先后顺序无关） */
+  const tryInit = useCallback(async () => {
+    const st = settingsRef.current;
+    if (initStarted.current || !shellReady.current || !pendingInit.current || !st) return;
+    initStarted.current = true;
+    webRef.current?.injectJavaScript(varsScript(st));
+    const init = pendingInit.current;
     await loadChapter(init.index, 0, init.paragraph);
     setLoading(false);
-  }, [settings, varsScript, loadChapter]);
+  }, [varsScript, loadChapter]);
+  const tryInitRef = useRef(tryInit);
+  tryInitRef.current = tryInit;
 
   const onMessage = useCallback((e: any) => {
     let msg: any;
     try { msg = JSON.parse(e.nativeEvent.data); } catch { return; }
     if (msg.type === 'shellReady') {
       shellReady.current = true;
-      if (settings && pendingInit.current) runInit();
+      tryInitRef.current();
       return;
     }
     if (msg.type === 'toggleBar') { setBarVisible((v) => !v); return; }
@@ -251,13 +260,14 @@ export function ReaderScreen() {
       if (ch && ch.index > 0) loadChapter(ch.index - 1, 'last');
       return;
     }
-  }, [settings, uid, bookId, runInit, loadChapter]);
+  }, [uid, bookId, loadChapter]);
 
   // 改设置 → 注入 + 存
   const updateSettings = useCallback((patch: Partial<ReaderSettings>) => {
     setSettings((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
+      settingsRef.current = next;
       storage.setReaderSettings(next);
       webRef.current?.injectJavaScript(varsScript(next));
       return next;

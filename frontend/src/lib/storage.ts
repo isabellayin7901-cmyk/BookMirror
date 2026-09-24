@@ -58,10 +58,12 @@ export interface ReaderSettings {
   theme: 'paper' | 'green' | 'dark' | 'white';
   margin: number;       // px
   fontFamily: 'system' | 'serif';
+  /** 翻页方式：左右翻页 / 上下滚动。老版本存的设置没有这个字段，按左右翻页处理 */
+  pageMode?: 'paged' | 'scroll';
 }
 
 export const DEFAULT_READER_SETTINGS: ReaderSettings = {
-  fontSize: 19, lineHeight: 1.85, theme: 'paper', margin: 22, fontFamily: 'system',
+  fontSize: 19, lineHeight: 1.85, theme: 'paper', margin: 22, fontFamily: 'system', pageMode: 'paged',
 };
 
 /** 匿名稳定设备/用户标识，用于后端持久化小镜子对话。首次生成后不变。 */

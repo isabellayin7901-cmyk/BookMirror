@@ -39,67 +39,111 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function chapterBody(ch: ReaderChapter): string {
+/** 滚动模式下章末的「上一章 / 下一章」按钮文案 */
+interface NavLabels { prev: string; next: string }
+
+function chapterBody(ch: ReaderChapter, nav: NavLabels): string {
   const ps = ch.paras.map((p) => {
     const badge = p.comments > 0 ? `<span class="cmt" data-i="${p.i}">${p.comments}</span>` : '';
     return `<p data-i="${p.i}">${esc(p.text).replace(/\n/g, '<br>')}${badge}</p>`;
   }).join('');
-  return `<h2>${esc(ch.title)}</h2>${ps}`;
+  // 只在滚动模式显示（翻页模式靠左右翻到章首 / 章末自动切章）
+  const prev = ch.index > 0 ? `<a data-nav="prev">${esc(nav.prev)}</a>` : '<span></span>';
+  const next = ch.index < ch.total - 1 ? `<a data-nav="next">${esc(nav.next)}</a>` : '<span></span>';
+  return `<h2>${esc(ch.title)}</h2>${ps}<div class="chnav">${prev}${next}</div>`;
 }
 
+// 翻页模式：CSS 多栏把整章排成横向的一页页，#book 是横向滚动容器，翻页 = 设置 scrollLeft。
+// （不再用 transform 平移整条内容：长章节会是几万像素宽的单个图层，真机 iOS 超出图层上限会整块空白；
+//   滚动容器只绘制可见区域。）
+// 滚动模式：取消分栏，整章上下滚动，由 WebView 自身滚动。
 const SHELL = `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <style>
   :root{ --fs:19px; --lh:1.85; --fg:#3B3327; --bg:#F3EAD8; --sub:#9C8E76; --mg:22px; --ff:-apple-system,system-ui,"PingFang SC","Noto Sans CJK SC",sans-serif; }
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);}
   #book{
-    height:100vh; box-sizing:border-box;
+    height:100vh; box-sizing:border-box; overflow:hidden;
     padding:calc(var(--mg) + 8px + var(--st,0px)) var(--mg) calc(var(--mg) + var(--sb,0px));
     column-width:calc(100vw - 2*var(--mg)); column-gap:calc(2*var(--mg)); column-fill:auto;
     font-size:var(--fs); line-height:var(--lh); color:var(--fg); font-family:var(--ff);
-    transition:transform .25s ease; will-change:transform;
     -webkit-user-select:text; user-select:text; -webkit-touch-callout:default;
   }
+  html.scroll, html.scroll body{height:auto; overflow:visible;}
+  /* 滚动模式：状态栏 / 灵动岛区域用背景色盖住，文字滚上去不会和状态栏叠在一起 */
+  html.scroll body::before{content:'';position:fixed;top:0;left:0;right:0;height:var(--st,0px);background:var(--bg);z-index:2;}
+  html.scroll #book{height:auto; overflow:visible; columns:auto; column-width:auto;
+    padding-bottom:calc(var(--mg) + var(--sb,0px) + 24px);}
   ::selection{ background:rgba(201,123,99,.28); }
   h2{font-size:1.15em;margin:0 0 1em;color:var(--fg);font-weight:700;}
   p{margin:0 0 .85em;text-align:justify;text-indent:2em;-webkit-hyphens:auto;}
   .cmt{display:inline-block;margin-inline-start:6px;font-size:.62em;color:#fff;background:#C97B63;
        border-radius:9px;padding:0 6px;vertical-align:middle;line-height:1.6;text-indent:0;
        -webkit-user-select:none;user-select:none;}
+  .chnav{display:none;}
+  html.scroll .chnav{display:flex;justify-content:space-between;margin:2em 0 .5em;}
+  .chnav a{color:var(--sub);border:1px solid var(--sub);border-radius:999px;padding:.35em 1.1em;font-size:.8em;
+           -webkit-user-select:none;user-select:none;}
 </style></head><body><div id="book"></div>
 <script>
 (function(){
-  var book=document.getElementById('book'); var cur=0,pages=1,pw=window.innerWidth;
+  var root=document.documentElement, book=document.getElementById('book');
+  var cur=0,pages=1,pw=window.innerWidth,mode='paged';
   function post(o){ if(window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(o)); }
-  function recalc(){ pw=window.innerWidth; pages=Math.max(1,Math.round(book.scrollWidth/pw)); }
-  function topPara(){ var ps=book.querySelectorAll('p[data-i]'); for(var k=0;k<ps.length;k++){ if(Math.floor((ps[k].offsetLeft+2)/pw)>=cur) return parseInt(ps[k].getAttribute('data-i'),10)||0; } return 0; }
-  function go(p){ cur=Math.max(0,Math.min(pages-1,p)); book.style.transform='translateX('+(-cur*pw)+'px)'; post({type:'page',page:cur,pages:pages,topPara:topPara()}); }
+  function recalc(){ pw=window.innerWidth; pages=mode==='scroll'?1:Math.max(1,Math.round(book.scrollWidth/pw)); }
+  function paras(){ return book.querySelectorAll('p[data-i]'); }
+  function idx(el){ return parseInt(el.getAttribute('data-i'),10)||0; }
+  function topInset(){ return parseFloat(getComputedStyle(root).getPropertyValue('--st'))||0; }
+  // 当前屏幕上第一段（阅读进度锚点，和字号无关）
+  function topPara(){ var ps=paras(),k;
+    if(mode==='scroll'){ var t=topInset(); for(k=0;k<ps.length;k++){ if(ps[k].getBoundingClientRect().bottom>t+4) return idx(ps[k]); } return 0; }
+    var at=ps.length?idx(ps[0]):0; for(k=0;k<ps.length;k++){ if(Math.floor((ps[k].offsetLeft+2)/pw)<=cur) at=idx(ps[k]); else break; } return at; }
+  function pct(){ var h=root.scrollHeight-window.innerHeight; return h>0?Math.min(100,Math.round(window.scrollY/h*100)):100; }
+  function report(){ if(mode==='scroll') post({type:'page',page:pct(),pages:100,topPara:topPara()}); else post({type:'page',page:cur,pages:pages,topPara:topPara()}); }
+  function go(p,smooth){ cur=Math.max(0,Math.min(pages-1,p));
+    if(smooth&&book.scrollTo) book.scrollTo({left:cur*pw,behavior:'smooth'}); else book.scrollLeft=cur*pw;
+    report(); }
+  function toPara(i){ var el=book.querySelector('p[data-i="'+i+'"]'); if(!el) return false;
+    if(mode==='scroll'){ var first=paras()[0]===el;
+      window.scrollTo(0,first?0:Math.max(0,el.getBoundingClientRect().top+window.scrollY-topInset()-8)); report(); }
+    else go(Math.floor((el.offsetLeft+2)/pw));
+    return true; }
+  // 重新排版（改字号 / 行距 / 边距 / 翻页方式）后回到原来读到的那一段
+  function relayout(apply){ var anchor=topPara(); apply(); setTimeout(function(){ recalc(); if(!toPara(anchor)) go(Math.min(cur,pages-1)); },30); }
   window.reader={
-    setBody:function(html,toPage){ book.style.transition='none'; book.innerHTML=html; recalc(); if(toPage==='last'){go(pages-1);} else if(toPage==='keep'){go(Math.min(cur,pages-1));} else {go(toPage||0);} setTimeout(function(){book.style.transition='transform .25s ease';},60); },
-    setVars:function(v){ var r=document.documentElement.style; for(var k in v){ r.setProperty(k,v[k]); } setTimeout(function(){ recalc(); go(Math.min(cur,pages-1)); },30); },
-    toParagraph:function(i){ recalc(); var el=book.querySelector('p[data-i="'+i+'"]'); if(el){ go(Math.floor((el.offsetLeft+2)/pw)); } },
-    next:function(){ if(cur>=pages-1) post({type:'atEnd'}); else go(cur+1); },
-    prev:function(){ if(cur<=0) post({type:'atStart'}); else go(cur-1); },
+    setBody:function(html,toPage){ book.innerHTML=html; recalc();
+      if(mode==='scroll'){ if(toPage==='last') window.scrollTo(0,root.scrollHeight); else if(toPage!=='keep') window.scrollTo(0,0); report(); }
+      else if(toPage==='last'){go(pages-1);} else if(toPage==='keep'){go(Math.min(cur,pages-1));} else {go(toPage||0);} },
+    setVars:function(v){ relayout(function(){ var r=root.style; for(var k in v){ r.setProperty(k,v[k]); } }); },
+    setMode:function(m){ if(m===mode) return; relayout(function(){ mode=m; root.classList.toggle('scroll',m==='scroll'); }); },
+    toParagraph:function(i){ recalc(); toPara(i); },
+    next:function(){ if(cur>=pages-1) post({type:'atEnd'}); else go(cur+1,true); },
+    prev:function(){ if(cur<=0) post({type:'atStart'}); else go(cur-1,true); },
     clearSel:function(){ var s=window.getSelection(); if(s) s.removeAllRanges(); }
   };
   // 划选：把选中的文字和所在段落报给 RN（段落用于定位好句、给 AI 提供上下文）
   function selInfo(){ var s=window.getSelection(); var txt=s?String(s).trim():''; var p=-1;
-    if(txt&&s.rangeCount){ var n=s.getRangeAt(0).startContainer; var el=n.nodeType===1?n:n.parentElement; var pe=el&&el.closest&&el.closest('p[data-i]'); if(pe) p=parseInt(pe.getAttribute('data-i'),10); }
+    if(txt&&s.rangeCount){ var n=s.getRangeAt(0).startContainer; var el=n.nodeType===1?n:n.parentElement; var pe=el&&el.closest&&el.closest('p[data-i]'); if(pe) p=idx(pe); }
     return {text:txt,paragraph:p}; }
   function hasSel(){ var s=window.getSelection(); return !!(s&&String(s).trim()); }
   var selTimer=null;
   document.addEventListener('selectionchange',function(){ clearTimeout(selTimer); selTimer=setTimeout(function(){ var i=selInfo(); post({type:'sel',text:i.text.slice(0,2000),paragraph:i.paragraph}); },120); });
-  var moved=false,sx=0,t0=0,hadSel=false;
-  document.addEventListener('touchstart',function(e){ moved=false; sx=e.touches[0].clientX; t0=Date.now(); hadSel=hasSel(); },{passive:true});
-  document.addEventListener('touchmove',function(e){ if(Math.abs(e.touches[0].clientX-sx)>10) moved=true; },{passive:true});
+  var scrollTimer=null;
+  window.addEventListener('scroll',function(){ if(mode!=='scroll') return; clearTimeout(scrollTimer); scrollTimer=setTimeout(report,200); },{passive:true});
+  var moved=false,sx=0,sy=0,t0=0,hadSel=false;
+  document.addEventListener('touchstart',function(e){ moved=false; sx=e.touches[0].clientX; sy=e.touches[0].clientY; t0=Date.now(); hadSel=hasSel(); },{passive:true});
+  document.addEventListener('touchmove',function(e){ if(Math.abs(e.touches[0].clientX-sx)>10||Math.abs(e.touches[0].clientY-sy)>10) moved=true; },{passive:true});
   document.addEventListener('touchend',function(e){
     // 长按是在划选文字；已有选区时的轻触是在取消选区——都不翻页、不开关工具栏
     if(hadSel||hasSel()||Date.now()-t0>400) return;
-    var badge=e.target.closest&&e.target.closest('.cmt'); if(badge){ post({type:'comment',paragraph:parseInt(badge.getAttribute('data-i'),10)}); return; }
+    var t=e.target;
+    var nav=t.closest&&t.closest('[data-nav]'); if(nav&&!moved){ post({type:nav.getAttribute('data-nav')==='next'?'atEnd':'prevChapter'}); return; }
+    var badge=t.closest&&t.closest('.cmt'); if(badge&&!moved){ post({type:'comment',paragraph:idx(badge)}); return; }
+    if(mode==='scroll'){ if(!moved) post({type:'toggleBar'}); return; }
     if(moved){ var dx=e.changedTouches[0].clientX-sx; if(dx<-30) window.reader.next(); else if(dx>30) window.reader.prev(); return; }
     var x=e.changedTouches[0].clientX; if(x<pw*0.30) window.reader.prev(); else if(x>pw*0.70) window.reader.next(); else post({type:'toggleBar'});
   });
-  window.addEventListener('resize',function(){ recalc(); go(Math.min(cur,pages-1)); });
+  window.addEventListener('resize',function(){ recalc(); if(mode!=='scroll') go(Math.min(cur,pages-1)); });
   recalc(); post({type:'shellReady'});
 })();
 </script></body></html>`;
@@ -115,6 +159,9 @@ export function ReaderScreen() {
   const insets = useSafeAreaInsets();
   const insetsRef = useRef(insets);
   insetsRef.current = insets;
+  // 滚动模式章末按钮文案（跟随界面语言）
+  const navRef = useRef<NavLabels>({ prev: '', next: '' });
+  navRef.current = { prev: t('reader.prevChapter'), next: t('reader.nextChapter') };
   const [uid, setUid] = useState('');
   const [settings, setSettings] = useState<ReaderSettings | null>(null);
   const [toc, setToc] = useState<ReaderToc | null>(null);
@@ -192,7 +239,7 @@ export function ReaderScreen() {
   }, []);
 
   const injectChapter = useCallback((ch: ReaderChapter, toPage: number | 'last') => {
-    const body = chapterBody(ch);
+    const body = chapterBody(ch, navRef.current);
     webRef.current?.injectJavaScript(`window.reader.setBody(${JSON.stringify(body)}, ${JSON.stringify(toPage)});true;`);
   }, []);
 
@@ -216,7 +263,7 @@ export function ReaderScreen() {
         const updated = { ...ch, paras: ch.paras.map((p) => ({ ...p, comments: counts[p.i] || 0 })) };
         chapterRef.current = updated;
         setChapter(updated);
-        webRef.current?.injectJavaScript(`window.reader.setBody(${JSON.stringify(chapterBody(updated))}, 'keep');true;`);
+        webRef.current?.injectJavaScript(`window.reader.setBody(${JSON.stringify(chapterBody(updated, navRef.current))}, 'keep');true;`);
       });
     }
   }, [bookId, injectChapter]);
@@ -227,6 +274,7 @@ export function ReaderScreen() {
     if (initStarted.current || !shellReady.current || !pendingInit.current || !st) return;
     initStarted.current = true;
     webRef.current?.injectJavaScript(varsScript(st));
+    webRef.current?.injectJavaScript(`window.reader.setMode(${JSON.stringify(st.pageMode || 'paged')});true;`);
     const init = pendingInit.current;
     await loadChapter(init.index, 0, init.paragraph);
     setLoading(false);
@@ -264,6 +312,12 @@ export function ReaderScreen() {
       if (ch && ch.index < ch.total - 1) loadChapter(ch.index + 1, 0);
       return;
     }
+    // 滚动模式章末「上一章」：回到上一章开头
+    if (msg.type === 'prevChapter') {
+      const ch = chapterRef.current;
+      if (ch && ch.index > 0) loadChapter(ch.index - 1, 0);
+      return;
+    }
     if (msg.type === 'atStart') {
       const ch = chapterRef.current;
       if (ch && ch.index > 0) loadChapter(ch.index - 1, 'last');
@@ -278,7 +332,11 @@ export function ReaderScreen() {
       const next = { ...prev, ...patch };
       settingsRef.current = next;
       storage.setReaderSettings(next);
-      webRef.current?.injectJavaScript(varsScript(next));
+      if (patch.pageMode) {
+        webRef.current?.injectJavaScript(`window.reader.setMode(${JSON.stringify(patch.pageMode)});true;`);
+      } else {
+        webRef.current?.injectJavaScript(varsScript(next));
+      }
       return next;
     });
   }, [varsScript]);
@@ -367,8 +425,9 @@ export function ReaderScreen() {
         source={{ html: SHELL }}
         originWhitelist={['*']}
         onMessage={onMessage}
-        scrollEnabled={false}
-        showsVerticalScrollIndicator={false}
+        // 左右翻页由页面内部处理；上下滚动模式交给 WebView 自身滚动
+        scrollEnabled={settings.pageMode === 'scroll'}
+        showsVerticalScrollIndicator={settings.pageMode === 'scroll'}
         style={{ backgroundColor: theme.bg }}
         // 外层 fill 是居中布局，WebView 没有固有宽度，不撑开会在 iOS 上变成 0 宽（空白）
         containerStyle={{ alignSelf: 'stretch' }}
@@ -419,7 +478,9 @@ export function ReaderScreen() {
             <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.quotes')}</Text>
           </Pressable>
           <View style={styles.pageMeta}>
-            <Text style={[styles.pageMetaText, { color: theme.sub }]}>{pageInfo.page + 1}/{pageInfo.pages}</Text>
+            <Text style={[styles.pageMetaText, { color: theme.sub }]}>
+              {settings.pageMode === 'scroll' ? `${pageInfo.page}%` : `${pageInfo.page + 1}/${pageInfo.pages}`}
+            </Text>
           </View>
           <Pressable style={styles.bottomBtn} onPress={() => setNotesOpen(true)}>
             <Text style={[styles.bottomIcon, { color: theme.fg }]}>✎</Text>
@@ -434,7 +495,7 @@ export function ReaderScreen() {
 
       {/* 目录 */}
       <Modal visible={tocOpen} animationType="slide" onRequestClose={() => setTocOpen(false)}>
-        <SafeAreaView style={[styles.fill, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }} edges={['top', 'bottom']}>
           <View style={styles.tocHeader}>
             <Text style={[styles.tocTitle, { color: theme.fg }]}>{toc?.title || ''}</Text>
             <Pressable onPress={() => setTocOpen(false)} hitSlop={10}><Text style={[styles.barIcon, { color: theme.fg }]}>✕</Text></Pressable>
@@ -478,6 +539,18 @@ export function ReaderScreen() {
                 <Pressable style={[styles.stepBtn, { borderColor: theme.sub }]} onPress={() => updateSettings({ margin: Math.max(10, settings.margin - 4) })}><Text style={[styles.stepTxt, { color: theme.fg }]}>−</Text></Pressable>
                 <Text style={[styles.stepVal, { color: theme.fg }]}>{settings.margin}</Text>
                 <Pressable style={[styles.stepBtn, { borderColor: theme.sub }]} onPress={() => updateSettings({ margin: Math.min(48, settings.margin + 4) })}><Text style={[styles.stepTxt, { color: theme.fg }]}>＋</Text></Pressable>
+              </View>
+            </View>
+            {/* 翻页方式 */}
+            <View style={styles.setRow}>
+              <Text style={[styles.setLabel, { color: theme.fg }]}>{t('reader.pageMode')}</Text>
+              <View style={styles.stepper}>
+                {(['paged', 'scroll'] as const).map((m) => (
+                  <Pressable key={m} onPress={() => updateSettings({ pageMode: m })}
+                    style={[styles.fontPick, (settings.pageMode || 'paged') === m && styles.fontPickOn]}>
+                    <Text style={[styles.fontPickTxt, { color: theme.fg }]}>{m === 'paged' ? t('reader.modePaged') : t('reader.modeScroll')}</Text>
+                  </Pressable>
+                ))}
               </View>
             </View>
             {/* 字体 */}

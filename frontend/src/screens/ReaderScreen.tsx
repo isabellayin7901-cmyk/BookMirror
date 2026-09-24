@@ -12,11 +12,14 @@ import { Snowman } from '../illustrations/Snowman';
 import { storage, type ReaderSettings } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import {
-  fetchReaderChapter, fetchReaderToc, fetchReaderProgress, saveReaderProgress,
+  fetchReaderProgress, saveReaderProgress, fetchChapterDiscussion,
   fetchParagraphComments, addParagraphComment, likeParagraphComment, deleteParagraphComment,
   type ReaderChapter, type ReaderToc, type ParagraphComment,
 } from '../lib/api';
-import type { RootStackParamList } from '../types';
+import { loadReaderBook, loadChapter as loadSourceChapter, pickEdition, type ReaderBookInfo } from '../lib/readerSource';
+import { systemLanguage } from '../lib/locale';
+import { QuoteSheet, DiscussionSheet, NotesSheet, ExplainSheet, EditionPicker } from '../components/ReaderPanels';
+import type { BookEdition, RootStackParamList } from '../types';
 
 // WebView 是原生模块；旧构建（OTA 拿不到）会 require 失败，这里优雅降级提示更新。
 let WebViewComp: any = null;
@@ -39,7 +42,7 @@ function esc(s: string): string {
 function chapterBody(ch: ReaderChapter): string {
   const ps = ch.paras.map((p) => {
     const badge = p.comments > 0 ? `<span class="cmt" data-i="${p.i}">${p.comments}</span>` : '';
-    return `<p data-i="${p.i}">${esc(p.text)}${badge}</p>`;
+    return `<p data-i="${p.i}">${esc(p.text).replace(/\n/g, '<br>')}${badge}</p>`;
   }).join('');
   return `<h2>${esc(ch.title)}</h2>${ps}`;
 }
@@ -54,12 +57,14 @@ const SHELL = `<!DOCTYPE html><html><head>
     column-width:calc(100vw - 2*var(--mg)); column-gap:calc(2*var(--mg)); column-fill:auto;
     font-size:var(--fs); line-height:var(--lh); color:var(--fg); font-family:var(--ff);
     transition:transform .25s ease; will-change:transform;
-    -webkit-user-select:none; user-select:none;
+    -webkit-user-select:text; user-select:text; -webkit-touch-callout:default;
   }
+  ::selection{ background:rgba(201,123,99,.28); }
   h2{font-size:1.15em;margin:0 0 1em;color:var(--fg);font-weight:700;}
   p{margin:0 0 .85em;text-align:justify;text-indent:2em;-webkit-hyphens:auto;}
   .cmt{display:inline-block;margin-inline-start:6px;font-size:.62em;color:#fff;background:#C97B63;
-       border-radius:9px;padding:0 6px;vertical-align:middle;line-height:1.6;}
+       border-radius:9px;padding:0 6px;vertical-align:middle;line-height:1.6;
+       -webkit-user-select:none;user-select:none;}
 </style></head><body><div id="book"></div>
 <script>
 (function(){
@@ -69,16 +74,26 @@ const SHELL = `<!DOCTYPE html><html><head>
   function topPara(){ var ps=book.querySelectorAll('p[data-i]'); for(var k=0;k<ps.length;k++){ if(Math.floor((ps[k].offsetLeft+2)/pw)>=cur) return parseInt(ps[k].getAttribute('data-i'),10)||0; } return 0; }
   function go(p){ cur=Math.max(0,Math.min(pages-1,p)); book.style.transform='translateX('+(-cur*pw)+'px)'; post({type:'page',page:cur,pages:pages,topPara:topPara()}); }
   window.reader={
-    setBody:function(html,toPage){ book.style.transition='none'; book.innerHTML=html; recalc(); if(toPage==='last'){go(pages-1);} else {go(toPage||0);} setTimeout(function(){book.style.transition='transform .25s ease';},60); },
+    setBody:function(html,toPage){ book.style.transition='none'; book.innerHTML=html; recalc(); if(toPage==='last'){go(pages-1);} else if(toPage==='keep'){go(Math.min(cur,pages-1));} else {go(toPage||0);} setTimeout(function(){book.style.transition='transform .25s ease';},60); },
     setVars:function(v){ var r=document.documentElement.style; for(var k in v){ r.setProperty(k,v[k]); } setTimeout(function(){ recalc(); go(Math.min(cur,pages-1)); },30); },
     toParagraph:function(i){ recalc(); var el=book.querySelector('p[data-i="'+i+'"]'); if(el){ go(Math.floor((el.offsetLeft+2)/pw)); } },
     next:function(){ if(cur>=pages-1) post({type:'atEnd'}); else go(cur+1); },
-    prev:function(){ if(cur<=0) post({type:'atStart'}); else go(cur-1); }
+    prev:function(){ if(cur<=0) post({type:'atStart'}); else go(cur-1); },
+    clearSel:function(){ var s=window.getSelection(); if(s) s.removeAllRanges(); }
   };
-  var lp=null,moved=false,sx=0;
-  document.addEventListener('touchstart',function(e){ moved=false; sx=e.touches[0].clientX; lp=setTimeout(function(){ var t=e.target.closest&&e.target.closest('p[data-i]'); if(t){ post({type:'comment',paragraph:parseInt(t.getAttribute('data-i'),10)}); lp='done'; } },420); },{passive:true});
-  document.addEventListener('touchmove',function(e){ if(Math.abs(e.touches[0].clientX-sx)>10){moved=true; clearTimeout(lp);} },{passive:true});
-  document.addEventListener('touchend',function(e){ if(lp==='done'){lp=null;return;} clearTimeout(lp);
+  // 划选：把选中的文字和所在段落报给 RN（段落用于定位好句、给 AI 提供上下文）
+  function selInfo(){ var s=window.getSelection(); var txt=s?String(s).trim():''; var p=-1;
+    if(txt&&s.rangeCount){ var n=s.getRangeAt(0).startContainer; var el=n.nodeType===1?n:n.parentElement; var pe=el&&el.closest&&el.closest('p[data-i]'); if(pe) p=parseInt(pe.getAttribute('data-i'),10); }
+    return {text:txt,paragraph:p}; }
+  function hasSel(){ var s=window.getSelection(); return !!(s&&String(s).trim()); }
+  var selTimer=null;
+  document.addEventListener('selectionchange',function(){ clearTimeout(selTimer); selTimer=setTimeout(function(){ var i=selInfo(); post({type:'sel',text:i.text.slice(0,2000),paragraph:i.paragraph}); },120); });
+  var moved=false,sx=0,t0=0,hadSel=false;
+  document.addEventListener('touchstart',function(e){ moved=false; sx=e.touches[0].clientX; t0=Date.now(); hadSel=hasSel(); },{passive:true});
+  document.addEventListener('touchmove',function(e){ if(Math.abs(e.touches[0].clientX-sx)>10) moved=true; },{passive:true});
+  document.addEventListener('touchend',function(e){
+    // 长按是在划选文字；已有选区时的轻触是在取消选区——都不翻页、不开关工具栏
+    if(hadSel||hasSel()||Date.now()-t0>400) return;
     var badge=e.target.closest&&e.target.closest('.cmt'); if(badge){ post({type:'comment',paragraph:parseInt(badge.getAttribute('data-i'),10)}); return; }
     if(moved){ var dx=e.changedTouches[0].clientX-sx; if(dx<-30) window.reader.next(); else if(dx>30) window.reader.prev(); return; }
     var x=e.changedTouches[0].clientX; if(x<pw*0.30) window.reader.prev(); else if(x>pw*0.70) window.reader.next(); else post({type:'toggleBar'});
@@ -107,6 +122,19 @@ export function ReaderScreen() {
 
   const [commentPara, setCommentPara] = useState<number | null>(null);
 
+  // 多版本：当前书的信息（示例/书库、可选版本、章节来源）与当前版本
+  const [info, setInfo] = useState<ReaderBookInfo | null>(null);
+  const [editionId, setEditionId] = useState<string | null>(null);
+  const editionRef = useRef<string | null>(null);
+  const isDemoRef = useRef(false);
+  // 划选：WebView 实时报来的选区（文字 + 所在段落）
+  const lastSel = useRef<{ text: string; paragraph: number }>({ text: '', paragraph: -1 });
+  const [quote, setQuote] = useState<{ text: string; paragraph: number } | null>(null);
+  const [explain, setExplain] = useState<{ text: string; paragraph: number } | null>(null);
+  const [discOpen, setDiscOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [edPickerOpen, setEdPickerOpen] = useState(false);
+
   const shellReady = useRef(false);
   const pendingInit = useRef<{ index: number; paragraph: number } | null>(null);
   const chapterRef = useRef<ReaderChapter | null>(null);
@@ -121,11 +149,20 @@ export function ReaderScreen() {
       setUid(id);
       const st = await storage.getReaderSettings();
       setSettings(st);
-      const [tc, prog] = await Promise.all([
-        fetchReaderToc(bookId),
+      // 版本：这本书上次选的 > 设置里的「阅读内容语言」> 原文
+      const [remembered, appSettings, prog] = await Promise.all([
+        storage.getReaderEdition(bookId),
+        storage.getSettings(),
         fetchReaderProgress(id, bookId),
       ]);
-      setToc(tc);
+      const first = await loadReaderBook(bookId, remembered);
+      const ed = pickEdition(first?.info.editions ?? [], remembered, appSettings.contentLanguage ?? 'original');
+      const loaded = ed && ed.id !== remembered ? await loadReaderBook(bookId, ed.id) : first;
+      editionRef.current = ed?.id ?? null;
+      setEditionId(ed?.id ?? null);
+      isDemoRef.current = !!loaded?.info.isDemo;
+      setInfo(loaded?.info ?? null);
+      setToc(loaded?.toc ?? null);
       pendingInit.current = { index: prog.chapter_index || 0, paragraph: prog.paragraph || 0 };
       if (shellReady.current) runInit();
     })();
@@ -146,13 +183,28 @@ export function ReaderScreen() {
   }, []);
 
   const loadChapter = useCallback(async (index: number, toPage: number | 'last', toParagraph?: number) => {
-    const ch = await fetchReaderChapter(bookId, index);
+    const ch = await loadSourceChapter(bookId, index, editionRef.current);
     if (!ch) return;
     chapterRef.current = ch;
     setChapter(ch);
     injectChapter(ch, toPage);
     if (toParagraph && toParagraph > 0) {
       setTimeout(() => webRef.current?.injectJavaScript(`window.reader.toParagraph(${toParagraph});true;`), 120);
+    }
+    // 示例书正文在本地，段评角标按本章公开讨论里「同一版本」的条目另算
+    if (isDemoRef.current) {
+      const list = await fetchChapterDiscussion(bookId, ch.index, '');
+      const ed = editionRef.current;
+      if (list && chapterRef.current === ch) {
+        const counts: Record<number, number> = {};
+        list.filter((c) => c.edition === ed && (c.paragraph ?? -1) >= 0).forEach((c) => { counts[c.paragraph!] = (counts[c.paragraph!] || 0) + 1; });
+        if (Object.keys(counts).length) {
+          const updated = { ...ch, paras: ch.paras.map((p) => ({ ...p, comments: counts[p.i] || 0 })) };
+          chapterRef.current = updated;
+          setChapter(updated);
+          webRef.current?.injectJavaScript(`window.reader.setBody(${JSON.stringify(chapterBody(updated))}, ${JSON.stringify(toPage === 'last' ? 'last' : 'keep')});true;`);
+        }
+      }
     }
   }, [bookId, injectChapter]);
 
@@ -173,6 +225,7 @@ export function ReaderScreen() {
       return;
     }
     if (msg.type === 'toggleBar') { setBarVisible((v) => !v); return; }
+    if (msg.type === 'sel') { lastSel.current = { text: msg.text || '', paragraph: typeof msg.paragraph === 'number' ? msg.paragraph : -1 }; return; }
     if (msg.type === 'comment') { setCommentPara(msg.paragraph); return; }
     if (msg.type === 'page') {
       setPageInfo({ page: msg.page, pages: msg.pages, topPara: msg.topPara });
@@ -228,6 +281,52 @@ export function ReaderScreen() {
     injectChapter(updated, pageInfo.page);
   };
 
+  /** 选中的文字在本章第几段：优先用 WebView 报来的段落，对不上再按文字查找 */
+  const findParagraph = (text: string, hint: number): number => {
+    const ch = chapterRef.current;
+    if (!ch) return -1;
+    const head = text.split('\n')[0].replace(/\s+/g, ' ').trim().slice(0, 20);
+    const norm = (x: string) => x.replace(/\s+/g, ' ');
+    if (hint >= 0 && ch.paras[hint] && norm(ch.paras[hint].text).includes(head)) return hint;
+    const found = ch.paras.find((p) => norm(p.text).includes(head));
+    return found ? found.i : hint;
+  };
+
+  /** 给 AI 的上下文：所在段落及前后各一段 */
+  const contextFor = (paragraph: number): string => {
+    const ch = chapterRef.current;
+    if (!ch) return '';
+    if (paragraph < 0) return ch.paras.map((p) => p.text).join('\n').slice(0, 3000);
+    return ch.paras.slice(Math.max(0, paragraph - 1), paragraph + 2).map((p) => p.text).join('\n').slice(0, 3000);
+  };
+
+  /** 划选后的自定义菜单：分享好句 / AI 翻译与理解 */
+  const onMenu = useCallback((e: any) => {
+    const { key, selectedText } = e.nativeEvent || {};
+    const text = String(selectedText || lastSel.current.text || '').trim();
+    webRef.current?.injectJavaScript('window.reader.clearSel();true;');
+    if (!text) return;
+    const paragraph = findParagraph(text, lastSel.current.paragraph);
+    if (key === 'quote') setQuote({ text, paragraph });
+    else if (key === 'explain') setExplain({ text, paragraph });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const currentEdition: BookEdition | null = info?.editions.find((e) => e.id === editionId) ?? null;
+
+  /** 切换版本：章节按 index 对齐，停在同一章的开头 */
+  const switchEdition = async (e: BookEdition) => {
+    setEdPickerOpen(false);
+    if (e.id === editionRef.current) return;
+    editionRef.current = e.id;
+    setEditionId(e.id);
+    storage.setReaderEdition(bookId, e.id);
+    const loaded = await loadReaderBook(bookId, e.id);
+    if (loaded) setToc(loaded.toc);
+    setLoading(true);
+    await loadChapter(chapterRef.current?.index ?? 0, 0);
+    setLoading(false);
+  };
+
   if (!WebViewComp) {
     return (
       <SafeAreaView style={[styles.fill, { backgroundColor: theme.bg }]} edges={['top']}>
@@ -252,6 +351,12 @@ export function ReaderScreen() {
         scrollEnabled={false}
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: theme.bg }}
+        // 长按划选文字后的菜单（iOS / Android 原生选区菜单）
+        menuItems={[
+          { key: 'quote', label: t('reader.menuQuote') },
+          { key: 'explain', label: t('reader.menuExplain') },
+        ]}
+        onCustomMenuSelection={onMenu}
         // 安卓上 injectedJavaScript 在每次 load 后跑；我们用 onMessage(shellReady) 触发初始化
       />
 
@@ -266,8 +371,18 @@ export function ReaderScreen() {
       {barVisible && (
         <SafeAreaView edges={['top']} style={[styles.topBar, { backgroundColor: theme.bg, borderColor: theme.sub + '33' }]}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={12}><Text style={[styles.barIcon, { color: theme.fg }]}>‹</Text></Pressable>
-          <Text style={[styles.barTitle, { color: theme.fg }]} numberOfLines={1}>{chapter?.title || title || ''}</Text>
-          <View style={{ width: 28 }} />
+          <View style={styles.barTitleWrap}>
+            <Text style={[styles.barTitle, { color: theme.fg }]} numberOfLines={1}>{chapter?.title || title || ''}</Text>
+            {info?.isDemo && <Text style={[styles.demoTag, { color: theme.sub }]}>{t('reader.demoTag')}</Text>}
+          </View>
+          {/* 多个版本时才显示版本切换 */}
+          {info && info.editions.length > 1 && currentEdition ? (
+            <Pressable onPress={() => setEdPickerOpen(true)} style={[styles.edPill, { borderColor: theme.sub }]} hitSlop={8}>
+              <Text style={[styles.edPillText, { color: theme.fg }]}>
+                {currentEdition.kind === 'original' ? t('edition.original') : t(`edition.lang.${currentEdition.lang}`)} ▾
+              </Text>
+            </Pressable>
+          ) : <View style={{ width: 28 }} />}
         </SafeAreaView>
       )}
 
@@ -278,9 +393,17 @@ export function ReaderScreen() {
             <Text style={[styles.bottomIcon, { color: theme.fg }]}>☰</Text>
             <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.toc')}</Text>
           </Pressable>
+          <Pressable style={styles.bottomBtn} onPress={() => setDiscOpen(true)}>
+            <Text style={[styles.bottomIcon, { color: theme.fg }]}>❝</Text>
+            <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.quotes')}</Text>
+          </Pressable>
           <View style={styles.pageMeta}>
             <Text style={[styles.pageMetaText, { color: theme.sub }]}>{pageInfo.page + 1}/{pageInfo.pages}</Text>
           </View>
+          <Pressable style={styles.bottomBtn} onPress={() => setNotesOpen(true)}>
+            <Text style={[styles.bottomIcon, { color: theme.fg }]}>✎</Text>
+            <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.notes')}</Text>
+          </Pressable>
           <Pressable style={styles.bottomBtn} onPress={() => setSettingsOpen(true)}>
             <Text style={[styles.bottomIcon, { color: theme.fg }]}>Aa</Text>
             <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.settings')}</Text>
@@ -368,17 +491,90 @@ export function ReaderScreen() {
         paragraph={commentPara ?? 0}
         uid={uid}
         theme={theme}
+        edition={info && info.editions.length > 1 ? editionId : null}
         onClose={() => setCommentPara(null)}
         onAdded={() => commentPara !== null && onCommentAdded(commentPara)}
+      />
+
+      {/* 划选 → 分享好句：公开进本章讨论，私密进我的笔记 */}
+      <QuoteSheet
+        visible={quote !== null}
+        quote={quote?.text ?? ''}
+        bookId={bookId}
+        chapterIndex={chapter?.index ?? 0}
+        chapterTitle={chapter?.title ?? ''}
+        paragraph={quote?.paragraph ?? -1}
+        edition={currentEdition}
+        editions={info?.editions ?? []}
+        uid={uid}
+        onClose={() => setQuote(null)}
+        onPosted={(c) => {
+          const para = quote?.paragraph ?? -1;
+          setQuote(null);
+          // 发完直接带用户去看它落在了哪里
+          if (c.kind === 'comment') {
+            if (para >= 0) onCommentAdded(para);
+            setDiscOpen(true);
+          } else {
+            setNotesOpen(true);
+          }
+        }}
+      />
+
+      {/* 本章好句与讨论：跟随当前章节；面板里切章，阅读页同步翻过去 */}
+      <DiscussionSheet
+        visible={discOpen}
+        bookId={bookId}
+        chapterIndex={chapter?.index ?? 0}
+        chapterTitle={chapter?.title ?? ''}
+        totalChapters={chapter?.total ?? 1}
+        chapterSource={info?.chapterSource}
+        editions={info?.editions ?? []}
+        uid={uid}
+        onClose={() => setDiscOpen(false)}
+        onChangeChapter={(i) => jumpChapter(i)}
+      />
+
+      <NotesSheet
+        visible={notesOpen}
+        bookId={bookId}
+        chapterTitles={toc?.chapters.map((c) => c.title) ?? []}
+        editions={info?.editions ?? []}
+        uid={uid}
+        onClose={() => setNotesOpen(false)}
+      />
+
+      {/* 划选 → AI 翻译与理解：目标语言默认跟随手机系统语言 */}
+      <ExplainSheet
+        visible={explain !== null}
+        text={explain?.text ?? ''}
+        context={explain ? contextFor(explain.paragraph) : ''}
+        bookId={bookId}
+        bookTitle={info?.title || title || ''}
+        chapterTitle={chapter?.title ?? ''}
+        edition={currentEdition}
+        defaultTarget={systemLanguage()}
+        onClose={() => setExplain(null)}
+      />
+
+      <EditionPicker
+        visible={edPickerOpen}
+        editions={info?.editions ?? []}
+        currentId={editionId}
+        onPick={switchEdition}
+        onClose={() => setEdPickerOpen(false)}
       />
     </View>
   );
 }
 
 // ---------- 段落评论面板 ----------
-function CommentSheet({ visible, bookId, chapterIndex, paragraph, uid, theme, onClose, onAdded }: {
+function CommentSheet({ visible, bookId, chapterIndex, paragraph, uid, theme, edition, onClose, onAdded }: {
   visible: boolean; bookId: string; chapterIndex: number; paragraph: number; uid: string;
-  theme: { bg: string; fg: string; sub: string }; onClose: () => void; onAdded: () => void;
+  theme: { bg: string; fg: string; sub: string };
+  /** 多版本书：只看当前版本这一段的评论（各版本段落编号不对应） */
+  edition: string | null;
+  onClose: () => void; onAdded: () => void;
 }) {
   const { t } = useI18n();
   const [list, setList] = useState<ParagraphComment[]>([]);
@@ -387,9 +583,10 @@ function CommentSheet({ visible, bookId, chapterIndex, paragraph, uid, theme, on
 
   const load = useCallback(async () => {
     setLoading(true);
-    setList(await fetchParagraphComments(bookId, chapterIndex, paragraph, uid));
+    const all = await fetchParagraphComments(bookId, chapterIndex, paragraph, uid);
+    setList(edition ? all.filter((c) => c.edition === edition) : all);
     setLoading(false);
-  }, [bookId, chapterIndex, paragraph, uid]);
+  }, [bookId, chapterIndex, paragraph, uid, edition]);
 
   useEffect(() => { if (visible) { setText(''); load(); } }, [visible, load]);
 
@@ -397,7 +594,7 @@ function CommentSheet({ visible, bookId, chapterIndex, paragraph, uid, theme, on
     const tx = text.trim();
     if (!tx || !uid) return;
     setText('');
-    const c = await addParagraphComment({ userId: uid, bookId, chapterIndex, paragraph, kind, text: tx });
+    const c = await addParagraphComment({ userId: uid, bookId, chapterIndex, paragraph, kind, text: tx, edition: edition ?? undefined });
     if (c) { setList((l) => [c, ...l]); onAdded(); }
   };
 
@@ -463,7 +660,11 @@ const styles = StyleSheet.create({
 
   topBar: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm, borderBottomWidth: 1 },
   barIcon: { fontSize: 26 },
-  barTitle: { ...typography.body, fontWeight: '600', flex: 1, textAlign: 'center', marginHorizontal: spacing.md },
+  barTitleWrap: { flex: 1, alignItems: 'center', marginHorizontal: spacing.md },
+  barTitle: { ...typography.body, fontWeight: '600', textAlign: 'center' },
+  demoTag: { fontSize: 10, marginTop: 1 },
+  edPill: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
+  edPillText: { fontSize: 12, fontWeight: '600' },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingTop: spacing.sm, borderTopWidth: 1 },
   bottomBtn: { alignItems: 'center', gap: 2 },
   bottomIcon: { fontSize: 18, fontWeight: '700' },

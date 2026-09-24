@@ -71,7 +71,8 @@ export default function App() {
       <NavigationContainer ref={navigationRef}>
         <StatusBar style="dark" />
         <Stack.Navigator
-          initialRouteName={onboarded ? 'Tabs' : 'LanguageSelect'}
+          // 界面语言跟随手机系统，新用户不再先选语言，直接进登录
+          initialRouteName={onboarded ? 'Tabs' : 'Auth'}
           screenOptions={{
             headerStyle: { backgroundColor: colors.bg },
             headerShadowVisible: false,
@@ -85,7 +86,12 @@ export default function App() {
             component={LanguageSelectScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="Auth"
+            component={AuthScreen}
+            options={{ headerShown: false }}
+            initialParams={{ onboarding: !onboarded }}
+          />
           <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
           <Stack.Screen
             name="Quiz"

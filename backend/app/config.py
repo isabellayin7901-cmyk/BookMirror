@@ -4,6 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     anthropic_api_key: str = ""
     claude_model: str = "claude-haiku-4-5-20251001"
+    # 阅读页「AI 翻译与理解」单独用的模型；留空 = 跟随 claude_model。
+    # 译文质量、歧义标注对模型能力敏感，需要时可单独换成更强的模型而不影响其它功能。
+    explain_model: str = ""
     cors_origins: str = "http://localhost:8081,http://localhost:19006,exp://*"
     log_level: str = "INFO"
 

@@ -1,5 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Book, Language, RecommendationResponse, SynthesisProfile, UserProfile } from '../types';
+import type {
+  Book, ContentLanguagePref, Language, RecommendationResponse, RegionInfo, SynthesisProfile,
+  UiLanguageMode, UserProfile,
+} from '../types';
+import { systemLanguage } from './locale';
 
 /**
  * 把会影响推荐的字段哈希成一个稳定字符串。
@@ -44,6 +48,8 @@ const KEYS = {
   authToken: '@bookmirror/auth_token',
   savedSentences: '@bookmirror/saved_sentences',
   readerSettings: '@bookmirror/reader_settings',
+  readerEditions: '@bookmirror/reader_editions',
+  regionCache: '@bookmirror/region_cache',
 } as const;
 
 export interface ReaderSettings {
@@ -96,11 +102,27 @@ export interface CheckinDay {
 export type SearchEngine = 'ask' | 'baidu' | 'google';
 
 export interface Settings {
+  /** 当前生效的界面语言（跟随系统时为解析后的结果，其它代码直接读它即可） */
   language: Language;
+  /** 界面语言模式。缺省（老用户在首次启动时手动选过语言）视为手动。 */
+  uiLanguageMode?: UiLanguageMode;
   searchEngine?: SearchEngine;
+  /** 阅读内容语言：打开书时优先选哪个版本。与界面语言相互独立。 */
+  contentLanguage?: ContentLanguagePref;
+  /** 手动设置的所在地区（两位国家码）；为空 = 自动判断 */
+  regionOverride?: string | null;
 }
 
-const defaultSettings: Settings = { language: 'zh', searchEngine: 'ask' };
+/** 新安装：界面语言跟随手机系统 */
+const defaultSettings = (): Settings => ({
+  language: systemLanguage(),
+  uiLanguageMode: 'system',
+  searchEngine: 'ask',
+  contentLanguage: 'original',
+});
+
+/** 缓存的地区判断结果（按网络判断，1 天内复用） */
+export interface RegionCache extends RegionInfo { at: number }
 
 /** 本地时区的 'YYYY-MM-DD'。不能用 toISOString（那是 UTC，UTC+8 凌晨会算成昨天，
  *  导致打卡记录的日期和日历按本地时间画的格子对不上、绿点不显示）。 */
@@ -123,8 +145,14 @@ async function setJSON<T>(key: string, value: T): Promise<void> {
 }
 
 export const storage = {
-  getSettings: () => getJSON<Settings>(KEYS.settings, defaultSettings),
+  getSettings: () => getJSON<Settings>(KEYS.settings, defaultSettings()),
   setSettings: (s: Settings) => setJSON(KEYS.settings, s),
+  /** 只改部分设置项，保留其它字段 */
+  patchSettings: async (patch: Partial<Settings>): Promise<Settings> => {
+    const next = { ...(await getJSON<Settings>(KEYS.settings, defaultSettings())), ...patch };
+    await setJSON(KEYS.settings, next);
+    return next;
+  },
 
   getLastResult: () => getJSON<RecommendationResponse | null>(KEYS.lastResult, null),
   setLastResult: (r: RecommendationResponse) => setJSON(KEYS.lastResult, r),
@@ -222,6 +250,17 @@ export const storage = {
   // ---------- 阅读器设置 ----------
   getReaderSettings: () => getJSON<ReaderSettings>(KEYS.readerSettings, DEFAULT_READER_SETTINGS),
   setReaderSettings: (s: ReaderSettings) => setJSON(KEYS.readerSettings, s),
+  /** 每本书上次选的版本（bookId → editionId） */
+  getReaderEdition: async (bookId: string): Promise<string | null> =>
+    (await getJSON<Record<string, string>>(KEYS.readerEditions, {}))[bookId] ?? null,
+  setReaderEdition: async (bookId: string, editionId: string): Promise<void> => {
+    const all = await getJSON<Record<string, string>>(KEYS.readerEditions, {});
+    await setJSON(KEYS.readerEditions, { ...all, [bookId]: editionId });
+  },
+
+  // ---------- 地区判断缓存 ----------
+  getRegionCache: () => getJSON<RegionCache | null>(KEYS.regionCache, null),
+  setRegionCache: (c: RegionCache) => setJSON(KEYS.regionCache, c),
 
   // ---------- 收藏的句子（小镜子聊天里收藏的话） ----------
   getSavedSentences: () => getJSON<string[]>(KEYS.savedSentences, []),

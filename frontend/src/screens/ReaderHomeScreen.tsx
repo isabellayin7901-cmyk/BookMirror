@@ -12,6 +12,7 @@ import { Snowman } from '../illustrations/Snowman';
 import { useI18n } from '../lib/LanguageContext';
 import { fetchReaderBooks, findBookByMemory, fetchBooksByIds, type ReaderBookMeta, type FindResult } from '../lib/api';
 import { BookDetailModal } from '../components/BookDetailModal';
+import { DEMO_BOOKS } from '../data/demoBooks';
 import type { Book, RootStackParamList } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -51,9 +52,15 @@ export function ReaderHomeScreen() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    setBooks(await fetchReaderBooks());
+    // 示例书排在最前（本地数据，演示多版本阅读 / 划选 / AI 翻译），后面是书库里的书
+    const demos: ReaderBookMeta[] = DEMO_BOOKS.map((d) => ({
+      book_id: d.bookId,
+      title: lang === 'en' ? d.titleEn : d.title,
+      chapters: d.chapters[d.editions[0].id].length,
+    }));
+    setBooks([...demos, ...(await fetchReaderBooks())]);
     setLoading(false);
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', load);
@@ -92,6 +99,9 @@ export function ReaderHomeScreen() {
             >
               <View style={[styles.cover, { backgroundColor: SPINES[index % SPINES.length] }]}>
                 <Text style={styles.coverTitle} numberOfLines={4}>{item.title}</Text>
+                {item.book_id.startsWith('demo_') && (
+                  <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>{t('reader.demoTag')}</Text></View>
+                )}
               </View>
               <Text style={styles.bookTitle} numberOfLines={1}>{item.title}</Text>
               <Text style={styles.bookMeta}>{item.chapters} {t('reader.chapters')}</Text>
@@ -162,6 +172,8 @@ const styles = StyleSheet.create({
   card: { flex: 1, marginBottom: spacing.lg },
   cover: { aspectRatio: 0.7, borderRadius: radius.md, padding: spacing.md, justifyContent: 'flex-start', ...{ shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } } },
   coverTitle: { color: '#fff', fontWeight: '800', fontSize: 17, lineHeight: 24, fontFamily: 'ZCOOLKuaiLe_400Regular' },
+  demoBadge: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  demoBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
   bookTitle: { ...typography.body, fontWeight: '600', marginTop: spacing.sm },
   bookMeta: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
 

@@ -111,6 +111,42 @@ export interface Book {
   purchase_links: Record<string, string>;
 }
 
+// ===== 多语言阅读：同一本书的不同版本 =====
+
+/** 版本语言。lzh = 文言（古汉语），与现代中文 zh 区分开，AI 翻译会据此判断。 */
+export type EditionLang = 'lzh' | 'zh' | 'en';
+
+/** 一本书可读的某个版本（原文 / 中文译本 / 英文译本…）。
+ *  各版本的章节按 index 对齐，同一章的「好句与讨论」在所有版本间共享。 */
+export interface BookEdition {
+  id: string;                   // 版本 ID，写进好句/笔记的 edition 字段
+  lang: EditionLang;
+  kind: 'original' | 'translation';
+  label: string;                // 界面显示名（中文）
+  labelEn: string;              // 界面显示名（英文）
+  translator?: string;
+  /** 出处与版权说明，示例书必须写清楚 */
+  source: string;
+}
+
+/** 章节信息的来源：原书自带 / AI 辅助识别 / 人工修正。优先用原书的。 */
+export type ChapterSource = 'book' | 'ai' | 'manual';
+
+/** 阅读内容语言偏好（与界面语言独立）：打开书时优先选哪个版本。 */
+export type ContentLanguagePref = 'original' | 'zh' | 'en';
+
+/** 界面语言模式：跟随手机系统，或手动指定。 */
+export type UiLanguageMode = 'system' | Language;
+
+// ===== 地区：决定展示哪些购书/阅读平台 =====
+
+/** 用户所在地区（ISO 3166-1 两位国家码，如 CN / US / GB / HK）。 */
+export interface RegionInfo {
+  country: string | null;
+  /** ip = 服务器按网络判断；device = 手机系统地区推断；manual = 用户手动设置 */
+  source: 'ip' | 'device' | 'manual';
+}
+
 export interface BookRecommendation {
   book_id: string;
   order: number;

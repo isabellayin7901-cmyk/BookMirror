@@ -231,6 +231,26 @@ class ParagraphComment(Base):
     text: Mapped[str] = mapped_column(Text, default="")
     likes: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True, nullable=False)
+    # 「分享好句」：读者划选的原文摘录；普通段评为空。
+    quote: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # 摘录来自哪个版本（原文/译本，见前端 BookEdition.id）；单一版本的书为空。
+    edition: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+
+
+class BookGlossary(Base):
+    """AI 翻译的全书术语表：同一本书、同一目标语言下，一个术语只用一种译法。
+    第一次出现时由 AI 定下，之后每次翻译都带上它，保证全书一致。"""
+
+    __tablename__ = "book_glossary"
+    __table_args__ = (UniqueConstraint("book_id", "target_lang", "term", name="uq_glossary_term"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    book_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    target_lang: Mapped[str] = mapped_column(String(8), nullable=False)
+    term: Mapped[str] = mapped_column(String(120), nullable=False)
+    rendering: Mapped[str] = mapped_column(String(200), nullable=False)
+    note: Mapped[str] = mapped_column(Text, default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
 
 
 class CommentLike(Base):
@@ -393,6 +413,16 @@ def _ensure_columns() -> None:
         if "changes" not in uh_cols:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE user_handles ADD COLUMN changes TEXT DEFAULT '[]'"))
+    except Exception:
+        pass
+    # paragraph_comments：补 quote / edition 列（分享好句 + 多版本）。
+    try:
+        pc_cols = {c["name"] for c in inspector.get_columns("paragraph_comments")}
+        with engine.begin() as conn:
+            if "quote" not in pc_cols:
+                conn.execute(text("ALTER TABLE paragraph_comments ADD COLUMN quote TEXT"))
+            if "edition" not in pc_cols:
+                conn.execute(text("ALTER TABLE paragraph_comments ADD COLUMN edition VARCHAR(32)"))
     except Exception:
         pass
     # user_handles：早期版本对 handle_lower 建了唯一索引（大小写无关唯一）。

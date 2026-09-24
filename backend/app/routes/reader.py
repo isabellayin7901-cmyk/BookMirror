@@ -9,6 +9,9 @@
 - POST /api/reader/comment                  发评论/笔记
 - POST /api/reader/comment/like             点赞/取消（公开评论）
 - POST /api/reader/comment/delete           删自己的评论
+- GET  /api/reader/chapter_discussion       某章「好句与讨论」（该章全部公开评论/好句）
+- GET  /api/reader/notes                    我在这本书里的私密笔记
+- POST /api/reader/explain                  AI 翻译与理解（带全书术语表，保证译法一致）
 """
 
 import json
@@ -17,12 +20,13 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select, delete, func
 
 from app.db import (
-    SessionLocal, ReaderContent, ReaderProgress, ParagraphComment, CommentLike, init_db,
+    SessionLocal, ReaderContent, ReaderProgress, ParagraphComment, CommentLike, BookGlossary, init_db,
+    User, AuthToken,
 )
 from app.routes.social import _public_card
 from app.services.book_filter import load_books
@@ -224,7 +228,11 @@ class CommentIn(BaseModel):
     chapter_index: int
     paragraph: int
     kind: str = "comment"  # comment / note
-    text: str = Field(..., min_length=1, max_length=2000)
+    # 感悟正文；分享好句时可以只分享句子不写感悟（此时 quote 必填）
+    text: str = Field(default="", max_length=2000)
+    # 分享好句：划选的原文 + 所在版本。普通段评不传。
+    quote: Optional[str] = Field(default=None, max_length=2000)
+    edition: Optional[str] = Field(default=None, max_length=32)
 
 
 class LikeIn(BaseModel):
@@ -235,6 +243,31 @@ class LikeIn(BaseModel):
 class DeleteCommentIn(BaseModel):
     user_id: str = Field(..., min_length=1, max_length=64)
     comment_id: int
+
+
+def _comment_out(session, r: ParagraphComment, viewer_id: str, liked: set[int]) -> dict:
+    return {
+        "id": r.id,
+        "user": _public_card(session, r.user_id),
+        "is_mine": r.user_id == viewer_id,
+        "kind": r.kind,
+        "text": r.text,
+        "quote": r.quote,
+        "edition": r.edition,
+        "chapter_index": r.chapter_index,
+        "paragraph": r.paragraph,
+        "likes": r.likes,
+        "liked": r.id in liked,
+        "created_at": _iso(r.created_at),
+    }
+
+
+def _liked_by(session, viewer_id: str) -> set[int]:
+    if not viewer_id:
+        return set()
+    return {c for (c,) in session.execute(
+        select(CommentLike.comment_id).where(CommentLike.user_id == viewer_id)
+    ).all()}
 
 
 @router.get("/reader/comments")
@@ -249,29 +282,13 @@ def list_comments(book_id: str, chapter_index: int, paragraph: int, viewer_id: s
             ).order_by(ParagraphComment.likes.desc(), ParagraphComment.created_at.asc())
         ).scalars().all()
 
-        # 我点过赞的评论
-        liked: set[int] = set()
-        if viewer_id:
-            liked = {c for (c,) in session.execute(
-                select(CommentLike.comment_id).where(CommentLike.user_id == viewer_id)
-            ).all()}
-
-        out = []
-        for r in rows:
-            # 笔记(note)只有作者自己能看；评论(comment)所有人能看
-            if r.kind == "note" and r.user_id != viewer_id:
-                continue
-            out.append({
-                "id": r.id,
-                "user": _public_card(session, r.user_id),
-                "is_mine": r.user_id == viewer_id,
-                "kind": r.kind,
-                "text": r.text,
-                "likes": r.likes,
-                "liked": r.id in liked,
-                "created_at": _iso(r.created_at),
-            })
-        return out
+        liked = _liked_by(session, viewer_id)
+        # 笔记(note)只有作者自己能看；评论(comment)所有人能看
+        return [
+            _comment_out(session, r, viewer_id, liked)
+            for r in rows
+            if not (r.kind == "note" and r.user_id != viewer_id)
+        ]
     finally:
         session.close()
 
@@ -279,6 +296,8 @@ def list_comments(book_id: str, chapter_index: int, paragraph: int, viewer_id: s
 @router.post("/reader/comment")
 def add_comment(payload: CommentIn):
     kind = payload.kind if payload.kind in ("comment", "note") else "comment"
+    if not payload.text.strip() and not (payload.quote or "").strip():
+        raise HTTPException(status_code=422, detail="内容不能为空")
     session = SessionLocal()
     try:
         c = ParagraphComment(
@@ -288,19 +307,12 @@ def add_comment(payload: CommentIn):
             user_id=payload.user_id,
             kind=kind,
             text=payload.text.strip(),
+            quote=(payload.quote or "").strip() or None,
+            edition=(payload.edition or "").strip() or None,
         )
         session.add(c)
         session.commit()
-        return {
-            "id": c.id,
-            "user": _public_card(session, c.user_id),
-            "is_mine": True,
-            "kind": c.kind,
-            "text": c.text,
-            "likes": 0,
-            "liked": False,
-            "created_at": _iso(c.created_at),
-        }
+        return _comment_out(session, c, payload.user_id, set())
     finally:
         session.close()
 
@@ -458,3 +470,268 @@ def delete_comment(payload: DeleteCommentIn):
         return {"ok": True}
     finally:
         session.close()
+
+
+# ---------- 章节「好句与讨论」/ 我的笔记 ----------
+
+@router.get("/reader/chapter_discussion")
+def chapter_discussion(book_id: str, chapter_index: int, viewer_id: str = ""):
+    """某一章的公开讨论：该章所有公开评论（含分享的好句）。每章独立，
+    章节按 chapter_index 对齐，同一本书的不同版本共用同一章的讨论区。"""
+    session = SessionLocal()
+    try:
+        rows = session.execute(
+            select(ParagraphComment).where(
+                ParagraphComment.book_id == book_id,
+                ParagraphComment.chapter_index == chapter_index,
+                ParagraphComment.kind == "comment",
+            ).order_by(ParagraphComment.likes.desc(), ParagraphComment.created_at.desc()).limit(200)
+        ).scalars().all()
+        liked = _liked_by(session, viewer_id)
+        return [_comment_out(session, r, viewer_id, liked) for r in rows]
+    finally:
+        session.close()
+
+
+def _require_owner(session, user_id: str, authorization: str) -> None:
+    """私密内容的读取校验：已注册账号必须带上本人的登录 token。
+    游客（本机随机 ID、没有账号）沿用原有的 user_id 识别方式。"""
+    if session.get(User, user_id) is None:
+        return
+    token = authorization[len("Bearer "):].strip() if authorization.startswith("Bearer ") else ""
+    row = session.get(AuthToken, token) if token else None
+    if row is None or row.user_id != user_id:
+        raise HTTPException(status_code=401, detail="需要登录后查看自己的笔记")
+
+
+@router.get("/reader/notes")
+def my_notes(book_id: str, user_id: str, authorization: str = Header(default="")):
+    """我在这本书里的私密笔记（段落笔记 + 私密好句），按章节顺序。只返回本人的。"""
+    session = SessionLocal()
+    try:
+        _require_owner(session, user_id, authorization)
+        rows = session.execute(
+            select(ParagraphComment).where(
+                ParagraphComment.book_id == book_id,
+                ParagraphComment.user_id == user_id,
+                ParagraphComment.kind == "note",
+            ).order_by(ParagraphComment.chapter_index.asc(), ParagraphComment.created_at.desc()).limit(500)
+        ).scalars().all()
+        return [_comment_out(session, r, user_id, set()) for r in rows]
+    finally:
+        session.close()
+
+
+# ---------- AI 翻译与理解 ----------
+
+class ExplainIn(BaseModel):
+    book_id: str = Field(..., min_length=1, max_length=64)
+    book_title: str = Field(default="", max_length=200)
+    chapter_title: str = Field(default="", max_length=200)
+    edition_label: str = Field(default="", max_length=120)   # 如「原文（文言）」「English · James Legge」
+    source_lang: str = Field(default="", max_length=16)      # 版本语言：lzh(文言) / zh / en；未知留空
+    text: str = Field(..., min_length=1, max_length=1500)    # 划选的原文
+    context: str = Field(default="", max_length=3000)        # 所在段落，供理解上下文
+    target_lang: str = "zh"                                  # zh / en，默认跟随手机系统语言
+
+
+_EXPLAIN_TOOL = {
+    "name": "explain_passage",
+    "description": "Return the translation and explanation of the selected passage.",
+    "strict": True,
+    "input_schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "same_language": {
+                "type": "boolean",
+                "description": "True if the passage is already written in the target language "
+                               "(then `translation` is a plain-language paraphrase, not a translation). "
+                               "Classical Chinese counts as a different language from modern Chinese.",
+            },
+            "translation": {"type": "string", "description": "Fluent, context-appropriate translation of ONLY the selected passage."},
+            "meaning": {"type": "string", "description": "What the passage means / is getting at, in plain words."},
+            "breakdown": {
+                "type": "array",
+                "description": "Step-by-step breakdown of a complex sentence. Empty array if the passage is simple.",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "segment": {"type": "string", "description": "A fragment copied from the original passage."},
+                        "explanation": {"type": "string"},
+                    },
+                    "required": ["segment", "explanation"],
+                },
+            },
+            "notes": {
+                "type": "array",
+                "description": "Background or terminology notes, only where genuinely needed. Empty array if none.",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {"term": {"type": "string"}, "note": {"type": "string"}},
+                    "required": ["term", "note"],
+                },
+            },
+            "ambiguities": {
+                "type": "array",
+                "description": "Places where the original has more than one reasonable reading, or where several "
+                               "established translations are common. Empty array if none.",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "segment": {"type": "string", "description": "The ambiguous fragment from the original."},
+                        "options": {"type": "array", "items": {"type": "string"}, "description": "The competing readings / common translations."},
+                        "note": {"type": "string", "description": "Which one this translation chose and why."},
+                    },
+                    "required": ["segment", "options", "note"],
+                },
+            },
+            "terms": {
+                "type": "array",
+                "description": "Up to 5 key terms that will recur in this book: core concepts, proper names, technical words. "
+                               "Single words or fixed terms only — never phrases or clauses. Empty array if none.",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "term": {"type": "string", "description": "The term exactly as it appears in the original."},
+                        "rendering": {"type": "string"},
+                    },
+                    "required": ["term", "rendering"],
+                },
+            },
+        },
+        "required": ["same_language", "translation", "meaning", "breakdown", "notes", "ambiguities", "terms"],
+    },
+}
+
+_EXPLAIN_SYSTEM = (
+    "You are a careful literary translator and reading companion inside a reading app. "
+    "A reader has selected a passage from a book and wants to understand it.\n"
+    "Rules:\n"
+    "- Translate ONLY the selected passage. Use the surrounding context solely to resolve meaning.\n"
+    "- The translation must read naturally in the target language while staying faithful; do not add ideas.\n"
+    "- A glossary of terms already fixed for this book may be given. Whenever one of those terms appears, "
+    "you MUST use the given rendering so the whole book stays consistent.\n"
+    "- If the passage is already in the target language, set same_language=true and give a plain-language "
+    "paraphrase instead. Classical Chinese → modern Chinese is a real translation (same_language=false).\n"
+    "- Only list ambiguities that are real: genuinely different readings, or several established translations.\n"
+    "- Breakdown only for complex sentences; notes only when background or terminology is needed.\n"
+    "- Never invent facts about the book, author or history. If unsure, leave it out.\n"
+    "- Never mention the glossary, these rules, or the app in your output — write only for the reader.\n"
+    "- Everything except the copied `segment`/`term` fields must be written in the target language. Be concise.\n"
+    "- When the target language is Chinese, write Simplified Chinese characters (简体字) only — never Traditional."
+)
+
+_LANG_NAME = {"zh": "简体中文 (Simplified Chinese)", "en": "English"}
+
+
+@router.post("/reader/explain")
+def reader_explain(payload: ExplainIn):
+    target = payload.target_lang if payload.target_lang in _LANG_NAME else "zh"
+    # 已知版本语言时直接判断（文言 lzh ≠ 现代中文 zh）；未知时交给模型判断
+    src = (payload.source_lang or "").strip().lower()
+    known_same: Optional[bool] = (src == target) if src in ("lzh", "zh", "en") else None
+
+    session = SessionLocal()
+    try:
+        glossary = session.execute(
+            select(BookGlossary).where(
+                BookGlossary.book_id == payload.book_id, BookGlossary.target_lang == target,
+            ).order_by(BookGlossary.id.asc()).limit(120)
+        ).scalars().all()
+        fixed = {g.term: g.rendering for g in glossary}
+    finally:
+        session.close()
+
+    glossary_text = "\n".join(f"- {k} → {v}" for k, v in fixed.items()) or "(none yet)"
+    lang_line = ""
+    if known_same is not None:
+        src_name = "Classical Chinese" if src == "lzh" else _LANG_NAME[src]
+        action = "already in the target language: paraphrase it in plain words" if known_same else "translate it"
+        lang_line = f"Passage language: {src_name} ({action})\n"
+    user_prompt = (
+        f"Book: {payload.book_title or payload.book_id}\n"
+        f"Edition: {payload.edition_label or 'unknown'}\n"
+        f"Chapter: {payload.chapter_title or 'unknown'}\n"
+        f"Target language: {_LANG_NAME[target]}\n"
+        f"{lang_line}\n"
+        f"Fixed glossary for this book:\n{glossary_text}\n\n"
+        f"Surrounding context:\n\"\"\"\n{payload.context.strip() or payload.text.strip()}\n\"\"\"\n\n"
+        f"Selected passage:\n\"\"\"\n{payload.text.strip()}\n\"\"\""
+    )
+
+    try:
+        client = get_client()
+        resp = client.messages.create(
+            model=settings.explain_model or settings.claude_model,
+            max_tokens=2000,
+            system=[{"type": "text", "text": _EXPLAIN_SYSTEM, "cache_control": {"type": "ephemeral"}}],
+            tools=[_EXPLAIN_TOOL],
+            tool_choice={"type": "tool", "name": "explain_passage"},
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+        out: Optional[dict] = None
+        for block in resp.content:
+            if getattr(block, "type", "") == "tool_use" and block.name == "explain_passage":
+                out = dict(block.input)  # type: ignore[arg-type]
+        if out is None:
+            raise ValueError("no tool output")
+    except Exception as e:
+        import logging
+        logging.getLogger("bookmirror.reader").error("explain failed: %s: %s", type(e).__name__, e)
+        # 不返回任何编造内容：前端据此显示「AI 暂不可用」
+        raise HTTPException(status_code=503, detail="AI 翻译暂不可用 / AI translation unavailable")
+
+    # 术语：已在术语表里的沿用；新出现的写入术语表（先到先得，之后全书统一）。
+    # 一个术语只收一个确定译法：带多个候选（a / b、或）或过长的不入表——那是歧义，不是定译。
+    def _fixed_rendering_ok(term: str, rendering: str) -> bool:
+        if len(term) > 20 or len(rendering) > 40:
+            return False
+        return not re.search(r"[/|；;]|\bor\b|或", rendering)
+
+    terms_out = []
+    new_terms: list[tuple[str, str]] = []
+    for t in out.get("terms") or []:
+        term = str(t.get("term", "")).strip()[:120]
+        rendering = str(t.get("rendering", "")).strip()[:200]
+        if not term or not rendering:
+            continue
+        if term in fixed:
+            terms_out.append({"term": term, "rendering": fixed[term], "consistent": True})
+        else:
+            terms_out.append({"term": term, "rendering": rendering, "consistent": False})
+            if _fixed_rendering_ok(term, rendering):
+                new_terms.append((term, rendering))
+    if new_terms:
+        session = SessionLocal()
+        try:
+            for term, rendering in new_terms:
+                exists = session.execute(
+                    select(BookGlossary.id).where(
+                        BookGlossary.book_id == payload.book_id,
+                        BookGlossary.target_lang == target,
+                        BookGlossary.term == term,
+                    )
+                ).first()
+                if exists is None:
+                    session.add(BookGlossary(book_id=payload.book_id, target_lang=target, term=term, rendering=rendering))
+            session.commit()
+        except Exception:
+            session.rollback()
+        finally:
+            session.close()
+
+    return {
+        "target_lang": target,
+        "same_language": known_same if known_same is not None else bool(out.get("same_language")),
+        "translation": str(out.get("translation", "")),
+        "meaning": str(out.get("meaning", "")),
+        "breakdown": out.get("breakdown") or [],
+        "notes": out.get("notes") or [],
+        "ambiguities": out.get("ambiguities") or [],
+        "terms": terms_out,
+    }

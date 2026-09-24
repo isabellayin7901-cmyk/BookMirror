@@ -903,6 +903,12 @@ export interface ParagraphComment {
   is_mine: boolean;
   kind: 'comment' | 'note';
   text: string;
+  /** 分享好句时划选的原文；普通段评为空 */
+  quote?: string | null;
+  /** 摘录所在版本（BookEdition.id）；单一版本的书为空 */
+  edition?: string | null;
+  chapter_index?: number;
+  paragraph?: number;
   likes: number;
   liked: boolean;
   created_at: string | null;
@@ -996,11 +1002,17 @@ export async function fetchParagraphComments(bookId: string, chapterIndex: numbe
   } catch { return []; }
 }
 
-export async function addParagraphComment(input: { userId: string; bookId: string; chapterIndex: number; paragraph: number; kind: 'comment' | 'note'; text: string }): Promise<ParagraphComment | null> {
+export async function addParagraphComment(input: {
+  userId: string; bookId: string; chapterIndex: number; paragraph: number; kind: 'comment' | 'note'; text: string;
+  quote?: string; edition?: string;
+}): Promise<ParagraphComment | null> {
   try {
     const res = await fetch(`${baseUrl}/api/reader/comment`, {
       method: 'POST', headers: authHeaders(true),
-      body: JSON.stringify({ user_id: input.userId, book_id: input.bookId, chapter_index: input.chapterIndex, paragraph: input.paragraph, kind: input.kind, text: input.text }),
+      body: JSON.stringify({
+        user_id: input.userId, book_id: input.bookId, chapter_index: input.chapterIndex, paragraph: input.paragraph,
+        kind: input.kind, text: input.text, quote: input.quote ?? null, edition: input.edition ?? null,
+      }),
     });
     if (!res.ok) return null;
     return await res.json();
@@ -1025,6 +1037,75 @@ export async function deleteParagraphComment(userId: string, commentId: number):
       body: JSON.stringify({ user_id: userId, comment_id: commentId }),
     });
   } catch { /* best-effort */ }
+}
+
+// ---------- 章节「好句与讨论」/ 我的笔记 ----------
+
+/** 某一章的公开讨论（含分享的好句）。每章独立；各版本共享同一章的讨论。 */
+export async function fetchChapterDiscussion(bookId: string, chapterIndex: number, viewerId: string): Promise<ParagraphComment[] | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/chapter_discussion?book_id=${encodeURIComponent(bookId)}&chapter_index=${chapterIndex}&viewer_id=${encodeURIComponent(viewerId)}`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+/** 我在这本书里的私密笔记。已登录账号会带上登录凭证，服务器据此校验只能看自己的。 */
+export async function fetchMyNotes(bookId: string, userId: string): Promise<ParagraphComment[] | null> {
+  const { storage } = await import('./storage');
+  const token = await storage.getAuthToken();
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/notes?book_id=${encodeURIComponent(bookId)}&user_id=${encodeURIComponent(userId)}`, {
+      headers: token ? { ...authHeaders(), Authorization: `Bearer ${token}` } : authHeaders(),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+// ---------- AI 翻译与理解 ----------
+
+export interface ExplainResult {
+  target_lang: Language;
+  /** 原文本就是目标语言：translation 是白话释义而非翻译 */
+  same_language: boolean;
+  translation: string;
+  meaning: string;
+  breakdown: { segment: string; explanation: string }[];
+  notes: { term: string; note: string }[];
+  ambiguities: { segment: string; options: string[]; note: string }[];
+  /** consistent = 沿用了全书术语表里已定的译法 */
+  terms: { term: string; rendering: string; consistent: boolean }[];
+}
+
+/** 调 AI 翻译与理解。失败返回 null——界面显示「暂不可用」，绝不拿别的文字顶替。 */
+export async function explainPassage(input: {
+  bookId: string; bookTitle: string; chapterTitle: string; editionLabel: string;
+  sourceLang?: string; text: string; context: string; targetLang: Language;
+}): Promise<ExplainResult | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/explain`, {
+      method: 'POST', headers: authHeaders(true),
+      body: JSON.stringify({
+        book_id: input.bookId, book_title: input.bookTitle, chapter_title: input.chapterTitle,
+        edition_label: input.editionLabel, source_lang: input.sourceLang ?? '',
+        text: input.text.slice(0, 1500), context: input.context.slice(0, 3000), target_lang: input.targetLang,
+      }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+// ---------- 地区（决定展示哪些购书平台） ----------
+
+/** 服务器按请求 IP 判断的国家；拿不到时 country 为 null。 */
+export async function fetchGeo(): Promise<{ country: string | null; source: string } | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/geo`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
 }
 
 // ---------- 好友私信（DM） ----------

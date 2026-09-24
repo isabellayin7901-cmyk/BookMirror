@@ -7,7 +7,9 @@ import { colors, spacing, typography, radius } from '../theme';
 import { storage, type SearchEngine } from '../lib/storage';
 import { getMe, type MeResult } from '../lib/api';
 import { useI18n } from '../lib/LanguageContext';
-import type { Language, RootStackParamList } from '../types';
+import { systemLanguage } from '../lib/locale';
+import { getRegion, regionName, REGION_CHOICES } from '../lib/region';
+import type { ContentLanguagePref, RegionInfo, RootStackParamList, UiLanguageMode } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -15,13 +17,21 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 const FEEDBACK_EMAIL = 'feedback@bookmirror.app';
 
 export function SettingsScreen({ navigation }: Props) {
-  const { t, lang: language, setLang } = useI18n();
+  const { t, lang: language, mode: langMode, setMode } = useI18n();
   const [searchEngine, setSearchEngine] = useState<SearchEngine>('ask');
   const [me, setMe] = useState<MeResult | null>(null);
+  const [contentLang, setContentLang] = useState<ContentLanguagePref>('original');
+  const [regionOverride, setRegionOverride] = useState<string | null>(null);
+  const [region, setRegion] = useState<RegionInfo | null>(null);
 
   useEffect(() => {
-    storage.getSettings().then((s) => setSearchEngine(s.searchEngine ?? 'ask'));
+    storage.getSettings().then((s) => {
+      setSearchEngine(s.searchEngine ?? 'ask');
+      setContentLang(s.contentLanguage ?? 'original');
+      setRegionOverride(s.regionOverride ?? null);
+    });
     getMe().then(setMe);
+    getRegion().then(setRegion).catch(() => {});
   }, []);
 
   // 登录方式的可读标签
@@ -52,12 +62,23 @@ export function SettingsScreen({ navigation }: Props) {
     ]);
   };
 
-  const changeLang = (lang: Language) => setLang(lang);
+  const changeLang = (m: UiLanguageMode) => setMode(m);
 
   const changeEngine = async (e: SearchEngine) => {
     setSearchEngine(e);
-    const s = await storage.getSettings();
-    await storage.setSettings({ ...s, searchEngine: e });
+    await storage.patchSettings({ searchEngine: e });
+  };
+
+  const changeContentLang = async (c: ContentLanguagePref) => {
+    setContentLang(c);
+    await storage.patchSettings({ contentLanguage: c });
+  };
+
+  /** null = 自动判断；否则手动指定国家码 */
+  const changeRegion = async (cc: string | null) => {
+    setRegionOverride(cc);
+    await storage.patchSettings({ regionOverride: cc });
+    setRegion(await getRegion(cc === null));
   };
 
   const sendFeedback = async () => {
@@ -111,18 +132,60 @@ export function SettingsScreen({ navigation }: Props) {
 
         <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
         <View style={styles.row}>
-          <Pressable
-            onPress={() => changeLang('zh')}
-            style={[styles.langBtn, language === 'zh' && styles.langBtnActive]}
-          >
-            <Text style={[styles.langText, language === 'zh' && styles.langTextActive]}>中文</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => changeLang('en')}
-            style={[styles.langBtn, language === 'en' && styles.langBtnActive]}
-          >
-            <Text style={[styles.langText, language === 'en' && styles.langTextActive]}>English</Text>
-          </Pressable>
+          {([
+            { v: 'system', label: t('settings.langSystem') },
+            { v: 'zh', label: '中文' },
+            { v: 'en', label: 'English' },
+          ] as Array<{ v: UiLanguageMode; label: string }>).map(({ v, label }) => {
+            const active = langMode === v;
+            return (
+              <Pressable key={v} onPress={() => changeLang(v)} style={[styles.langBtn, active && styles.langBtnActive]}>
+                <Text style={[styles.langText, active && styles.langTextActive]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {langMode === 'system' && (
+          <Text style={styles.switchHint}>
+            {t('settings.langSystemHint', { name: systemLanguage() === 'zh' ? '中文' : 'English' })}
+          </Text>
+        )}
+
+        {/* 阅读内容语言：和界面语言相互独立 */}
+        <Text style={styles.sectionLabel}>{t('settings.contentLang')}</Text>
+        <Text style={[typography.caption, { marginTop: 4 }]}>{t('settings.contentLangHint')}</Text>
+        <View style={styles.row}>
+          {([
+            { v: 'original', label: t('settings.contentOriginal') },
+            { v: 'zh', label: t('settings.contentZh') },
+            { v: 'en', label: t('settings.contentEn') },
+          ] as Array<{ v: ContentLanguagePref; label: string }>).map(({ v, label }) => {
+            const active = contentLang === v;
+            return (
+              <Pressable key={v} onPress={() => changeContentLang(v)} style={[styles.langBtn, active && styles.langBtnActive]}>
+                <Text style={[styles.langText, active && styles.langTextActive]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* 所在地区：决定显示哪些购书/阅读平台，自动判断错了可以手动改 */}
+        <Text style={styles.sectionLabel}>{t('settings.region')}</Text>
+        <Text style={[typography.caption, { marginTop: 4 }]}>{t('settings.regionHint')}</Text>
+        {region?.country && (
+          <Text style={styles.switchHint}>
+            {t('settings.regionNow', { name: regionName(region.country, t), source: t(`region.source.${region.source}`) })}
+          </Text>
+        )}
+        <View style={[styles.row, styles.wrapRow]}>
+          {[null, ...REGION_CHOICES].map((cc) => {
+            const active = regionOverride === cc;
+            return (
+              <Pressable key={cc ?? 'auto'} onPress={() => changeRegion(cc)} style={[styles.langBtn, styles.chip, active && styles.langBtnActive]}>
+                <Text style={[styles.langText, active && styles.langTextActive]}>{cc ? regionName(cc, t) : t('settings.regionAuto')}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* 我的档案 —— 点进去设置性别 + 你的星空 */}
@@ -193,6 +256,8 @@ export function SettingsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   row: { flexDirection: 'row', marginTop: spacing.md },
+  wrapRow: { flexWrap: 'wrap', rowGap: spacing.sm },
+  chip: { paddingHorizontal: spacing.md },
   langBtn: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm + 2,

@@ -24,6 +24,7 @@ import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
 import { WavyUnderline } from '../illustrations/Doodle';
 import { getPlatformsForBook, openPlatform, openAppStore, platformName, type PlatformConfig } from '../lib/platformLinks';
 import { PlatformIcon } from '../illustrations/PlatformIcons';
+import { useRegion, regionName } from '../lib/region';
 import { storage } from '../lib/storage';
 import { useI18n } from '../lib/LanguageContext';
 import { bookTitle, bookAuthor, bookSummary, bookChapters } from '../lib/bookDisplay';
@@ -292,8 +293,10 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
 
 function PlatformJumpRow({ book }: { book: Book }) {
   const { t, lang } = useI18n();
-  // 只展示对这本书有意义的平台
-  const relevant = getPlatformsForBook(book);
+  const region = useRegion();
+  const country = region?.country ?? null;
+  // 只展示对这本书、在用户所在地区可用的平台
+  const relevant = getPlatformsForBook(book, country);
   if (relevant.length === 0) return null;
 
   const groups: Array<{ label: string; cat: PlatformConfig['category']; tint: string }> = [
@@ -317,7 +320,7 @@ function PlatformJumpRow({ book }: { book: Book }) {
                   onPress={() => {
                     // 点击去阅读平台 = 今天读了书，自动打卡
                     if (p.category === 'read') storage.ensureTodayCheckin();
-                    openPlatform(p, book);
+                    openPlatform(p, book, country);
                   }}
                   onLongPress={() => openAppStore(p)}
                   style={({ pressed }) => [
@@ -337,6 +340,15 @@ function PlatformJumpRow({ book }: { book: Book }) {
       <Text style={styles.platformHint}>
         {t('modal.platformHint')}
       </Text>
+      {/* 地区怎么来的要说清楚，判断错了用户知道去哪改 */}
+      {region?.country && (
+        <Text style={styles.platformHint}>
+          {t('region.current', {
+            name: regionName(region.country, t),
+            source: t(`region.source.${region.source}`),
+          })}
+        </Text>
+      )}
     </View>
   );
 }
@@ -494,6 +506,7 @@ function ReviewsSection({ book, canReview, onWrite }: { book: Book; canReview: b
   return (
     <View style={{ marginTop: spacing.xl }}>
       <Text style={styles.reviewsTitle}>{t('book.reviews')}</Text>
+      <Text style={styles.reviewsSub}>{t('book.reviewsSub')}</Text>
 
       {canReview || mine ? (
         <Pressable onPress={onWrite} style={({ pressed }) => [styles.writeBtn, pressed && { opacity: 0.85 }]}>
@@ -710,7 +723,8 @@ const styles = StyleSheet.create({
   },
   lockedText: { color: colors.textMuted, fontSize: 13 },
 
-  reviewsTitle: { ...typography.h3, marginBottom: spacing.sm },
+  reviewsTitle: { ...typography.h3, marginBottom: 2 },
+  reviewsSub: { ...typography.caption, color: colors.textFaint, marginBottom: spacing.sm },
   writeBtn: {
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.lg,

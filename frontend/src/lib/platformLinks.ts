@@ -8,6 +8,10 @@
  *
  * 智能筛选：每个平台有 matchesBook() 函数，根据书的语言/分类决定要不要显示。
  *   例：番茄小说只对中文小说显示，Goodreads 只对英文书显示
+ *
+ * 地区筛选：availableIn(country) 决定该地区能不能用（见 lib/region.ts）。
+ *   例：中国大陆没有 Amazon 商城、Kindle 书店、Apple Books 书店 → 大陆用户不显示。
+ *   Amazon / Kindle 按国家跳对应站点（英国 amazon.co.uk、日本 amazon.co.jp…）。
  */
 
 import { Alert, Linking } from 'react-native';
@@ -34,16 +38,36 @@ export interface PlatformConfig {
   iconChar: string;
   iconColor: string;
   category: 'read' | 'buy' | 'rating';
-  buildDeepLink: (b: Book) => string;
+  /** country：用户所在地区（两位国家码），用于选择 Amazon 等平台的地区站点 */
+  buildDeepLink: (b: Book, country?: string | null) => string;
   appStoreUrl: string;
-  buildWebUrl: (b: Book) => string;
+  buildWebUrl: (b: Book, country?: string | null) => string;
   matchesBook: (b: Book) => boolean;
+  /** 该地区能否使用；不写 = 各地区都能用。地区未知时不做地区筛选。 */
+  availableIn?: (country: string) => boolean;
   /**
    * 可选：实时查询 API 拿这本书的直接链接（如 Apple Books 直接跳书页）。
    * 返回 null 或 throw 时回退到 buildDeepLink/buildWebUrl。
    */
   resolveDirectUrl?: (b: Book) => Promise<string | null>;
 }
+
+// ===== 地区 =====
+
+/** 中国大陆已关闭的境外书店/商城：Amazon 中国商城（2019）、Kindle 中国电子书店（2023）、Apple Books 中国区书店（2016） */
+const outsideMainland = (country: string) => country !== 'CN';
+
+/** Amazon 各国站点；没有本地站点的地区用 amazon.com（支持国际配送） */
+const AMAZON_HOSTS: Record<string, string> = {
+  US: 'www.amazon.com', GB: 'www.amazon.co.uk', CA: 'www.amazon.ca', AU: 'www.amazon.com.au',
+  DE: 'www.amazon.de', FR: 'www.amazon.fr', IT: 'www.amazon.it', ES: 'www.amazon.es',
+  NL: 'www.amazon.nl', BE: 'www.amazon.com.be', SE: 'www.amazon.se', PL: 'www.amazon.pl',
+  TR: 'www.amazon.com.tr', JP: 'www.amazon.co.jp', IN: 'www.amazon.in', SG: 'www.amazon.sg',
+  AE: 'www.amazon.ae', SA: 'www.amazon.sa', EG: 'www.amazon.eg', MX: 'www.amazon.com.mx',
+  BR: 'www.amazon.com.br',
+};
+export const amazonHost = (country?: string | null) =>
+  (country && AMAZON_HOSTS[country]) || 'www.amazon.com';
 
 // ===== 工具：判断书的类型 =====
 const isChinese = (b: Book) => b.language === 'zh';
@@ -123,6 +147,7 @@ export const PLATFORMS: PlatformConfig[] = [
     appStoreUrl: 'https://apps.apple.com/app/apple-books/id364709193',
     buildWebUrl: (b) => `https://books.apple.com/search?term=${enc(b.title)}&type=books`,
     matchesBook: () => true,
+    availableIn: outsideMainland,
     // 实时调 iTunes Search API 拿到这本书的直接链接
     // 严格匹配：书名必须实质性匹配；找不到就 fallback 到搜索页
     resolveDirectUrl: async (b) => {
@@ -190,8 +215,9 @@ export const PLATFORMS: PlatformConfig[] = [
     buildDeepLink: (b) =>
       `kindle://search?keyword=${enc(b.title)}`,
     appStoreUrl: 'https://apps.apple.com/app/amazon-kindle/id302584613',
-    buildWebUrl: (b) => `https://www.amazon.com/s?k=${enc(b.title)}&i=digital-text`,
+    buildWebUrl: (b, country) => `https://${amazonHost(country)}/s?k=${enc(b.title)}&i=digital-text`,
     matchesBook: (b) => isEnglish(b) || b.difficulty >= 3,
+    availableIn: outsideMainland,
   },
 
   // —— 购买类（中文） ——
@@ -237,14 +263,17 @@ export const PLATFORMS: PlatformConfig[] = [
     id: 'amazon_us', name: 'Amazon', nameEn: 'Amazon',
     iconChar: 'a', iconColor: '#E5A36A',
     category: 'buy',
-    buildDeepLink: (b) =>
-      `com.amazon.mobile.shopping://www.amazon.com/s?k=${enc(q(b))}`,
+    buildDeepLink: (b, country) =>
+      `com.amazon.mobile.shopping://${amazonHost(country)}/s?k=${enc(q(b))}`,
     appStoreUrl: 'https://apps.apple.com/app/amazon-shopping/id297606951',
-    buildWebUrl: (b) => {
-      const tag = AFFILIATE.amazonUS ? `&tag=${AFFILIATE.amazonUS}` : '';
-      return `https://www.amazon.com/s?k=${enc(q(b))}${tag}`;
+    buildWebUrl: (b, country) => {
+      // 联盟 tag 目前只申请了美国站，其它站点不带
+      const host = amazonHost(country);
+      const tag = AFFILIATE.amazonUS && host === 'www.amazon.com' ? `&tag=${AFFILIATE.amazonUS}` : '';
+      return `https://${host}/s?k=${enc(q(b))}${tag}`;
     },
-    matchesBook: () => true,  // 全球用户都可能用
+    matchesBook: () => true,
+    availableIn: outsideMainland,
   },
 
   // —— 评分类 ——
@@ -268,9 +297,11 @@ export const PLATFORMS: PlatformConfig[] = [
   },
 ];
 
-/** 返回当前书适用的平台（已经按 matchesBook 过滤好） */
-export function getPlatformsForBook(book: Book): PlatformConfig[] {
-  return PLATFORMS.filter((p) => p.matchesBook(book));
+/** 返回当前书、当前地区适用的平台。country 未知时只按书筛选。 */
+export function getPlatformsForBook(book: Book, country?: string | null): PlatformConfig[] {
+  return PLATFORMS.filter(
+    (p) => p.matchesBook(book) && (!country || !p.availableIn || p.availableIn(country)),
+  );
 }
 
 /** 平台名按界面语言显示：英文界面用 nameEn，中文界面用 name */
@@ -299,10 +330,10 @@ function buildEngineUrl(engine: 'baidu' | 'google', book: Book): string {
  *  - 英文模式：按设置的默认搜索引擎；'ask' 时弹窗让用户选百度/Google，
  *    然后用英文书名+作者去搜
  */
-async function browserSearch(p: PlatformConfig, book: Book): Promise<void> {
+async function browserSearch(p: PlatformConfig, book: Book, country?: string | null): Promise<void> {
   const { language, searchEngine = 'ask' } = await storage.getSettings();
   if (language !== 'en') {
-    Linking.openURL(p.buildWebUrl(book)).catch(() => {});
+    Linking.openURL(p.buildWebUrl(book, country)).catch(() => {});
     return;
   }
   if (searchEngine === 'baidu' || searchEngine === 'google') {
@@ -323,7 +354,7 @@ async function browserSearch(p: PlatformConfig, book: Book): Promise<void> {
   ]);
 }
 
-export async function openPlatform(p: PlatformConfig, book: Book): Promise<void> {
+export async function openPlatform(p: PlatformConfig, book: Book, country?: string | null): Promise<void> {
   const { language: lang } = await storage.getSettings();
 
   // 1) Apple Books 等支持直链查询的：直接进精确书页
@@ -340,7 +371,7 @@ export async function openPlatform(p: PlatformConfig, book: Book): Promise<void>
   }
 
   // 2) 试着唤起 APP（搜索）
-  const deepLink = p.buildDeepLink(book);
+  const deepLink = p.buildDeepLink(book, country);
 
   // 2a) canOpenURL 在真机自定义构建里准确；但在 Expo Go 里，未写进
   //     LSApplicationQueriesSchemes 的 scheme 永远返回 false（即使装了 APP）。
@@ -371,7 +402,7 @@ export async function openPlatform(p: PlatformConfig, book: Book): Promise<void>
       { text: translate('platform.cancel', lang), style: 'cancel' },
       {
         text: translate('platform.browserSearch', lang),
-        onPress: () => { browserSearch(p, book); },
+        onPress: () => { browserSearch(p, book, country); },
       },
       {
         text: translate('platform.downloadApp', lang),

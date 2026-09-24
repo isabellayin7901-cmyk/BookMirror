@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable, FlatList, ActivityIndicator,
-  Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform,
+  Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +16,9 @@ import { DEMO_BOOKS } from '../data/demoBooks';
 import type { Book, RootStackParamList } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+// 两列：卡片固定半行宽，书的数量为奇数时最后一本不会被拉满整行
+const CARD_W = (Dimensions.get('window').width - spacing.lg * 2 - spacing.md) / 2;
 
 // 给书脊一点暖色变化
 const SPINES = ['#C97B63', '#7D9D8C', '#B58A5E', '#8A7CA8', '#6F94B8', '#B06C7E'];
@@ -169,7 +172,7 @@ const styles = StyleSheet.create({
   title: { ...typography.h3 },
   empty: { ...typography.body, color: colors.textFaint, textAlign: 'center', marginTop: spacing.xxl },
 
-  card: { flex: 1, marginBottom: spacing.lg },
+  card: { width: CARD_W, marginBottom: spacing.lg },
   cover: { aspectRatio: 0.7, borderRadius: radius.md, padding: spacing.md, justifyContent: 'flex-start', ...{ shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } } },
   coverTitle: { color: '#fff', fontWeight: '800', fontSize: 17, lineHeight: 24, fontFamily: 'ZCOOLKuaiLe_400Regular' },
   demoBadge: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2 },

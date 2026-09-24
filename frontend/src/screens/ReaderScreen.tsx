@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Pressable, ActivityIndicator, Modal, ScrollView,
   TextInput, Image, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -53,7 +53,8 @@ const SHELL = `<!DOCTYPE html><html><head>
   :root{ --fs:19px; --lh:1.85; --fg:#3B3327; --bg:#F3EAD8; --sub:#9C8E76; --mg:22px; --ff:-apple-system,system-ui,"PingFang SC","Noto Sans CJK SC",sans-serif; }
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);}
   #book{
-    height:100vh; box-sizing:border-box; padding:calc(var(--mg) + 8px) var(--mg);
+    height:100vh; box-sizing:border-box;
+    padding:calc(var(--mg) + 8px + var(--st,0px)) var(--mg) calc(var(--mg) + var(--sb,0px));
     column-width:calc(100vw - 2*var(--mg)); column-gap:calc(2*var(--mg)); column-fill:auto;
     font-size:var(--fs); line-height:var(--lh); color:var(--fg); font-family:var(--ff);
     transition:transform .25s ease; will-change:transform;
@@ -63,7 +64,7 @@ const SHELL = `<!DOCTYPE html><html><head>
   h2{font-size:1.15em;margin:0 0 1em;color:var(--fg);font-weight:700;}
   p{margin:0 0 .85em;text-align:justify;text-indent:2em;-webkit-hyphens:auto;}
   .cmt{display:inline-block;margin-inline-start:6px;font-size:.62em;color:#fff;background:#C97B63;
-       border-radius:9px;padding:0 6px;vertical-align:middle;line-height:1.6;
+       border-radius:9px;padding:0 6px;vertical-align:middle;line-height:1.6;text-indent:0;
        -webkit-user-select:none;user-select:none;}
 </style></head><body><div id="book"></div>
 <script>
@@ -110,6 +111,10 @@ export function ReaderScreen() {
   const { bookId, title } = route.params;
 
   const webRef = useRef<any>(null);
+  // 正文避开刘海 / 灵动岛 / 底部横条
+  const insets = useSafeAreaInsets();
+  const insetsRef = useRef(insets);
+  insetsRef.current = insets;
   const [uid, setUid] = useState('');
   const [settings, setSettings] = useState<ReaderSettings | null>(null);
   const [toc, setToc] = useState<ReaderToc | null>(null);
@@ -178,7 +183,11 @@ export function ReaderScreen() {
     const ff = st.fontFamily === 'serif'
       ? 'Georgia,"Songti SC","Noto Serif CJK SC",serif'
       : '-apple-system,system-ui,"PingFang SC","Noto Sans CJK SC",sans-serif';
-    const v = { '--fs': `${st.fontSize}px`, '--lh': `${st.lineHeight}`, '--mg': `${st.margin}px`, '--fg': th.fg, '--bg': th.bg, '--sub': th.sub, '--ff': ff };
+    const { top, bottom } = insetsRef.current;
+    const v = {
+      '--fs': `${st.fontSize}px`, '--lh': `${st.lineHeight}`, '--mg': `${st.margin}px`, '--fg': th.fg, '--bg': th.bg, '--sub': th.sub, '--ff': ff,
+      '--st': `${Math.round(top)}px`, '--sb': `${Math.round(bottom)}px`,
+    };
     return `window.reader.setVars(${JSON.stringify(v)});true;`;
   }, []);
 
@@ -678,7 +687,7 @@ const styles = StyleSheet.create({
   edPill: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
   edPillText: { fontSize: 12, fontWeight: '600' },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingTop: spacing.sm, borderTopWidth: 1 },
-  bottomBtn: { alignItems: 'center', gap: 2 },
+  bottomBtn: { alignItems: 'center', gap: 2, minWidth: 52 },
   bottomIcon: { fontSize: 18, fontWeight: '700' },
   bottomLabel: { fontSize: 10 },
   pageMeta: { flex: 1, alignItems: 'center' },

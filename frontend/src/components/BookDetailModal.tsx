@@ -477,7 +477,7 @@ function ReviewsSection({ book, canReview, onWrite }: { book: Book; canReview: b
     try {
       const id = await storage.getUserId();
       setUid(id);
-      setReviews(await fetchBookReviews(book.id));
+      setReviews(await fetchBookReviews(book.id, id));
     } catch {
       setReviews([]);
     }
@@ -485,8 +485,10 @@ function ReviewsSection({ book, canReview, onWrite }: { book: Book; canReview: b
 
   useEffect(() => { load(); }, [load]);
 
-  const mine = reviews.find((r) => r.user_id === uid);
-  const others = reviews.filter((r) => r.user_id !== uid);
+  // 匿名书评的 user_id 会被服务器抹掉，所以优先用服务器给的 is_mine 认出自己的那条
+  const isMine = (r: Review) => !!r.is_mine || (!!uid && r.user_id === uid);
+  const mine = reviews.find(isMine);
+  const others = reviews.filter((r) => !isMine(r));
   const ordered = mine ? [mine, ...others] : others;
 
   const removeMine = () => {
@@ -522,7 +524,7 @@ function ReviewsSection({ book, canReview, onWrite }: { book: Book; canReview: b
         <Text style={styles.noReviews}>{t('book.noReviews')}</Text>
       ) : (
         ordered.map((r) => {
-          const own = r.user_id === uid;
+          const own = isMine(r);
           return (
             <Pressable
               key={r.id}

@@ -68,6 +68,8 @@ class ReviewOut(BaseModel):
     helped_problems: list[str]
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    # 是否是正在看的人自己写的（匿名书评会抹掉 user_id，前端靠这个认出自己的那条）
+    is_mine: bool = False
 
 
 def _iso(dt: Optional[datetime]) -> Optional[str]:
@@ -169,7 +171,7 @@ def reviews_by_user(user_id: str, limit: int = 100):
 
 
 @router.get("/reviews", response_model=list[ReviewOut])
-def list_reviews(book_id: str, limit: int = 50):
+def list_reviews(book_id: str, limit: int = 50, viewer_id: str = ""):
     session = SessionLocal()
     try:
         rows = session.execute(
@@ -181,6 +183,7 @@ def list_reviews(book_id: str, limit: int = 50):
         out = []
         for r in rows:
             o = _to_out(r)
+            o.is_mine = bool(viewer_id) and r.user_id == viewer_id
             if o.anonymous:
                 o.mbti = None      # 匿名则不暴露任何身份线索
                 o.user_id = ""      # 也不暴露 user_id，避免被链接到个人主页

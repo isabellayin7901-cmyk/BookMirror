@@ -192,6 +192,10 @@ export function ReaderScreen() {
   // 初始化要等「WebView 壳就绪」和「数据加载完」两件事，先后顺序不固定。
   // 用 ref 读最新的设置、只初始化一次，避免拿到旧闭包里的 settings=null 而卡在「正在翻开」。
   const settingsRef = useRef<ReaderSettings | null>(null);
+  // 当前读到的段落（WebView 被系统回收后，重建时回到这里）
+  const lastTopPara = useRef(0);
+  // 换 key 让 WebView 整个重建（进程被回收后 reload 不一定救得回来）
+  const [webKey, setWebKey] = useState(0);
   const initStarted = useRef(false);
   const chapterRef = useRef<ReaderChapter | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -295,6 +299,7 @@ export function ReaderScreen() {
     if (msg.type === 'comment') { setCommentPara(msg.paragraph); return; }
     if (msg.type === 'page') {
       setPageInfo({ page: msg.page, pages: msg.pages, topPara: msg.topPara });
+      lastTopPara.current = msg.topPara || 0;
       // 存进度（防抖）
       const ch = chapterRef.current;
       if (ch && uid) {
@@ -390,6 +395,15 @@ export function ReaderScreen() {
 
   const currentEdition: BookEdition | null = info?.editions.find((e) => e.id === editionId) ?? null;
 
+  /** App 在后台时系统可能回收 WebView 的网页进程，切回来会空白 / 卡住：重建 WebView 并回到原来的位置 */
+  const recoverWebView = useCallback(() => {
+    shellReady.current = false;
+    initStarted.current = false;
+    pendingInit.current = { index: chapterRef.current?.index ?? 0, paragraph: lastTopPara.current };
+    setLoading(true);
+    setWebKey((k) => k + 1);
+  }, []);
+
   /** 切换版本：章节按 index 对齐，停在同一章的开头 */
   const switchEdition = async (e: BookEdition) => {
     setEdPickerOpen(false);
@@ -421,7 +435,10 @@ export function ReaderScreen() {
   return (
     <View style={[styles.fill, { backgroundColor: theme.bg }]}>
       <WebViewComp
+        key={webKey}
         ref={webRef}
+        onContentProcessDidTerminate={recoverWebView}
+        onRenderProcessGone={recoverWebView}
         source={{ html: SHELL }}
         originWhitelist={['*']}
         onMessage={onMessage}

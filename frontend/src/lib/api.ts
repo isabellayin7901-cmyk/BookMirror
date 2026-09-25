@@ -10,6 +10,16 @@ import type {
 import type { MbtiAnswer } from '../data/mbtiQuestions';
 import type { Birthday, SynthesisProfile, ZodiacReading } from '../types';
 
+// 所有请求统一加超时：App 切到后台时进行中的请求（尤其 iOS）可能被挂起、切回来后永远不返回，
+// 界面就会一直转圈。超时后按失败处理（各调用处都有失败兜底）。60 秒足够覆盖 AI 生成类的慢请求。
+const REQUEST_TIMEOUT_MS = 60_000;
+const fetch: typeof globalThis.fetch = (input, init) => {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  return globalThis.fetch(input, { ...init, signal: init?.signal ?? ctrl.signal })
+    .finally(() => clearTimeout(timer));
+};
+
 const extra = Constants.expoConfig?.extra as
   | { apiBaseUrl?: string; appToken?: string }
   | undefined;
@@ -338,6 +348,8 @@ export interface Review {
   helped_problems: string[];
   created_at?: string | null;
   updated_at?: string | null;
+  /** 服务器判断是不是看的人自己写的（匿名书评的 user_id 会被抹掉） */
+  is_mine?: boolean;
 }
 
 export interface ReviewInput {
@@ -380,8 +392,8 @@ export async function submitReview(input: ReviewInput): Promise<Review> {
 }
 
 /** 某本书的全部书评（书详情页展示）。 */
-export async function fetchBookReviews(bookId: string): Promise<Review[]> {
-  const res = await fetch(`${baseUrl}/api/reviews?book_id=${encodeURIComponent(bookId)}`, {
+export async function fetchBookReviews(bookId: string, viewerId = ''): Promise<Review[]> {
+  const res = await fetch(`${baseUrl}/api/reviews?book_id=${encodeURIComponent(bookId)}&viewer_id=${encodeURIComponent(viewerId)}`, {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`Fetch reviews failed (${res.status})`);

@@ -59,6 +59,19 @@ class UserProfile(BaseModel):
 
 # ---------- Book ----------
 
+class CatalogEdition(BaseModel):
+    """书目里一本书的某个版本（原版 / 译本），只有出版信息与购买用的检索词，不含正文。"""
+    lang: str                      # fr / en / zh / de …
+    label: str                     # 界面显示（中文）：如「法文原版」
+    label_en: str                  # 界面显示（英文）：如「French original」
+    title: str                     # 该版本书名
+    author: str = ""
+    translator: Optional[str] = None
+    publisher: Optional[str] = None
+    year: Optional[int] = None
+    isbn: Optional[str] = None
+
+
 class Book(BaseModel):
     id: str
     title: str
@@ -79,6 +92,8 @@ class Book(BaseModel):
     key_chapters: list[str] = Field(default_factory=list)
     key_chapters_en: list[str] = Field(default_factory=list)
     purchase_links: dict[str, str] = Field(default_factory=dict)
+    # 有多个语言版本时的出版信息（书籍页「版本」区按地区给出购买入口）
+    editions: list[CatalogEdition] = Field(default_factory=list)
 
 
 # ---------- Recommendation output ----------

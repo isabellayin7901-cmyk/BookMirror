@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable, FlatList, ActivityIndicator,
-  Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Dimensions,
+  Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Dimensions, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, typography, radius } from '../theme';
 import { Snowman } from '../illustrations/Snowman';
 import { useI18n } from '../lib/LanguageContext';
-import { fetchReaderBooks, findBookByMemory, fetchBooksByIds, type ReaderBookMeta, type FindResult } from '../lib/api';
+import {
+  fetchReaderBooks, findBookByMemory, fetchBooksByIds, fetchPrivateBooks, deletePrivateBook,
+  type ReaderBookMeta, type FindResult,
+} from '../lib/api';
+import { storage } from '../lib/storage';
+import { isPrivateBook } from '../lib/readerSource';
+import { pickAndUploadBook, PickCancelled, uploadErrorText } from '../lib/privateShelf';
 import { BookDetailModal } from '../components/BookDetailModal';
 import { DEMO_BOOKS } from '../data/demoBooks';
 import type { Book, RootStackParamList } from '../types';
@@ -33,6 +39,7 @@ export function ReaderHomeScreen() {
   const [finding, setFinding] = useState(false);
   const [result, setResult] = useState<FindResult | null>(null);
   const [detailBook, setDetailBook] = useState<Book | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const runFind = async () => {
     const q = query.trim();
@@ -61,9 +68,42 @@ export function ReaderHomeScreen() {
       title: lang === 'en' ? d.titleEn : d.title,
       chapters: d.chapters[d.editions[0].id].length,
     }));
-    setBooks([...demos, ...(await fetchReaderBooks())]);
+    // 私人书架（只有自己能看到）排最前
+    const uid = await storage.getUserId();
+    const [mine, library] = await Promise.all([fetchPrivateBooks(uid), fetchReaderBooks()]);
+    const privateBooks: ReaderBookMeta[] = mine.map((b) => ({ book_id: b.book_id, title: b.title, chapters: b.chapters ?? 0 }));
+    setBooks([...privateBooks, ...demos, ...library]);
     setLoading(false);
   }, [lang]);
+
+  const upload = async () => {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const uid = await storage.getUserId();
+      const b = await pickAndUploadBook(uid);
+      await load();
+      navigation.navigate('Reader', { bookId: b.book_id, title: b.title });
+    } catch (err) {
+      if (!(err instanceof PickCancelled)) Alert.alert(t('shelf.uploadFailed'), uploadErrorText(err, t));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePrivate = (item: ReaderBookMeta) => {
+    Alert.alert(t('shelf.deleteTitle'), t('shelf.deleteMsg', { title: item.title }), [
+      { text: t('dm.cancel'), style: 'cancel' },
+      {
+        text: t('msgMenu.delete'), style: 'destructive',
+        onPress: async () => {
+          const uid = await storage.getUserId();
+          if (await deletePrivateBook(uid, item.book_id)) load();
+          else Alert.alert(t('shelf.deleteFailed'));
+        },
+      },
+    ]);
+  };
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', load);
@@ -85,6 +125,15 @@ export function ReaderHomeScreen() {
         <Text style={styles.findHint}>{t('reader.findHint')}</Text>
       </Pressable>
 
+      {/* 私人书架：上传自己的电子书，只有自己能看到 */}
+      <View style={styles.uploadRow}>
+        <Pressable onPress={upload} disabled={uploading} style={[styles.uploadBtn, uploading && { opacity: 0.6 }]}>
+          {uploading ? <ActivityIndicator size="small" color={colors.terracotta} /> : null}
+          <Text style={styles.uploadText}>{uploading ? t('shelf.uploading') : t('shelf.upload')}</Text>
+        </Pressable>
+        <Text style={styles.uploadHint}>{t('shelf.uploadHint')}</Text>
+      </View>
+
       {loading ? (
         <ActivityIndicator color={colors.terracotta} style={{ marginTop: spacing.xxl }} />
       ) : (
@@ -99,11 +148,15 @@ export function ReaderHomeScreen() {
             <Pressable
               style={styles.card}
               onPress={() => navigation.navigate('Reader', { bookId: item.book_id, title: item.title })}
+              onLongPress={isPrivateBook(item.book_id) ? () => removePrivate(item) : undefined}
             >
               <View style={[styles.cover, { backgroundColor: SPINES[index % SPINES.length] }]}>
                 <Text style={styles.coverTitle} numberOfLines={4}>{item.title}</Text>
                 {item.book_id.startsWith('demo_') && (
                   <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>{t('reader.demoTag')}</Text></View>
+                )}
+                {isPrivateBook(item.book_id) && (
+                  <View style={styles.demoBadge}><Text style={styles.demoBadgeText}>🔒 {t('shelf.privateTag')}</Text></View>
                 )}
               </View>
               <Text style={styles.bookTitle} numberOfLines={1}>{item.title}</Text>
@@ -175,6 +228,10 @@ const styles = StyleSheet.create({
   card: { width: CARD_W, marginBottom: spacing.lg },
   cover: { aspectRatio: 0.7, borderRadius: radius.md, padding: spacing.md, justifyContent: 'flex-start', ...{ shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } } },
   coverTitle: { color: '#fff', fontWeight: '800', fontSize: 17, lineHeight: 24, fontFamily: 'ZCOOLKuaiLe_400Regular' },
+  uploadRow: { marginHorizontal: spacing.lg, marginBottom: spacing.xs },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: spacing.sm, borderRadius: radius.pill, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderDashed, backgroundColor: colors.surface },
+  uploadText: { ...typography.body, fontWeight: '600', color: colors.primary },
+  uploadHint: { ...typography.caption, color: colors.textFaint, textAlign: 'center', marginTop: 4 },
   demoBadge: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2 },
   demoBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
   bookTitle: { ...typography.body, fontWeight: '600', marginTop: spacing.sm },

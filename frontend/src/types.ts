@@ -109,19 +109,35 @@ export interface Book {
   key_chapters: string[];
   key_chapters_en?: string[];
   purchase_links: Record<string, string>;
+  /** 有多个语言版本时的出版信息（书籍页「版本」区按地区给出购买入口；不含正文） */
+  editions?: CatalogEdition[];
+}
+
+export interface CatalogEdition {
+  lang: string;
+  label: string;
+  label_en: string;
+  title: string;
+  author?: string;
+  translator?: string | null;
+  publisher?: string | null;
+  year?: number | null;
+  isbn?: string | null;
 }
 
 // ===== 多语言阅读：同一本书的不同版本 =====
 
-/** 版本语言。lzh = 文言（古汉语），与现代中文 zh 区分开，AI 翻译会据此判断。 */
-export type EditionLang = 'lzh' | 'zh' | 'en';
+/** 版本语言。lzh = 文言（古汉语），与现代中文 zh 区分开，AI 翻译会据此判断。
+ *  私人书架上传的书按正文自动识别，可能是 fr / de / ja 等。 */
+export type EditionLang = 'lzh' | 'zh' | 'en' | 'fr' | 'de' | 'ja' | 'other';
 
 /** 一本书可读的某个版本（原文 / 中文译本 / 英文译本…）。
  *  各版本的章节按 index 对齐，同一章的「好句与讨论」在所有版本间共享。 */
 export interface BookEdition {
   id: string;                   // 版本 ID，写进好句/笔记的 edition 字段
   lang: EditionLang;
-  kind: 'original' | 'translation';
+  /** uploaded = 用户上传到私人书架的版本（不区分原文 / 译本） */
+  kind: 'original' | 'translation' | 'uploaded';
   label: string;                // 界面显示名（中文）
   labelEn: string;              // 界面显示名（英文）
   translator?: string;

@@ -199,6 +199,9 @@ class ReaderContent(Base):
     title: Mapped[str] = mapped_column(String(200), default="")
     data: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=False)
+    # 私人书架：上传者的 user_id。为空 = 公共书库（所有人可读）；有值 = 只有本人可读，
+    # 不出现在书库列表和「凭印象找书」里。私人书的 data 形如 {"editions":[{id,lang,label,chapters}]}
+    owner_id: Mapped[Optional[str]] = mapped_column(String(64), index=True, nullable=True)
 
 
 class ReaderProgress(Base):
@@ -413,6 +416,15 @@ def _ensure_columns() -> None:
         if "changes" not in uh_cols:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE user_handles ADD COLUMN changes TEXT DEFAULT '[]'"))
+    except Exception:
+        pass
+    # reader_content：补 owner_id 列（私人书架）
+    try:
+        rc_cols = {c["name"] for c in inspector.get_columns("reader_content")}
+        if "owner_id" not in rc_cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE reader_content ADD COLUMN owner_id VARCHAR(64)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_reader_content_owner_id ON reader_content(owner_id)"))
     except Exception:
         pass
     # paragraph_comments：补 quote / edition 列（分享好句 + 多版本）。

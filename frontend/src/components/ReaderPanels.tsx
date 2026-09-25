@@ -108,9 +108,11 @@ function PostCard({ c, uid, editions, showUser, onChanged }: {
 
 // ---------- 分享好句 ----------
 
-export function QuoteSheet({ visible, quote, bookId, chapterIndex, chapterTitle, paragraph, edition, editions, uid, onClose, onPosted }: {
+export function QuoteSheet({ visible, quote, bookId, chapterIndex, chapterTitle, paragraph, edition, editions, uid, privateOnly, onClose, onPosted }: {
   visible: boolean; quote: string; bookId: string; chapterIndex: number; chapterTitle: string;
   paragraph: number; edition: BookEdition | null; editions: BookEdition[]; uid: string;
+  /** 私人书架的书：只能存私人笔记 */
+  privateOnly?: boolean;
   onClose: () => void; onPosted: (c: ParagraphComment) => void;
 }) {
   const { t, lang } = useI18n();
@@ -118,7 +120,7 @@ export function QuoteSheet({ visible, quote, bookId, chapterIndex, chapterTitle,
   const [isPublic, setIsPublic] = useState(true);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { if (visible) { setText(''); setIsPublic(true); setBusy(false); } }, [visible]);
+  useEffect(() => { if (visible) { setText(''); setIsPublic(!privateOnly); setBusy(false); } }, [visible, privateOnly]);
 
   const submit = async () => {
     if (busy || !uid) return;
@@ -149,14 +151,14 @@ export function QuoteSheet({ visible, quote, bookId, chapterIndex, chapterTitle,
             placeholderTextColor={colors.textFaint}
             multiline
           />
-          <View style={styles.segment}>
+          {!privateOnly && <View style={styles.segment}>
             {[true, false].map((pub) => (
               <Pressable key={String(pub)} onPress={() => setIsPublic(pub)} style={[styles.segBtn, isPublic === pub && styles.segBtnOn]}>
                 <Text style={[styles.segText, isPublic === pub && styles.segTextOn]}>{pub ? t('quote.public') : t('quote.private')}</Text>
               </Pressable>
             ))}
-          </View>
-          <Text style={styles.hint}>{isPublic ? t('quote.publicHint') : t('quote.privateHint')}</Text>
+          </View>}
+          <Text style={styles.hint}>{privateOnly ? t('quote.privateBookHint') : isPublic ? t('quote.publicHint') : t('quote.privateHint')}</Text>
           <Pressable onPress={submit} disabled={busy} style={[styles.primaryBtn, busy && { opacity: 0.5 }]}>
             <Text style={styles.primaryText}>{busy ? '…' : isPublic ? t('quote.submit') : t('quote.save')}</Text>
           </Pressable>
@@ -388,9 +390,12 @@ export function ExplainSheet({ visible, text, context, bookId, bookTitle, chapte
 
 // ---------- 版本选择 ----------
 
-export function EditionPicker({ visible, editions, currentId, onPick, onClose }: {
+export function EditionPicker({ visible, editions, currentId, onPick, onAdd, adding, onClose }: {
   visible: boolean; editions: BookEdition[]; currentId: string | null;
-  onPick: (e: BookEdition) => void; onClose: () => void;
+  onPick: (e: BookEdition) => void;
+  /** 私人书：上传同一本书的其它语言版本 */
+  onAdd?: () => void; adding?: boolean;
+  onClose: () => void;
 }) {
   const { t, lang } = useI18n();
   return (
@@ -402,7 +407,7 @@ export function EditionPicker({ visible, editions, currentId, onPick, onClose }:
             <View style={{ flex: 1 }}>
               <Text style={styles.edName}>
                 {editionLabel(e, lang)}
-                <Text style={styles.edKind}>  {e.kind === 'original' ? t('edition.original') : t('edition.translation')}</Text>
+                {e.kind !== 'uploaded' && <Text style={styles.edKind}>  {e.kind === 'original' ? t('edition.original') : t('edition.translation')}</Text>}
               </Text>
               <Text style={styles.edSource}>{e.source}</Text>
             </View>
@@ -410,7 +415,12 @@ export function EditionPicker({ visible, editions, currentId, onPick, onClose }:
           </Pressable>
         );
       })}
-      <Text style={[styles.hint, { marginTop: spacing.md }]}>{t('edition.hint')}</Text>
+      {onAdd && (
+        <Pressable onPress={onAdd} disabled={adding} style={[styles.ghostBtn, { alignSelf: 'flex-start' }, adding && { opacity: 0.5 }]}>
+          <Text style={styles.ghostText}>{adding ? t('shelf.uploading') : t('edition.add')}</Text>
+        </Pressable>
+      )}
+      <Text style={[styles.hint, { marginTop: spacing.md }]}>{onAdd ? t('edition.addHint') : t('edition.hint')}</Text>
     </Sheet>
   );
 }

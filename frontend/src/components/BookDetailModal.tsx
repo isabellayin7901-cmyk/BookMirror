@@ -14,6 +14,7 @@ import {
   TextInput,
   Alert,
   PanResponder,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +23,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, typography, radius, shadow } from '../theme';
 import { Sparkle, Heart, Leaf } from '../illustrations/Sparkle';
 import { WavyUnderline } from '../illustrations/Doodle';
-import { getPlatformsForBook, openPlatform, openAppStore, platformName, type PlatformConfig } from '../lib/platformLinks';
+import { getPlatformsForBook, openPlatform, openAppStore, platformName, amazonHost, type PlatformConfig } from '../lib/platformLinks';
 import { PlatformIcon } from '../illustrations/PlatformIcons';
 import { useRegion, regionName } from '../lib/region';
 import { storage } from '../lib/storage';
@@ -33,7 +34,7 @@ import {
   getReadingStatus, setReadingStatus, type ReadingKind,
   fetchMirrorScores, matchReadableBook,
 } from '../lib/api';
-import type { Book, BookRecommendation, RootStackParamList } from '../types';
+import type { Book, BookRecommendation, CatalogEdition, RootStackParamList } from '../types';
 
 const SCREEN_H = Dimensions.get('window').height;
 const SCREEN_W = Dimensions.get('window').width;
@@ -225,6 +226,9 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
                 <Text style={styles.bodyText}>{bookSummary(book, lang)}</Text>
               </Section>
 
+              {/* 多语言版本：出版信息 + 按地区的购买入口（不提供全文） */}
+              {!!book.editions?.length && <EditionsSection editions={book.editions} />}
+
               {/* 为什么适合你 */}
               {rec?.why_for_you && (
                 <Section icon={<Heart size={14} />} title={t('modal.why')} underlineColor={colors.rose}>
@@ -288,6 +292,45 @@ export function BookDetailModal({ visible, book, rec, recLoading, onClose }: Pro
         </Animated.View>
       </View>
     </Modal>
+  );
+}
+
+/** 某个版本去哪里买：大陆用京东（有进口原版）；其它地区法文版去 amazon.fr，其余去当地 Amazon */
+function editionStore(e: CatalogEdition, country: string | null): { name: string; url: string } {
+  const q = encodeURIComponent(e.isbn || `${e.title} ${e.author ?? ''}`.trim());
+  if (country === 'CN') return { name: '京东', url: `https://search.jd.com/Search?keyword=${q}` };
+  const host = e.lang === 'fr' ? 'www.amazon.fr' : amazonHost(country);
+  return { name: host.replace(/^www\./, ''), url: `https://${host}/s?k=${q}&i=stripbooks` };
+}
+
+function EditionsSection({ editions }: { editions: CatalogEdition[] }) {
+  const { t, lang } = useI18n();
+  const region = useRegion();
+  const country = region?.country ?? null;
+  return (
+    <Section icon={<Sparkle size={14} color={colors.sky} />} title={t('modal.editions')} underlineColor={colors.sky}>
+      {editions.map((e, i) => {
+        const store = editionStore(e, country);
+        const meta = [
+          e.translator ? t('modal.translatedBy', { name: e.translator }) : '',
+          e.publisher || '',
+          e.year ? String(e.year) : '',
+        ].filter(Boolean).join(' · ');
+        return (
+          <View key={i} style={styles.editionRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.editionLabel}>{lang === 'en' ? e.label_en : e.label}</Text>
+              <Text style={styles.editionTitle}>{e.title}</Text>
+              {!!meta && <Text style={styles.editionMeta}>{meta}</Text>}
+            </View>
+            <Pressable onPress={() => Linking.openURL(store.url).catch(() => {})} style={styles.editionBuy} hitSlop={6}>
+              <Text style={styles.editionBuyText}>{store.name} ›</Text>
+            </Pressable>
+          </View>
+        );
+      })}
+      <Text style={styles.platformHint}>{t('modal.editionsHint')}</Text>
+    </Section>
   );
 }
 
@@ -725,6 +768,12 @@ const styles = StyleSheet.create({
   },
   lockedText: { color: colors.textMuted, fontSize: 13 },
 
+  editionRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
+  editionLabel: { ...typography.caption, color: colors.textMuted },
+  editionTitle: { ...typography.body, fontWeight: '600', fontStyle: 'italic' },
+  editionMeta: { ...typography.caption, color: colors.textFaint },
+  editionBuy: { borderWidth: 1, borderColor: colors.terracotta, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6, marginLeft: spacing.sm },
+  editionBuyText: { fontSize: 12, fontWeight: '700', color: colors.terracotta },
   reviewsTitle: { ...typography.h3, marginBottom: 2 },
   reviewsSub: { ...typography.caption, color: colors.textFaint, marginBottom: spacing.sm },
   writeBtn: {

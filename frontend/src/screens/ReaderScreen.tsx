@@ -17,6 +17,7 @@ import {
   type ReaderChapter, type ReaderToc, type ParagraphComment,
 } from '../lib/api';
 import { loadReaderBook, loadChapter as loadSourceChapter, pickEdition, type ReaderBookInfo } from '../lib/readerSource';
+import { pickAndUploadBook, PickCancelled, uploadErrorText } from '../lib/privateShelf';
 import { systemLanguage } from '../lib/locale';
 import { QuoteSheet, DiscussionSheet, NotesSheet, ExplainSheet, EditionPicker } from '../components/ReaderPanels';
 import type { BookEdition, RootStackParamList } from '../types';
@@ -192,6 +193,8 @@ export function ReaderScreen() {
   // 初始化要等「WebView 壳就绪」和「数据加载完」两件事，先后顺序不固定。
   // 用 ref 读最新的设置、只初始化一次，避免拿到旧闭包里的 settings=null 而卡在「正在翻开」。
   const settingsRef = useRef<ReaderSettings | null>(null);
+  // 读私人书要带上读者身份；loadChapter 里用 ref 读最新值
+  const uidRef = useRef('');
   // 当前读到的段落（WebView 被系统回收后，重建时回到这里）
   const lastTopPara = useRef(0);
   // 换 key 让 WebView 整个重建（进程被回收后 reload 不一定救得回来）
@@ -206,6 +209,7 @@ export function ReaderScreen() {
   useEffect(() => {
     (async () => {
       const id = await storage.getUserId();
+      uidRef.current = id;
       setUid(id);
       const st = await storage.getReaderSettings();
       settingsRef.current = st;
@@ -215,10 +219,10 @@ export function ReaderScreen() {
       const [appSettings, prog, first] = await Promise.all([
         storage.getSettings(),
         fetchReaderProgress(id, bookId),
-        loadReaderBook(bookId, remembered),
+        loadReaderBook(bookId, remembered, id),
       ]);
       const ed = pickEdition(first?.info.editions ?? [], remembered, appSettings.contentLanguage ?? 'original');
-      const loaded = ed && ed.id !== remembered ? await loadReaderBook(bookId, ed.id) : first;
+      const loaded = ed && ed.id !== remembered ? await loadReaderBook(bookId, ed.id, id) : first;
       editionRef.current = ed?.id ?? null;
       setEditionId(ed?.id ?? null);
       isDemoRef.current = !!loaded?.info.isDemo;
@@ -248,7 +252,7 @@ export function ReaderScreen() {
   }, []);
 
   const loadChapter = useCallback(async (index: number, toPage: number | 'last', toParagraph?: number) => {
-    const ch = await loadSourceChapter(bookId, index, editionRef.current);
+    const ch = await loadSourceChapter(bookId, index, editionRef.current, uidRef.current);
     if (!ch) return;
     chapterRef.current = ch;
     setChapter(ch);
@@ -404,6 +408,22 @@ export function ReaderScreen() {
     setWebKey((k) => k + 1);
   }, []);
 
+  /** 私人书：再上传一个语言版本（如同一本书的法文版 / 英文版） */
+  const [addingEdition, setAddingEdition] = useState(false);
+  const addEdition = async () => {
+    if (addingEdition) return;
+    setAddingEdition(true);
+    try {
+      await pickAndUploadBook(uidRef.current, bookId);
+      const loaded = await loadReaderBook(bookId, editionRef.current, uidRef.current);
+      if (loaded) setInfo(loaded.info);
+    } catch (err) {
+      if (!(err instanceof PickCancelled)) Alert.alert(t('shelf.uploadFailed'), uploadErrorText(err, t));
+    } finally {
+      setAddingEdition(false);
+    }
+  };
+
   /** 切换版本：章节按 index 对齐，停在同一章的开头 */
   const switchEdition = async (e: BookEdition) => {
     setEdPickerOpen(false);
@@ -411,7 +431,7 @@ export function ReaderScreen() {
     editionRef.current = e.id;
     setEditionId(e.id);
     storage.setReaderEdition(bookId, e.id);
-    const loaded = await loadReaderBook(bookId, e.id);
+    const loaded = await loadReaderBook(bookId, e.id, uidRef.current);
     if (loaded) setToc(loaded.toc);
     setLoading(true);
     await loadChapter(chapterRef.current?.index ?? 0, 0);
@@ -473,10 +493,12 @@ export function ReaderScreen() {
             {info?.isDemo && <Text style={[styles.demoTag, { color: theme.sub }]}>{t('reader.demoTag')}</Text>}
           </View>
           {/* 多个版本时才显示版本切换 */}
-          {info && info.editions.length > 1 && currentEdition ? (
+          {info && (info.editions.length > 1 || info.isPrivate) && currentEdition ? (
             <Pressable onPress={() => setEdPickerOpen(true)} style={[styles.edPill, { borderColor: theme.sub }]} hitSlop={8}>
               <Text style={[styles.edPillText, { color: theme.fg }]}>
-                {currentEdition.kind === 'original' ? t('edition.original') : t(`edition.lang.${currentEdition.lang}`)} ▾
+                {currentEdition.kind === 'original' ? t('edition.original')
+                  : currentEdition.kind === 'uploaded' ? (lang === 'en' ? currentEdition.labelEn : currentEdition.label)
+                  : t(`edition.lang.${currentEdition.lang}`)} ▾
               </Text>
             </Pressable>
           ) : <View style={{ width: 28 }} />}
@@ -490,10 +512,13 @@ export function ReaderScreen() {
             <Text style={[styles.bottomIcon, { color: theme.fg }]}>☰</Text>
             <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.toc')}</Text>
           </Pressable>
-          <Pressable style={styles.bottomBtn} onPress={() => setDiscOpen(true)}>
-            <Text style={[styles.bottomIcon, { color: theme.fg }]}>❝</Text>
-            <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.quotes')}</Text>
-          </Pressable>
+          {/* 私人书只有自己能读，不开放公开的「好句与讨论」 */}
+          {!info?.isPrivate && (
+            <Pressable style={styles.bottomBtn} onPress={() => setDiscOpen(true)}>
+              <Text style={[styles.bottomIcon, { color: theme.fg }]}>❝</Text>
+              <Text style={[styles.bottomLabel, { color: theme.sub }]}>{t('reader.quotes')}</Text>
+            </Pressable>
+          )}
           <View style={styles.pageMeta}>
             <Text style={[styles.pageMetaText, { color: theme.sub }]}>
               {settings.pageMode === 'scroll' ? `${pageInfo.page}%` : `${pageInfo.page + 1}/${pageInfo.pages}`}
@@ -618,6 +643,7 @@ export function ReaderScreen() {
         edition={currentEdition}
         editions={info?.editions ?? []}
         uid={uid}
+        privateOnly={!!info?.isPrivate}
         onClose={() => setQuote(null)}
         onPosted={(c) => {
           const para = quote?.paragraph ?? -1;
@@ -673,6 +699,8 @@ export function ReaderScreen() {
         editions={info?.editions ?? []}
         currentId={editionId}
         onPick={switchEdition}
+        onAdd={info?.isPrivate ? addEdition : undefined}
+        adding={addingEdition}
         onClose={() => setEdPickerOpen(false)}
       />
     </View>

@@ -49,14 +49,24 @@ def _iso(dt: Optional[datetime]) -> Optional[str]:
     return dt.isoformat()
 
 
-def _load(session, book_id: str) -> Optional[dict]:
+def _load(session, book_id: str, user_id: str = "", authorization: str = "", edition: str = "") -> Optional[dict]:
+    """取一本书的正文，返回 {title, chapters}。
+    私人书架的书只有上传者本人能读（不是本人一律当作不存在）；多版本时按 edition 取对应版本。"""
     row = session.get(ReaderContent, book_id)
     if row is None:
         return None
+    if row.owner_id:
+        if not user_id or user_id != row.owner_id:
+            return None
+        _require_owner(session, user_id, authorization)
     try:
         data = json.loads(row.data or "{}")
     except Exception:
         data = {}
+    if "editions" in data:
+        eds = data.get("editions") or []
+        ed = next((e for e in eds if e.get("id") == edition), eds[0] if eds else {})
+        data = {"chapters": ed.get("chapters", [])}
     data["title"] = row.title
     return data
 
@@ -99,7 +109,7 @@ def reader_ingest(payload: IngestIn):
 def reader_books():
     session = SessionLocal()
     try:
-        rows = session.execute(select(ReaderContent)).scalars().all()
+        rows = session.execute(select(ReaderContent).where(ReaderContent.owner_id.is_(None))).scalars().all()
         out = []
         for r in rows:
             try:
@@ -113,10 +123,10 @@ def reader_books():
 
 
 @router.get("/reader/toc")
-def reader_toc(book_id: str):
+def reader_toc(book_id: str, user_id: str = "", edition: str = "", authorization: str = Header(default="")):
     session = SessionLocal()
     try:
-        data = _load(session, book_id)
+        data = _load(session, book_id, user_id, authorization, edition)
         if data is None:
             raise HTTPException(status_code=404, detail="书不存在")
         chapters = data.get("chapters", [])
@@ -133,10 +143,11 @@ def reader_toc(book_id: str):
 
 
 @router.get("/reader/chapter")
-def reader_chapter(book_id: str, index: int):
+def reader_chapter(book_id: str, index: int, user_id: str = "", edition: str = "",
+                   authorization: str = Header(default="")):
     session = SessionLocal()
     try:
-        data = _load(session, book_id)
+        data = _load(session, book_id, user_id, authorization, edition)
         if data is None:
             raise HTTPException(status_code=404, detail="书不存在")
         chapters = data.get("chapters", [])
@@ -387,7 +398,7 @@ def _reader_find(payload: FindIn):
     reader_cands: list[dict] = []
     session = SessionLocal()
     try:
-        rows = session.execute(select(ReaderContent)).scalars().all()
+        rows = session.execute(select(ReaderContent).where(ReaderContent.owner_id.is_(None))).scalars().all()
         for r in rows:
             try:
                 chapters = json.loads(r.data or "{}").get("chapters", [])
@@ -735,3 +746,165 @@ def reader_explain(payload: ExplainIn):
         "ambiguities": out.get("ambiguities") or [],
         "terms": terms_out,
     }
+
+
+# ---------- 私人书架：用户上传自己的电子书，只有本人能读 ----------
+
+import base64
+import secrets
+
+from app.services.book_parse import ParseError, parse_upload
+
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024       # 单个文件上限 20MB
+MAX_PRIVATE_BOOKS = 30                    # 每人最多 30 本
+MAX_EDITIONS = 5                          # 每本最多 5 个版本
+
+_EDITION_LABELS = {
+    "zh": ("中文", "Chinese"), "en": ("英文", "English"), "fr": ("法文", "French"),
+    "de": ("德文", "German"), "ja": ("日文", "Japanese"),
+}
+
+
+class PrivateUploadIn(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=64)
+    filename: str = Field(..., min_length=1, max_length=255)
+    data_base64: str = Field(..., min_length=1, max_length=MAX_UPLOAD_BYTES * 4 // 3 + 16)
+    # 给已有的私人书再加一个语言版本时传；不传 = 新建一本
+    book_id: Optional[str] = Field(default=None, max_length=64)
+
+
+class PrivateDeleteIn(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=64)
+    book_id: str = Field(..., min_length=1, max_length=64)
+
+
+def _edition_meta(e: dict) -> dict:
+    return {
+        "id": e.get("id"), "lang": e.get("lang", "other"),
+        "label": e.get("label", ""), "label_en": e.get("label_en", ""),
+        "source": e.get("source", ""), "chapters": len(e.get("chapters") or []),
+    }
+
+
+def _private_row(session, user_id: str, book_id: str, authorization: str) -> ReaderContent:
+    row = session.get(ReaderContent, book_id)
+    if row is None or not row.owner_id or row.owner_id != user_id:
+        raise HTTPException(status_code=404, detail="书不存在")
+    _require_owner(session, user_id, authorization)
+    return row
+
+
+@router.post("/reader/private/upload")
+def private_upload(payload: PrivateUploadIn, authorization: str = Header(default="")):
+    try:
+        raw = base64.b64decode(payload.data_base64, validate=False)
+    except Exception:
+        raise HTTPException(status_code=400, detail="文件内容无法读取")
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="文件太大（上限 20MB）")
+    try:
+        parsed = parse_upload(payload.filename, raw)
+    except ParseError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    session = SessionLocal()
+    try:
+        _require_owner(session, payload.user_id, authorization)
+        lang = parsed["lang"]
+        label, label_en = _EDITION_LABELS.get(lang, ("版本", "Edition"))
+        edition = {
+            "lang": lang, "label": label, "label_en": label_en,
+            "source": payload.filename[:120], "chapters": parsed["chapters"],
+        }
+        if payload.book_id:
+            row = _private_row(session, payload.user_id, payload.book_id, authorization)
+            data = json.loads(row.data or "{}")
+            eds = data.get("editions") or []
+            if len(eds) >= MAX_EDITIONS:
+                raise HTTPException(status_code=400, detail=f"每本书最多 {MAX_EDITIONS} 个版本")
+            edition["id"] = f"e{len(eds) + 1}"
+            eds.append(edition)
+            data["editions"] = eds
+            row.data = json.dumps(data, ensure_ascii=False)
+        else:
+            count = session.execute(
+                select(func.count()).select_from(ReaderContent).where(ReaderContent.owner_id == payload.user_id)
+            ).scalar_one()
+            if count >= MAX_PRIVATE_BOOKS:
+                raise HTTPException(status_code=400, detail=f"私人书架最多放 {MAX_PRIVATE_BOOKS} 本")
+            edition["id"] = "e1"
+            row = ReaderContent(
+                book_id="pv_" + secrets.token_hex(12),
+                title=parsed["title"],
+                owner_id=payload.user_id,
+                data=json.dumps({"author": parsed["author"], "editions": [edition]}, ensure_ascii=False),
+            )
+            session.add(row)
+        session.commit()
+        data = json.loads(row.data)
+        return {
+            "book_id": row.book_id, "title": row.title, "author": data.get("author", ""),
+            "editions": [_edition_meta(e) for e in data.get("editions", [])],
+        }
+    finally:
+        session.close()
+
+
+@router.get("/reader/private/books")
+def private_books(user_id: str, authorization: str = Header(default="")):
+    session = SessionLocal()
+    try:
+        _require_owner(session, user_id, authorization)
+        rows = session.execute(
+            select(ReaderContent).where(ReaderContent.owner_id == user_id).order_by(ReaderContent.updated_at.desc())
+        ).scalars().all()
+        out = []
+        for r in rows:
+            try:
+                data = json.loads(r.data or "{}")
+            except Exception:
+                data = {}
+            eds = data.get("editions") or []
+            out.append({
+                "book_id": r.book_id, "title": r.title, "author": data.get("author", ""),
+                "chapters": len((eds[0].get("chapters") if eds else []) or []),
+                "editions": [_edition_meta(e) for e in eds],
+            })
+        return out
+    finally:
+        session.close()
+
+
+@router.get("/reader/editions")
+def reader_editions(book_id: str, user_id: str = "", authorization: str = Header(default="")):
+    """私人书的版本列表（公共书库目前只有单一版本，返回空）。"""
+    session = SessionLocal()
+    try:
+        row = session.get(ReaderContent, book_id)
+        if row is None or not row.owner_id:
+            return []
+        row = _private_row(session, user_id, book_id, authorization)
+        data = json.loads(row.data or "{}")
+        return [_edition_meta(e) for e in data.get("editions", [])]
+    finally:
+        session.close()
+
+
+@router.post("/reader/private/delete")
+def private_delete(payload: PrivateDeleteIn, authorization: str = Header(default="")):
+    """删除私人书：连同这本书的阅读进度、笔记、评论一起删掉。"""
+    session = SessionLocal()
+    try:
+        row = _private_row(session, payload.user_id, payload.book_id, authorization)
+        comment_ids = [c for (c,) in session.execute(
+            select(ParagraphComment.id).where(ParagraphComment.book_id == payload.book_id)
+        ).all()]
+        if comment_ids:
+            session.execute(delete(CommentLike).where(CommentLike.comment_id.in_(comment_ids)))
+        session.execute(delete(ParagraphComment).where(ParagraphComment.book_id == payload.book_id))
+        session.execute(delete(ReaderProgress).where(ReaderProgress.book_id == payload.book_id))
+        session.delete(row)
+        session.commit()
+        return {"ok": True}
+    finally:
+        session.close()

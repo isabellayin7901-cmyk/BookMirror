@@ -973,17 +973,35 @@ export async function matchReadableBook(title: string): Promise<ReaderBookMeta |
   return best || null;
 }
 
-export async function fetchReaderToc(bookId: string): Promise<ReaderToc | null> {
+/** 读私人书架的书要证明是本人：带上 user_id，已登录账号再带登录凭证 */
+async function ownerHeaders(): Promise<Record<string, string>> {
+  const { storage } = await import('./storage');
+  const token = await storage.getAuthToken();
+  return token ? { ...authHeaders(), Authorization: `Bearer ${token}` } : authHeaders();
+}
+
+/** 私人书 / 多版本：额外带上读者身份与版本 */
+export interface ReaderAccess { userId?: string; edition?: string | null }
+function accessQuery(a?: ReaderAccess): string {
+  if (!a) return '';
+  return `&user_id=${encodeURIComponent(a.userId || '')}&edition=${encodeURIComponent(a.edition || '')}`;
+}
+
+export async function fetchReaderToc(bookId: string, access?: ReaderAccess): Promise<ReaderToc | null> {
   try {
-    const res = await fetch(`${baseUrl}/api/reader/toc?book_id=${encodeURIComponent(bookId)}`, { headers: authHeaders() });
+    const res = await fetch(`${baseUrl}/api/reader/toc?book_id=${encodeURIComponent(bookId)}${accessQuery(access)}`, {
+      headers: access ? await ownerHeaders() : authHeaders(),
+    });
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
 }
 
-export async function fetchReaderChapter(bookId: string, index: number): Promise<ReaderChapter | null> {
+export async function fetchReaderChapter(bookId: string, index: number, access?: ReaderAccess): Promise<ReaderChapter | null> {
   try {
-    const res = await fetch(`${baseUrl}/api/reader/chapter?book_id=${encodeURIComponent(bookId)}&index=${index}`, { headers: authHeaders() });
+    const res = await fetch(`${baseUrl}/api/reader/chapter?book_id=${encodeURIComponent(bookId)}&index=${index}${accessQuery(access)}`, {
+      headers: access ? await ownerHeaders() : authHeaders(),
+    });
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
@@ -1049,6 +1067,53 @@ export async function deleteParagraphComment(userId: string, commentId: number):
       body: JSON.stringify({ user_id: userId, comment_id: commentId }),
     });
   } catch { /* best-effort */ }
+}
+
+// ---------- 私人书架（用户自己上传的电子书，只有本人能读） ----------
+
+export interface PrivateEdition { id: string; lang: string; label: string; label_en: string; source: string; chapters: number }
+export interface PrivateBook { book_id: string; title: string; author: string; chapters?: number; editions: PrivateEdition[] }
+
+/** 上传一本书；传 bookId 表示给这本书再加一个语言版本。失败时抛出带原因的错误。 */
+export async function uploadPrivateBook(input: { userId: string; filename: string; base64: string; bookId?: string }): Promise<PrivateBook> {
+  const res = await fetch(`${baseUrl}/api/reader/private/upload`, {
+    method: 'POST',
+    headers: { ...(await ownerHeaders()), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: input.userId, filename: input.filename, data_base64: input.base64, book_id: input.bookId ?? null }),
+  });
+  if (!res.ok) {
+    let msg = '';
+    try { msg = (await res.json()).detail; } catch { /* ignore */ }
+    throw new Error(typeof msg === 'string' && msg ? msg : `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchPrivateBooks(userId: string): Promise<PrivateBook[]> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/private/books?user_id=${encodeURIComponent(userId)}`, { headers: await ownerHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+export async function fetchPrivateEditions(bookId: string, userId: string): Promise<PrivateEdition[]> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/editions?book_id=${encodeURIComponent(bookId)}&user_id=${encodeURIComponent(userId)}`, { headers: await ownerHeaders() });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+export async function deletePrivateBook(userId: string, bookId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${baseUrl}/api/reader/private/delete`, {
+      method: 'POST',
+      headers: { ...(await ownerHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, book_id: bookId }),
+    });
+    return res.ok;
+  } catch { return false; }
 }
 
 // ---------- 章节「好句与讨论」/ 我的笔记 ----------

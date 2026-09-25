@@ -55763,6 +55763,73 @@
         "Dialogue Between Persistence and Self-Doubt",
         "Turning the Tide Through Determination"
       ]
+    },
+    {
+      "id": "book_lyotard_le",
+      "title": "力比多经济",
+      "author": "让-弗朗索瓦·利奥塔",
+      "title_en": "Libidinal Economy",
+      "author_en": "Jean-François Lyotard",
+      "isbn": "9780253207289",
+      "language": "zh",
+      "category": "philosophy",
+      "difficulty": 5,
+      "mbti_fit": [
+        "INTP",
+        "INTJ",
+        "ENTP",
+        "INFJ"
+      ],
+      "topics": [
+        "philosophy",
+        "power"
+      ],
+      "problems_solved": [],
+      "stage": [
+        "student",
+        "universal"
+      ],
+      "summary": "利奥塔 1974 年的著作。他借用弗洛伊德「力比多经济」的概念，并结合符号学、经济理论和精神分析，提出欲望像能量一样在驱力的结构中流动，政治经济与欲望在根本上交织在一起；书中用「力比多带」等概念，挑战传统理论描述经济与心理中力量和流动的方式。行文刻意激烈、非体系化，阅读门槛很高。",
+      "summary_en": "Lyotard's 1974 work. Drawing on Freud's notion of libidinal economy together with semiotics, economic theory and psychoanalysis, it argues that libido flows like energy through a structure of drives and that political economy and desire are fundamentally intertwined, introducing concepts such as the \"libidinal band\" to challenge how theory captures relations of force and flow. Deliberately provocative and unsystematic; a demanding read.",
+      "key_chapters": [
+        "巨大的短暂之膜",
+        "张量",
+        "名为马克思的欲望",
+        "交换",
+        "资本",
+        "这种写作的经济"
+      ],
+      "key_chapters_en": [
+        "The Great Ephemeral Skin",
+        "The Tensor",
+        "The Desire Named Marx",
+        "Trade",
+        "Capital",
+        "Economy of This Writing"
+      ],
+      "purchase_links": {},
+      "editions": [
+        {
+          "lang": "fr",
+          "label": "法文原版",
+          "label_en": "French original",
+          "title": "Économie libidinale",
+          "author": "Jean-François Lyotard",
+          "publisher": "Les Éditions de Minuit",
+          "year": 1974
+        },
+        {
+          "lang": "en",
+          "label": "英文译本",
+          "label_en": "English translation",
+          "title": "Libidinal Economy",
+          "author": "Jean-François Lyotard",
+          "translator": "Iain Hamilton Grant",
+          "publisher": "Athlone Press / Indiana University Press",
+          "year": 1993,
+          "isbn": "9780253207289"
+        }
+      ]
     }
   ]
 }

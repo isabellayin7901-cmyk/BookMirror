@@ -382,10 +382,11 @@ export function MirrorChatScreen() {
   const pickDocument = async () => {
     setPlusOpen(false);
     let DocumentPicker: typeof import('expo-document-picker');
-    let FileSystem: typeof import('expo-file-system');
+    let FileSystem: typeof import('expo-file-system/legacy');
     try {
       DocumentPicker = require('expo-document-picker');
-      FileSystem = require('expo-file-system');
+      // SDK 54 起旧接口移到了 legacy，直接从 expo-file-system 调 readAsStringAsync 会在运行时抛错
+      FileSystem = require('expo-file-system/legacy');
     } catch {
       Alert.alert(t('mirror.needUpdate'));
       return;

@@ -15,6 +15,8 @@ BookMirror is a mobile reading app built with React Native/Expo (frontend) and F
 - **Post-reading reviews** — rating + review + self-assessed growth, tied to what problems a book helped with
 - **Social** — searchable user IDs, follow/friends, direct messages (text & images), profile pages
 - **Built-in library** — in-app reading (WebView pagination) with paragraph-level public comments and private notes, cross-device reading progress
+- **Private shelf** — upload your own ebooks (EPUB / TXT / text PDF), visible only to you; add other language editions and switch between them while reading
+- **Select-to-act** — select a passage to share it to the chapter's discussion or get an AI translation and explanation with book-wide consistent terminology
 - **Find a book by impression** — describe a half-remembered book and let AI identify it
 
 ## Tech stack
@@ -93,7 +95,7 @@ BookMirror 是 React Native/Expo + FastAPI 的读书 App。结合 MBTI × 星座
 
 ## 能做什么
 
-推荐书单 · 雪宝(小镜子)AI 阅读与心理陪伴 · 星格(MBTI×星座) · 读后评价与成长 · 社交(ID/关注/私信/主页) · 内测书库在线阅读(WebView 翻页+段落评论) · AI 凭印象找书。
+推荐书单 · 雪宝(小镜子)AI 阅读与心理陪伴 · 星格(MBTI×星座) · 读后评价与成长 · 社交(ID/关注/私信/主页) · 内测书库在线阅读(翻页/滚动+段落评论) · 私人书架(上传自己的电子书，仅自己可见，可多语言版本对照) · 划选分享好句 / AI 翻译与理解 · AI 凭印象找书。
 
 ## 本地启动
 
